@@ -7,6 +7,7 @@ import { Panel, Btn, Icon, PillTab, PillTabGroup } from '../components/ui'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
+import { isSimulation, buildSimTournaments, buildSimRegCounts } from '../lib/simulation.js'
 
 // ── Registration progress bar ──────────────────────────────────────────────────
 
@@ -653,6 +654,13 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
   var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null
 
   useEffect(function() {
+    if (isSimulation()) {
+      var simRows = buildSimTournaments()
+      setTournaments(simRows)
+      setRegCounts(buildSimRegCounts())
+      setLoading(false)
+      return
+    }
     supabase
       .from('tournaments')
       .select('*')
@@ -666,6 +674,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
 
   useEffect(function() {
     if (tournaments.length === 0) return
+    if (isSimulation()) return
     var ids = tournaments.map(function(t) { return t.id })
     supabase
       .from('registrations')
@@ -781,11 +790,15 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
             countdownStr = days > 0 ? (days + 'd ' + hours + 'h') : (hours > 0 ? (hours + 'h ' + mins + 'm') : (mins + 'm'))
           }
 
+          var cardHref = isSimulation()
+            ? '/bracket?sim=1&kind=custom'
+            : '/flash/' + t.id
+
           return (
             <article
               key={t.id}
               className="group bg-surface-container-low overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-              onClick={function() { navigate('/flash/' + t.id) }}
+              onClick={function() { navigate(cardHref) }}
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
@@ -850,7 +863,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
                     variant="secondary"
                     size="sm"
                     className="w-full"
-                    onClick={function(e) { e.stopPropagation(); navigate('/flash/' + t.id) }}
+                    onClick={function(e) { e.stopPropagation(); navigate(cardHref) }}
                   >
                     Watch Live
                   </Btn>

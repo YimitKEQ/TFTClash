@@ -11,6 +11,7 @@ import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
 import RegionBadge from '../components/shared/RegionBadge'
+import LiveDashboardLayout from '../components/shared/LiveDashboardLayout'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 
 export default function FlashTournamentScreen(props) {
@@ -144,7 +145,7 @@ export default function FlashTournamentScreen(props) {
 
   useEffect(function() {
     if (phase === 'in_progress' && activeTab === 'info') {
-      setActiveTab('bracket');
+      setActiveTab('live');
     }
   }, [phase]);
 
@@ -746,6 +747,9 @@ export default function FlashTournamentScreen(props) {
   allGameNums.sort(function(a, b) { return a - b; });
 
   var tabs = [{id: 'info', label: 'Info', icon: 'info'}, {id: 'players', label: 'Players (' + regCount + ')', icon: 'group'}];
+  if (phase === 'in_progress') {
+    tabs.push({id: 'live', label: 'Live', icon: 'bolt'});
+  }
   if (phase === 'in_progress' || phase === 'complete' || (phase === 'check_in' && isAdmin)) {
     tabs.push({id: 'bracket', label: 'Lobbies' + (lobbies.length > 0 ? ' (' + currentGameLobbies.length + ')' : ''), icon: 'groups'});
   }
@@ -759,6 +763,47 @@ export default function FlashTournamentScreen(props) {
   });
 
   var lobbyLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  // ── Live dashboard tab data ─────────────────────────────────────────────────
+  var liveLockedThisRound = currentGameLobbies.filter(function(l) { return l.status === 'locked'; }).length;
+  var liveLobbiesThisRound = currentGameLobbies.length;
+  var liveStandings = standings.map(function(s) { return { id: s.id, name: s.name, points: s.totalPts, games: s.games }; });
+  var liveMyIdx = -1;
+  if (myPlayer) {
+    for (var _liveI = 0; _liveI < standings.length; _liveI++) {
+      if (standings[_liveI].id === myPlayer.id) { liveMyIdx = _liveI; break; }
+    }
+  }
+  var liveMyStatus = null;
+  if (liveMyIdx >= 0) {
+    var _liveMe = standings[liveMyIdx];
+    liveMyStatus = {
+      position: liveMyIdx + 1,
+      points: _liveMe.totalPts,
+      games: _liveMe.games,
+      lobbyNumber: myLobby ? (myLobby.lobby_letter || myLobby.lobby_number) : null,
+      onJump: function() { setActiveTab('bracket'); },
+      jumpLabel: 'Jump to my lobby'
+    };
+  }
+  var liveTicker = [];
+  var _liveLocked = currentGameLobbies.filter(function(l) { return l.status === 'locked'; });
+  for (var _ti = _liveLocked.length - 1; _ti >= 0 && liveTicker.length < 6; _ti--) {
+    var _tL = _liveLocked[_ti];
+    liveTicker.push({ icon: 'lock', tone: 'muted', text: 'Lobby ' + (_tL.lobby_letter || _tL.lobby_number) + ' locked' });
+  }
+  var _liveWinners = gameResults
+    .filter(function(g) { return g.placement === 1; })
+    .sort(function(a, b) { return (b.game_number || 0) - (a.game_number || 0); })
+    .slice(0, 6);
+  _liveWinners.forEach(function(g) {
+    var pi = g.players || getPlayerById(g.player_id);
+    var name = (pi && (pi.username || pi.name)) || 'Player';
+    liveTicker.push({ icon: 'star', tone: 'win', text: name + ' won their lobby (R' + g.game_number + ')' });
+  });
+  var liveTitleParts = (tournament && tournament.name && tournament.name.indexOf(':') !== -1)
+    ? { left: tournament.name.split(':')[0].trim(), right: tournament.name.split(':').slice(1).join(':').trim() }
+    : { left: (tournament && tournament.name) || 'Flash Tournament', right: '' };
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -1099,6 +1144,36 @@ export default function FlashTournamentScreen(props) {
               </div>
             )}
           </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: LIVE (DASHBOARD)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'live' && (
+          <LiveDashboardLayout
+            kicker="Flash Tournament"
+            titleParts={liveTitleParts}
+            pills={[
+              { label: 'LIVE', tone: 'live' },
+              { label: tournament.region || 'EU', tone: 'neutral' },
+              { label: 'CUSTOM', tone: 'muted' }
+            ]}
+            secondaryMeta={'Round ' + currentGameNumber + ' of ' + totalGames}
+            cta={{ label: 'View Lobbies', icon: 'grid_view', onClick: function() { setActiveTab('bracket'); } }}
+            kpis={[
+              { icon: 'schedule', label: 'Round', value: currentGameNumber + ' / ' + totalGames, sub: currentGameNumber < totalGames ? ((totalGames - currentGameNumber) + ' to go') : 'final round' },
+              { icon: 'groups', label: 'Players', value: String(checkedInCount), sub: 'checked in' },
+              { icon: 'lock', label: 'Lobbies', value: liveLockedThisRound + ' / ' + liveLobbiesThisRound, sub: 'locked this round' },
+              { icon: 'emoji_events', label: 'Prize Pool', value: prizes.length > 0 ? (prizes.length + ' tiers') : '—', sub: prizes.length > 0 ? 'see standings' : 'no prizes set' }
+            ]}
+            myStatus={liveMyStatus}
+            standings={liveStandings}
+            currentRound={currentGameNumber}
+            ticker={liveTicker}
+            timeline={{ round: currentGameNumber, totalRounds: totalGames, lockedThisRound: liveLockedThisRound, lobbiesThisRound: liveLobbiesThisRound }}
+            fullStandingsLink={{ label: 'See full standings', onClick: function() { setActiveTab('standings'); } }}
+            footer={null}
+          />
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════

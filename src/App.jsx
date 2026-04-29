@@ -696,7 +696,7 @@ function TFTClash(){
         {screen==="milestones" &&<MilestonesScreenNew/>}
         {screen==="challenges" &&<ChallengesScreenNew/>}
 
-        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} allPendingResults={allPendingResults} pastClashes={pastClashes}/></PageLayout>}
+        {screen==="clash"      &&<ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} allPendingResults={allPendingResults} pastClashes={pastClashes}/>}
 
         {screen==="bracket"    &&<BracketScreenNew/>}
 

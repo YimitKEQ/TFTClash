@@ -1,6 +1,6 @@
 /**
  * Local tournament simulation - activate with ?sim=1 in URL
- * Creates a fake 64-player tournament in "live" phase with 8 lobbies
+ * Creates a fake 128-player tournament mid-round-2 with 16 lobbies
  * Does NOT touch Supabase or any remote data
  */
 import { SEED, PTS, RANKS, RCOLS } from './constants.js'
@@ -8,9 +8,18 @@ import { buildLobbies } from './tournament.js'
 
 var SIM_ACTIVE = import.meta.env.DEV && typeof window !== 'undefined' && window.location.search.indexOf('sim=1') > -1
 
-export function isSimulation() { return SIM_ACTIVE }
+function getSimKind() {
+  if (typeof window === 'undefined') return 'season'
+  var m = window.location.search.match(/[?&]kind=([a-z]+)/i)
+  return m ? m[1].toLowerCase() : 'season'
+}
 
-// Generate 64 fake players (24 from SEED + 40 generated)
+export function isSimulation() { return SIM_ACTIVE }
+export function isCustomSim() { return SIM_ACTIVE && getSimKind() === 'custom' }
+
+var TARGET_PLAYERS = 128
+
+// Generate 128 fake players (24 from SEED + 104 generated)
 function generatePlayers() {
   var players = SEED.map(function(p) {
     return Object.assign({}, p, { checkedIn: true, riotId: p.name + '#' + (p.region || 'EUW') })
@@ -24,19 +33,35 @@ function generatePlayers() {
     'PhantomAce', 'TitanForge', 'LunarEcho', 'SolarFlare', 'ZenithPeak',
     'NovaBurst', 'VortexRing', 'QuartzEdge', 'PrismShot', 'ObsidianRex',
     'CedarWind', 'MarbleDust', 'CoralReef', 'AmberWave', 'IndigoMist',
-    'PearlDive', 'TopazGlint', 'OpalShine', 'GarnetFlash', 'SapphireRay'
+    'PearlDive', 'TopazGlint', 'OpalShine', 'GarnetFlash', 'SapphireRay',
+    'ViperFang', 'OmegaPulse', 'NebulaCore', 'DraconisVex', 'AstralWyrm',
+    'GraniteMaul', 'IronVault', 'ChromeKnight', 'MidnightSky', 'EclipseRay',
+    'BronzeFist', 'CopperSpear', 'GlacierEdge', 'CinderAsh', 'TempestRoar',
+    'ZephyrDance', 'MagmaCore', 'TidalCrash', 'SwiftQuiver', 'BoldStrike',
+    'ValorBlade', 'NobleHunt', 'RogueShade', 'SilentEcho', 'WildSpirit',
+    'DuskBringer', 'DawnHerald', 'TwilightVow', 'StormCaller', 'SunPiercer',
+    'MoonWarden', 'StarChaser', 'AbyssWalker', 'SkyShatter', 'EarthRender',
+    'FireBrand', 'WaterWeaver', 'WindRider', 'BoneCrusher', 'BloodMoon',
+    'IceLance', 'ShadowDancer', 'LightBearer', 'NightOwl', 'DayBreaker',
+    'GraveDigger', 'SpellSinger', 'RuneScribe', 'ChaosBringer', 'OrderKeeper',
+    'PoisonDart', 'VenomKiss', 'PlagueDoctor', 'AshBringer', 'CinderHeart',
+    'SteelMind', 'GlassCannon', 'MarbleHeart', 'CrystalEye', 'GoldenSword',
+    'SilverArrow', 'BronzeShield', 'IronWill', 'GhostFire', 'SoulRender',
+    'VoidPiercer', 'SkyForger', 'StoneShaper'
   ]
 
   var rankPool = ['Gold', 'Platinum', 'Diamond', 'Master', 'Grandmaster', 'Diamond', 'Platinum', 'Gold']
+  var needed = TARGET_PLAYERS - players.length
 
-  for (var i = 0; i < 40; i++) {
+  for (var i = 0; i < needed; i++) {
     var rank = rankPool[i % rankPool.length]
     var pts = Math.max(5, Math.floor(Math.random() * 400) + 20)
     var region = i % 3 === 0 ? 'NA' : 'EUW'
+    var name = extraNames[i] || ('Player' + (i + 1))
     players.push({
       id: 100 + i,
-      name: extraNames[i],
-      riotId: extraNames[i] + '#' + region,
+      name: name,
+      riotId: name + '#' + region,
       rank: rank,
       region: region,
       pts: pts,
@@ -50,7 +75,6 @@ function generatePlayers() {
   return players
 }
 
-// Build the full simulated state
 // Seeded random for deterministic sim (same results on each reload)
 var _simSeed = 42
 function simRandom() {
@@ -96,6 +120,74 @@ function randomPlacementsSeeded(lobbyPlayers, biasPlayerId) {
   return result
 }
 
+// Fake custom/flash tournament records to display on /events/tournaments in sim mode.
+// Matches the shape the TournamentsTab expects from supabase('tournaments').
+export function buildSimTournaments() {
+  if (!SIM_ACTIVE) return []
+  var nowIso = new Date(Date.now() + 86400000 * 3).toISOString() // 3 days out
+  var liveIso = new Date(Date.now() - 1800000).toISOString() // 30m ago
+  return [
+    {
+      id: 'sim-custom-1',
+      name: 'Saturday Night Showdown',
+      type: 'flash_tournament',
+      phase: 'registration',
+      date: nowIso,
+      region: 'EU',
+      max_players: 64,
+      round_count: 4,
+      seeding_method: 'snake',
+      prize_pool_json: [
+        { placement: 1, prize: '$200' },
+        { placement: 2, prize: '$100' },
+        { placement: 3, prize: '$50' }
+      ],
+      host_profile_id: null
+    },
+    {
+      id: 'sim-custom-2',
+      name: 'Iron Tactics Cup',
+      type: 'flash_tournament',
+      phase: 'in_progress',
+      date: liveIso,
+      region: 'EU',
+      max_players: 32,
+      round_count: 3,
+      seeding_method: 'random',
+      prize_pool_json: [
+        { placement: 1, prize: '$500' },
+        { placement: 2, prize: '$250' },
+        { placement: 3, prize: '$100' }
+      ],
+      host_profile_id: null
+    },
+    {
+      id: 'sim-custom-3',
+      name: 'Homies Brawl Vol. 4',
+      type: 'flash_tournament',
+      phase: 'check_in',
+      date: nowIso,
+      region: 'NA',
+      max_players: 16,
+      round_count: 3,
+      seeding_method: 'snake',
+      prize_pool_json: [
+        { placement: 1, prize: 'Bragging Rights' }
+      ],
+      host_profile_id: null
+    }
+  ]
+}
+
+export function buildSimRegCounts() {
+  if (!SIM_ACTIVE) return {}
+  return {
+    'sim-custom-1': 41,
+    'sim-custom-2': 28,
+    'sim-custom-3': 9
+  }
+}
+
 export function buildSimulationState() {
   if (!SIM_ACTIVE) return null
   _simSeed = 42 // reset for deterministic results
@@ -113,13 +205,13 @@ export function buildSimulationState() {
     lobby.forEach(function(p) { if (p.id === levitateId) levitateLobbyIdx = li })
   })
 
-  var completedRounds = 4
+  var completedRounds = 1
   var gameResults = []
   var roundHistory = {}
   var playerMap = {}
   allPlayers.forEach(function(p) { playerMap[String(p.id)] = p })
 
-  // Generate results for rounds 1-4
+  // Generate results for round 1 only
   for (var r = 1; r <= completedRounds; r++) {
     var roundPlacements = {}
     for (var i = 0; i < lobbies.length; i++) {
@@ -135,7 +227,7 @@ export function buildSimulationState() {
         if (roundPlacements[li] && roundPlacements[li][pid]) {
           var place = roundPlacements[li][pid]
           gameResults.push({
-            tournament_id: 'sim-64p',
+            tournament_id: 'sim-128p',
             round_number: r,
             game_number: r,
             player_id: player.id,
@@ -148,7 +240,7 @@ export function buildSimulationState() {
     }
   }
 
-  // Stamp clashHistory onto players from all completed rounds
+  // Stamp clashHistory onto players from completed rounds
   gameResults.forEach(function(gr) {
     var p = playerMap[String(gr.player_id)]
     if (!p) return
@@ -158,37 +250,9 @@ export function buildSimulationState() {
       place: gr.placement,
       placement: gr.placement,
       pts: gr.points,
-      clashId: 'sim-64p',
+      clashId: 'sim-128p',
       bonusPts: 0
     })
-  })
-
-  // Apply cut line after round 4: eliminate bottom players, keeping lobbies even (multiples of 8)
-  // Sort all players by total points descending, then cut to nearest multiple of 8
-  var ranked = allPlayers.map(function(p) {
-    var totalPts = 0
-    ;(p.clashHistory || []).forEach(function(h) {
-      if (h.clashId === 'sim-64p') totalPts += (h.pts || 0)
-    })
-    return { player: p, totalPts: totalPts }
-  }).sort(function(a, b) { return b.totalPts - a.totalPts })
-
-  // Keep top N players where N is the largest multiple of 8 that's <= 75% of total (target ~48 from 64)
-  var targetSurvivors = Math.floor(allPlayers.length * 0.75)
-  var survivorCount = Math.floor(targetSurvivors / 8) * 8
-  if (survivorCount < 8) survivorCount = 8
-
-  var cutLine = ranked.length > survivorCount ? ranked[survivorCount - 1].totalPts : 0
-  var survivingIds = []
-  var eliminatedIds = []
-  ranked.forEach(function(entry, idx) {
-    if (idx < survivorCount) {
-      survivingIds.push(String(entry.player.id))
-    } else {
-      eliminatedIds.push(String(entry.player.id))
-      entry.player.checkedIn = false
-      entry.player.eliminated = true
-    }
   })
 
   // Store original lobbies for past round results viewing
@@ -199,35 +263,48 @@ export function buildSimulationState() {
     })
   }
 
-  // Rebuild lobbies from surviving players only for round 5
-  var survivingPlayers = allPlayers.filter(function(p) { return !p.eliminated })
-  var newLobbies = buildLobbies(survivingPlayers, 'snake', 8)
+  // No cut line yet (cut happens after round 4). Round 2 lobbies are reseeded snake-style by current standings.
+  var rankedAfterR1 = allPlayers.map(function(p) {
+    var totalPts = 0
+    ;(p.clashHistory || []).forEach(function(h) {
+      if (h.clashId === 'sim-128p') totalPts += (h.pts || 0)
+    })
+    return Object.assign({}, p, { _seedPts: totalPts })
+  }).sort(function(a, b) { return b._seedPts - a._seedPts })
 
+  var newLobbies = buildLobbies(rankedAfterR1, 'snake', 8)
   var savedLobbies = newLobbies.map(function(lobby) {
     return lobby.map(function(p) { return p.id })
   })
 
+  var checkedInIds = allPlayers.map(function(p) { return String(p.id) })
+  var registeredIds = checkedInIds.slice()
+
+  var kind = getSimKind()
+  var isCustom = kind === 'custom'
+
   var tournamentState = {
     phase: 'live',
-    round: 5,
-    totalGames: 6,
-    clashId: 'sim-64p',
-    clashName: 'Simulated Clash (64 Players)',
+    round: 2,
+    totalGames: isCustom ? 4 : 6,
+    clashId: isCustom ? 'sim-custom-2' : 'sim-128p',
+    clashName: isCustom ? 'Iron Tactics Cup' : 'Simulated Clash (128 Players)',
+    tournamentType: isCustom ? 'custom' : 'season_clash',
     clashDate: new Date().toISOString().slice(0, 10),
-    clashTimestamp: new Date(Date.now() - 3600000).toISOString(),
+    clashTimestamp: new Date(Date.now() - 1800000).toISOString(),
     lobbies: newLobbies,
     savedLobbies: savedLobbies,
     lockedLobbies: [],
     lockedPlacements: {},
     roundHistory: roundHistory,
     roundLobbies: roundLobbies,
-    checkedInIds: survivingIds,
-    registeredIds: allPlayers.map(function(p) { return String(p.id) }),
-    eliminatedIds: eliminatedIds,
+    checkedInIds: checkedInIds,
+    registeredIds: registeredIds,
+    eliminatedIds: [],
     waitlistIds: [],
-    maxPlayers: 64,
+    maxPlayers: TARGET_PLAYERS,
     seedAlgo: 'snake',
-    cutLine: cutLine,
+    cutLine: 0,
     cutAfterGame: 4,
     dbTournamentId: null,
     format: 'competitive'

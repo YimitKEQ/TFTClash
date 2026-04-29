@@ -16,6 +16,8 @@ import Sparkline from '../components/shared/Sparkline';
 import AwardCard from '../components/shared/AwardCard';
 import PlacementDistribution from '../components/shared/PlacementDistribution';
 import PrizePoolCard from '../components/shared/PrizePoolCard';
+import PageLayout from '../components/layout/PageLayout';
+import ClashLiveDashboard from './ClashLiveDashboard';
 
 // ---- CANVAS COLORS (for downloadCard ctx operations) ----
 var CANVAS_COLORS = { text: '#e4e1ec', muted: '#d5c4af', accent: '#e8a838' };
@@ -2571,12 +2573,12 @@ function ClashScreen(props) {
   var tournamentState = props.tournamentState || {}
   var phase = tournamentState.phase;
   if (!phase || phase === 'idle') {
-    return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} pastClashes={props.pastClashes} />
+    return <PageLayout><ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} pastClashes={props.pastClashes} /></PageLayout>
   }
 
   // Registration / check-in get a clean modern view; fall through to live/complete legacy below
   if (phase === 'registration' || phase === 'checkin') {
-    return <ClashLobbyView
+    return <PageLayout><ClashLobbyView
       phase={phase}
       tournamentState={tournamentState}
       players={props.players || []}
@@ -2588,7 +2590,12 @@ function ClashScreen(props) {
       setProfilePlayer={props.setProfilePlayer}
       setScreen={props.setScreen}
       navigate={navigate}
-    />
+    /></PageLayout>
+  }
+
+  // Live phases: render the live dashboard. Bracket details live at /bracket.
+  if (phase === 'live' || phase === 'inprogress') {
+    return <ClashLiveDashboard />
   }
 
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
@@ -2640,62 +2647,19 @@ function ClashScreen(props) {
   }
 
   return (
-    <div className="fade-up max-w-5xl mx-auto py-6 px-4">
-
-      {/* Bracket / lobby view for live phases */}
-      {(phase === "live" || phase === "inprogress") && (
-        <MemoBracketScreen
-          players={props.players} setPlayers={props.setPlayers} toast={props.toast}
-          isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}
-          setScreen={props.setScreen} tournamentState={props.tournamentState}
-          setTournamentState={props.setTournamentState} seasonConfig={props.seasonConfig}
-          allPendingResults={props.allPendingResults} pastClashes={props.pastClashes}
-        />
-      )}
-
-      {/* Game progress dots for live phase */}
-      {(phase === "live" || phase === "inprogress") && (
-        <div className="flex gap-1 mb-4 justify-center px-4">
-          {Array.from({ length: props.tournamentState.totalGames || 4 }, function(_, i) {
-            var isComplete = i + 1 < (props.tournamentState.round || 1);
-            var isCurrent = i + 1 === (props.tournamentState.round || 1);
-            return (
-              <div key={"game-" + (i + 1)} className="h-2 rounded" style={{
-                width: isCurrent ? 24 : 8,
-                background: isComplete ? "#6EE7B7" : isCurrent ? "#E8A838" : "rgba(255,255,255,.1)",
-                transition: "all .3s ease"
-              }} />
-            );
-          })}
-        </div>
-      )}
-
-      {/* Swiss reseed banner */}
-      {(phase === "live" || phase === "inprogress") && props.tournamentState.seedAlgo === "swiss" && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 && (
-        <div className="flex items-center justify-center gap-2 px-4 py-2 mx-4 mb-3 rounded-lg font-label text-[11px] tracking-[.04em]" style={{
-          background: "rgba(232,168,56,.04)", border: "1px solid rgba(232,168,56,.12)",
-          maxHeight: 48, color: "#E8A838"
-        }}>
-          <Icon name="shuffle" className="text-base" />
-          Swiss Reseed - Lobbies reorganized by standings
-        </div>
-      )}
-
-      {/* Live standings table */}
-      {(phase === "live" || phase === "inprogress") && props.tournamentState.liveStandings && (
-        <LiveStandingsTable standings={props.tournamentState.liveStandings} />
-      )}
-
-      {/* Complete phase: your finish, awards, recap, results */}
-      {phase === "complete" && (
-        <>
-          <YourFinishCard currentUser={props.currentUser} finalStandings={props.tournamentState.finalStandings || []} />
-          {awardsEl}
-          {recapEl}
-          <MemoResultsScreen players={props.players} toast={props.toast} setScreen={props.setScreen} setProfilePlayer={props.setProfilePlayer} tournamentState={props.tournamentState} pastClashes={props.pastClashes} />
-        </>
-      )}
-    </div>
+    <PageLayout>
+      <div className="fade-up">
+        {/* Complete phase: your finish, awards, recap, results */}
+        {phase === "complete" && (
+          <>
+            <YourFinishCard currentUser={props.currentUser} finalStandings={props.tournamentState.finalStandings || []} />
+            {awardsEl}
+            {recapEl}
+            <MemoResultsScreen players={props.players} toast={props.toast} setScreen={props.setScreen} setProfilePlayer={props.setProfilePlayer} tournamentState={props.tournamentState} pastClashes={props.pastClashes} />
+          </>
+        )}
+      </div>
+    </PageLayout>
   );
 }
 
