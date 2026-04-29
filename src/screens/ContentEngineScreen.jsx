@@ -9,11 +9,19 @@ var SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 var SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 var PLATFORMS = [
-  { id: 'twitter',   name: 'Twitter / X',  color: '#1DA1F2', icon: 'tag',          glow: 'rgba(29,161,242,0.35)' },
-  { id: 'reddit',    name: 'Reddit',       color: '#FF4500', icon: 'forum',        glow: 'rgba(255,69,0,0.35)' },
-  { id: 'medium',    name: 'Medium',       color: '#00AB6C', icon: 'article',      glow: 'rgba(0,171,108,0.35)' },
-  { id: 'instagram', name: 'Instagram',    color: '#E1306C', icon: 'photo_camera', glow: 'rgba(225,48,108,0.35)' },
+  { id: 'twitter',   name: 'X / Twitter',  color: '#1DA1F2', icon: 'tag',           glow: 'rgba(29,161,242,0.35)' },
+  { id: 'reddit',    name: 'Reddit',       color: '#FF4500', icon: 'forum',         glow: 'rgba(255,69,0,0.35)' },
+  { id: 'tiktok',    name: 'TikTok',       color: '#FF0050', icon: 'music_video',   glow: 'rgba(255,0,80,0.35)' },
+  { id: 'ytshorts',  name: 'YT Shorts',    color: '#FF0000', icon: 'play_circle',   glow: 'rgba(255,0,0,0.35)' },
+  { id: 'instagram', name: 'Instagram',    color: '#E1306C', icon: 'photo_camera',  glow: 'rgba(225,48,108,0.35)' },
+  { id: 'threads',   name: 'Threads',      color: '#E5E7EB', icon: 'chat',          glow: 'rgba(229,231,235,0.25)' },
+  { id: 'bluesky',   name: 'Bluesky',      color: '#0085FF', icon: 'cloud',         glow: 'rgba(0,133,255,0.35)' },
+  { id: 'linkedin',  name: 'LinkedIn',     color: '#0A66C2', icon: 'work',          glow: 'rgba(10,102,194,0.35)' },
+  { id: 'medium',    name: 'Medium',       color: '#00AB6C', icon: 'article',       glow: 'rgba(0,171,108,0.35)' },
 ]
+
+// Platforms we adapt to from a primary post (skip long-form Medium and LinkedIn unless explicit)
+var ADAPT_TARGETS = ['twitter','reddit','tiktok','ytshorts','instagram','threads','bluesky']
 
 var CONTENT_TYPES = {
   twitter: [
@@ -62,6 +70,44 @@ var CONTENT_TYPES = {
     { id: 'tier_list',      label: 'Tier List Post',     icon: 'format_list_numbered' },
     { id: 'story',          label: 'Story Sequence',     icon: 'amp_stories' },
   ],
+  tiktok: [
+    { id: 'pov_clutch',     label: 'POV Clutch Moment',  icon: 'visibility' },
+    { id: 'tier_list_short',label: 'Tier List Short',    icon: 'format_list_numbered' },
+    { id: 'augment_take',   label: 'Augment Hot Take',   icon: 'auto_awesome' },
+    { id: 'mistake_callout',label: '3 Mistakes',         icon: 'warning' },
+    { id: 'comp_quickhit',  label: 'Comp Quick-Hit',     icon: 'bolt' },
+    { id: 'patch_reaction', label: 'Patch Reaction',     icon: 'mood' },
+    { id: 'clash_clip',     label: 'Clash Clip Promo',   icon: 'emoji_events' },
+  ],
+  ytshorts: [
+    { id: 'tutorial_short', label: 'Tutorial Short',     icon: 'school' },
+    { id: 'tier_list_short',label: 'Tier List Short',    icon: 'format_list_numbered' },
+    { id: 'patch_recap',    label: 'Patch Recap',        icon: 'summarize' },
+    { id: 'mistake_callout',label: '3 Mistakes',         icon: 'warning' },
+    { id: 'lobby_breakdown',label: 'Lobby Breakdown',    icon: 'analytics' },
+    { id: 'set17_preview',  label: 'Set 17 Preview',     icon: 'rocket_launch' },
+  ],
+  threads: [
+    { id: 'dev_log_thread', label: 'Dev Log Thread',     icon: 'code' },
+    { id: 'hot_take',       label: 'Hot Take',           icon: 'local_fire_department' },
+    { id: 'community',      label: 'Community Prompt',   icon: 'forum' },
+    { id: 'tournament_recap',label:'Tournament Recap',   icon: 'emoji_events' },
+    { id: 'meta_note',      label: 'Meta Note',          icon: 'flash_on' },
+  ],
+  bluesky: [
+    { id: 'sharp_take',     label: 'Sharp Take',         icon: 'cloud' },
+    { id: 'patch_reaction', label: 'Patch Reaction',     icon: 'bolt' },
+    { id: 'transparency',   label: 'Transparency Post',  icon: 'visibility' },
+    { id: 'hot_take',       label: 'Hot Take',           icon: 'local_fire_department' },
+    { id: 'community',      label: 'Community Prompt',   icon: 'forum' },
+  ],
+  linkedin: [
+    { id: 'case_study',     label: 'Tournament Case Study', icon: 'business' },
+    { id: 'build_in_public',label: 'Build in Public',    icon: 'construction' },
+    { id: 'esports_take',   label: 'Esports Take',       icon: 'workspace_premium' },
+    { id: 'community_post', label: 'Community Building', icon: 'group' },
+    { id: 'lessons_learned',label: 'Lessons Learned',    icon: 'lightbulb' },
+  ],
 }
 
 var TONES = [
@@ -84,13 +130,37 @@ var REMIX_ACTIONS = [
 ]
 
 var TABS = [
-  { id: 'generate', label: 'Generate', icon: 'bolt' },
-  { id: 'campaign', label: 'Campaign', icon: 'rocket_launch' },
-  { id: 'ideas',    label: 'Ideas',    icon: 'lightbulb' },
-  { id: 'library',  label: 'Library',  icon: 'inventory_2' },
-  { id: 'trends',   label: 'Trends',   icon: 'trending_up' },
-  { id: 'socials',  label: 'Socials',  icon: 'link' },
+  { id: 'daily',    label: 'Daily Drop', icon: 'today' },
+  { id: 'inbox',    label: 'Idea Inbox', icon: 'inbox' },
+  { id: 'generate', label: 'Generate',   icon: 'bolt' },
+  { id: 'campaign', label: 'Campaign',   icon: 'rocket_launch' },
+  { id: 'ideas',    label: 'Brainstorm', icon: 'lightbulb' },
+  { id: 'library',  label: 'Library',    icon: 'inventory_2' },
+  { id: 'trends',   label: 'Trends',     icon: 'trending_up' },
+  { id: 'socials',  label: 'Socials',    icon: 'link' },
 ]
+
+// Day-of-week themes shipped in the niche playbook (see edge fn NICHE_PLAYBOOK).
+// Index 0 = Sunday to match Date#getDay().
+var DAY_THEMES = [
+  { key: 'sun', name: 'Q&A / Community',     icon: 'forum',                hint: 'Open prompt, AMA, leaderboard spotlight, community love.' },
+  { key: 'mon', name: 'Meta Watch',          icon: 'flash_on',             hint: 'What shifted, what is S-tier, what to play this week.' },
+  { key: 'tue', name: 'Tutorial Tuesday',    icon: 'school',               hint: 'One fundamental: positioning, econ, scout reads, items.' },
+  { key: 'wed', name: 'Dev Log',             icon: 'code',                 hint: 'Build in public, what shipped on TFT Clash this week.' },
+  { key: 'thu', name: 'Hot Take Thursday',   icon: 'local_fire_department',hint: 'One bold opinion. Engagement bait. Make them argue.' },
+  { key: 'fri', name: 'Featured Comp',       icon: 'star',                 hint: 'Deep dive: items, augments, openers, transitions, late game.' },
+  { key: 'sat', name: 'Tournament Recap',    icon: 'emoji_events',         hint: 'Final tables, big plays, story of the bracket.' },
+]
+
+function todayKey() {
+  var d = new Date()
+  return d.toISOString().slice(0,10)
+}
+
+function dayTheme(date) {
+  var idx = (date || new Date()).getDay()
+  return DAY_THEMES[idx]
+}
 
 function buildComposerUrl(platform, content, social) {
   if (platform === 'twitter') {
@@ -103,7 +173,12 @@ function buildComposerUrl(platform, content, social) {
     var body = lines.slice(1).join('\n').trim()
     return 'https://www.reddit.com/r/' + sub + '/submit?title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(body)
   }
-  if (platform === 'medium') return 'https://medium.com/new-story'
+  if (platform === 'threads')   return 'https://www.threads.net/'
+  if (platform === 'bluesky')   return 'https://bsky.app/'
+  if (platform === 'linkedin')  return 'https://www.linkedin.com/feed/?shareActive=true'
+  if (platform === 'tiktok')    return 'https://www.tiktok.com/upload'
+  if (platform === 'ytshorts')  return 'https://www.youtube.com/upload'
+  if (platform === 'medium')    return 'https://medium.com/new-story'
   if (platform === 'instagram') return 'https://www.instagram.com/'
   return '#'
 }
@@ -254,9 +329,9 @@ function GenerateTab(props) {
   var adaptToAll = useCallback(async function(){
     if (!results.length) return
     var source = editMode ? edited : (results[selected] || '')
-    var targets = PLATFORMS.filter(function(p){return p.id !== platform})
+    var targets = PLATFORMS.filter(function(p){return p.id !== platform && ADAPT_TARGETS.indexOf(p.id) >= 0})
     setLoading(true)
-    setLoadingMsg('Adapting to 3 platforms...')
+    setLoadingMsg('Adapting to ' + targets.length + ' platforms...')
     try {
       var adapted = []
       for (var i=0; i<targets.length; i++) {
@@ -860,7 +935,7 @@ function LibraryTab(props) {
           style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.08)', outline:'none'}}/>
       </div>
       <div className="flex gap-2 mb-5 flex-wrap">
-        {['all','favorites','draft','scheduled','posted','archived','twitter','reddit','medium','instagram'].map(function(f){
+        {['all','favorites','draft','scheduled','posted','archived','twitter','reddit','tiktok','ytshorts','instagram','threads','bluesky','linkedin','medium'].map(function(f){
           return <GoldChip key={f} active={filter===f} onClick={function(){setFilter(f)}}>{f.toUpperCase()}</GoldChip>
         })}
       </div>
@@ -985,6 +1060,11 @@ function SocialsTab(props) {
   var [sub, setSub] = useState((social && social.reddit_default_sub) || 'CompetitiveTFT')
   var [medium, setMedium] = useState((social && social.medium_handle) || '')
   var [ig, setIg] = useState((social && social.instagram_handle) || '')
+  var [tiktok, setTiktok] = useState((social && social.tiktok_handle) || '')
+  var [ytshorts, setYtshorts] = useState((social && social.ytshorts_handle) || '')
+  var [threads, setThreads] = useState((social && social.threads_handle) || '')
+  var [bluesky, setBluesky] = useState((social && social.bluesky_handle) || '')
+  var [linkedin, setLinkedin] = useState((social && social.linkedin_handle) || '')
 
   useEffect(function(){
     if (social) {
@@ -993,6 +1073,11 @@ function SocialsTab(props) {
       setSub(social.reddit_default_sub || 'CompetitiveTFT')
       setMedium(social.medium_handle || '')
       setIg(social.instagram_handle || '')
+      setTiktok(social.tiktok_handle || '')
+      setYtshorts(social.ytshorts_handle || '')
+      setThreads(social.threads_handle || '')
+      setBluesky(social.bluesky_handle || '')
+      setLinkedin(social.linkedin_handle || '')
     }
   }, [social])
 
@@ -1004,6 +1089,11 @@ function SocialsTab(props) {
       reddit_default_sub: sub,
       medium_handle: medium,
       instagram_handle: ig,
+      tiktok_handle: tiktok,
+      ytshorts_handle: ytshorts,
+      threads_handle: threads,
+      bluesky_handle: bluesky,
+      linkedin_handle: linkedin,
       updated_at: new Date().toISOString(),
     }
     var r = await supabase.from('social_connections').upsert(row, {onConflict:'owner_id'})
@@ -1013,11 +1103,16 @@ function SocialsTab(props) {
   }
 
   var fields = [
-    { label:'Twitter / X handle', value:twitter, setter:setTwitter, placeholder:'@levitate', color:'#1DA1F2' },
-    { label:'Reddit username',    value:reddit,  setter:setReddit,  placeholder:'u/yourname', color:'#FF4500' },
-    { label:'Default subreddit',  value:sub,     setter:setSub,     placeholder:'CompetitiveTFT', color:'#FF4500' },
-    { label:'Medium handle',      value:medium,  setter:setMedium,  placeholder:'@sebastianlives', color:'#00AB6C' },
-    { label:'Instagram handle',   value:ig,      setter:setIg,      placeholder:'@sebastianlives', color:'#E1306C' },
+    { label:'X / Twitter handle', value:twitter,  setter:setTwitter,  placeholder:'@tftclash', color:'#1DA1F2' },
+    { label:'Reddit username',    value:reddit,   setter:setReddit,   placeholder:'u/tftclash', color:'#FF4500' },
+    { label:'Default subreddit',  value:sub,      setter:setSub,      placeholder:'CompetitiveTFT', color:'#FF4500' },
+    { label:'TikTok handle',      value:tiktok,   setter:setTiktok,   placeholder:'@tftclash', color:'#FF0050' },
+    { label:'YouTube handle',     value:ytshorts, setter:setYtshorts, placeholder:'@tftclash', color:'#FF0000' },
+    { label:'Instagram handle',   value:ig,       setter:setIg,       placeholder:'@tftclash', color:'#E1306C' },
+    { label:'Threads handle',     value:threads,  setter:setThreads,  placeholder:'@tftclash', color:'#E5E7EB' },
+    { label:'Bluesky handle',     value:bluesky,  setter:setBluesky,  placeholder:'tftclash.bsky.social', color:'#0085FF' },
+    { label:'LinkedIn handle',    value:linkedin, setter:setLinkedin, placeholder:'company/tft-clash', color:'#0A66C2' },
+    { label:'Medium handle',      value:medium,   setter:setMedium,   placeholder:'@tftclash', color:'#00AB6C' },
   ]
 
   return (
@@ -1049,6 +1144,489 @@ function SocialsTab(props) {
   )
 }
 
+// ═══════════════════════════════ DAILY DROP TAB ═══════════════════════════════
+
+function DailyDropTab(props) {
+  var currentUser = props.currentUser
+  var toast = props.toast
+  var social = props.social
+  var refreshLibrary = props.refreshLibrary
+  var streak = props.streak
+  var posts = props.posts || []
+
+  var today = useMemo(function(){ return new Date() }, [])
+  var theme = useMemo(function(){ return dayTheme(today) }, [today])
+  var todayStr = useMemo(function(){
+    return today.toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' })
+  }, [today])
+
+  var [topic, setTopic] = useState('')
+  var [tone, setTone] = useState('casual')
+  var [primary, setPrimary] = useState('')
+  var [primaryRow, setPrimaryRow] = useState(null)
+  var [variants, setVariants] = useState({})
+  var [loading, setLoading] = useState(false)
+  var [loadingMsg, setLoadingMsg] = useState('')
+  var [postedMap, setPostedMap] = useState({})
+
+  // Find existing daily-drop posts for today so the streak feels honest
+  var todaysDrops = useMemo(function(){
+    var key = todayKey()
+    return posts.filter(function(p){
+      if (!p.tags || !Array.isArray(p.tags)) return false
+      if (p.tags.indexOf('daily-drop') < 0) return false
+      var d = new Date(p.created_at).toISOString().slice(0,10)
+      return d === key
+    })
+  }, [posts])
+
+  useEffect(function(){
+    // hydrate postedMap from posts marked posted today
+    var m = {}
+    todaysDrops.forEach(function(p){
+      if (p.status === 'posted') m[p.platform] = true
+    })
+    setPostedMap(m)
+  }, [todaysDrops])
+
+  var generatePrimary = useCallback(async function(){
+    if (!currentUser) { toast('Sign in first', 'error'); return }
+    setLoading(true); setLoadingMsg('Cooking today\u0027s X drop...')
+    setPrimary(''); setVariants({}); setPrimaryRow(null)
+    try {
+      var brief = topic.trim() || (theme.name + '. ' + theme.hint)
+      var json = await callEdgeFn({
+        action:'generate',
+        platform:'twitter',
+        contentType:'single_tweet',
+        tone: tone,
+        context: 'DAILY DROP - ' + theme.name + '. ' + (topic.trim() ? 'Operator brief: ' + topic.trim() + '. ' : '') + 'Make it punchy, hook-first, ready to post on X. One tweet, under 280 chars.',
+        includeTrends: true,
+        variations: 1,
+      })
+      var content = (json.results && json.results[0]) || ''
+      setPrimary(content)
+      // save as draft tagged daily-drop so streak + library can find it
+      var ins = await supabase.from('content_posts').insert({
+        owner_id: currentUser.auth_user_id,
+        platform: 'twitter',
+        content_type: 'single_tweet',
+        tone: tone,
+        context: 'Daily Drop - ' + theme.name + (topic ? ' / ' + topic : ''),
+        generated_content: content,
+        status: 'draft',
+        tags: ['daily-drop', theme.key, todayKey()],
+        trend_snapshot: json.trends || null,
+      }).select('*').single()
+      if (ins.data) setPrimaryRow(ins.data)
+      if (refreshLibrary) refreshLibrary()
+      toast('Daily Drop ready', 'success')
+    } catch(e) { toast('Error: ' + e.message, 'error') }
+    setLoading(false); setLoadingMsg('')
+  }, [currentUser, topic, tone, theme, toast, refreshLibrary])
+
+  var generateVariant = useCallback(async function(targetPlatform){
+    if (!primary) { toast('Generate the X drop first', 'error'); return }
+    setLoading(true); setLoadingMsg('Adapting to ' + targetPlatform + '...')
+    try {
+      var firstType = (CONTENT_TYPES[targetPlatform][0] || {}).id
+      var ctxText = brief()
+      var json = await callEdgeFn({
+        action:'generate',
+        platform: targetPlatform,
+        contentType: firstType,
+        tone: tone,
+        context: 'DAILY DROP variant for ' + targetPlatform + '. Theme: ' + theme.name + '. Adapt this X post but rewrite to fit ' + targetPlatform + ' perfectly.\n\nSOURCE (X):\n' + primary,
+        includeTrends: false,
+        variations: 1,
+      })
+      var content = (json.results && json.results[0]) || ''
+      setVariants(function(prev){ var n = Object.assign({}, prev); n[targetPlatform] = content; return n })
+      // also save as draft so it shows in library
+      await supabase.from('content_posts').insert({
+        owner_id: currentUser.auth_user_id,
+        platform: targetPlatform,
+        content_type: firstType,
+        tone: tone,
+        context: 'Daily Drop variant - ' + theme.name,
+        generated_content: content,
+        status: 'draft',
+        tags: ['daily-drop', theme.key, todayKey()],
+      })
+      if (refreshLibrary) refreshLibrary()
+      toast('Variant ready: ' + targetPlatform, 'success')
+    } catch(e) { toast('Error: ' + e.message, 'error') }
+    setLoading(false); setLoadingMsg('')
+    function brief(){ return topic.trim() || theme.hint }
+  }, [primary, tone, theme, currentUser, topic, toast, refreshLibrary])
+
+  var copyText = function(text){
+    if (!text) return
+    navigator.clipboard.writeText(text)
+    toast('Copied', 'success')
+  }
+
+  var togglePosted = useCallback(async function(plat){
+    var nextPosted = !postedMap[plat]
+    setPostedMap(function(prev){ var n = Object.assign({}, prev); n[plat] = nextPosted; return n })
+    // find a daily-drop row for this platform today and flip its status
+    var match = todaysDrops.filter(function(p){return p.platform === plat})[0]
+    if (match) {
+      await supabase.from('content_posts').update({
+        status: nextPosted ? 'posted' : 'draft',
+        posted_at: nextPosted ? new Date().toISOString() : null,
+      }).eq('id', match.id)
+      if (refreshLibrary) refreshLibrary()
+    }
+  }, [postedMap, todaysDrops, refreshLibrary])
+
+  var openComposer = function(plat, content){
+    if (!content) return
+    window.open(buildComposerUrl(plat, content, social), '_blank', 'noopener,noreferrer')
+  }
+
+  var siblingPlatforms = PLATFORMS.filter(function(p){return p.id !== 'twitter'})
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* LEFT: today header + brief */}
+      <div className="lg:col-span-4 flex flex-col gap-4">
+        <div className="rounded-xl p-5" style={{...surfaceBase, ...goldBorder, ...goldGlow}}>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-on-surface/50 mb-1" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>TODAY</div>
+          <div className="text-xl font-bold text-on-surface" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{todayStr}</div>
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{background:'linear-gradient(135deg, rgba(232,168,56,0.15), rgba(232,168,56,0.04))', border:'1px solid rgba(232,168,56,0.4)'}}>
+            <Icon name={theme.icon} size={18} style={{color:'#E8A838'}}/>
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-on-surface/60" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>DAY THEME</div>
+              <div className="text-sm font-bold" style={{color:'#E8A838', fontFamily:'Subtle, system-ui, sans-serif'}}>{theme.name.toUpperCase()}</div>
+            </div>
+          </div>
+          <div className="text-xs text-on-surface/70 mt-3 leading-relaxed">{theme.hint}</div>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-bold"
+              style={{background:'rgba(255,69,0,0.12)', color:'#FF8A4C', border:'1px solid rgba(255,138,76,0.3)', fontFamily:'Subtle, system-ui, sans-serif'}}>
+              <Icon name="local_fire_department" size={12}/>
+              STREAK {streak}d
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-bold"
+              style={{background:'rgba(125,211,252,0.12)', color:'#7DD3FC', border:'1px solid rgba(125,211,252,0.3)', fontFamily:'Subtle, system-ui, sans-serif'}}>
+              <Icon name="check_circle" size={12}/>
+              POSTED TODAY {Object.keys(postedMap).filter(function(k){return postedMap[k]}).length}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl p-5 space-y-3" style={{...surfaceBase, ...goldBorder}}>
+          <div>
+            <SectionLabel>Today&apos;s Angle (optional)</SectionLabel>
+            <textarea value={topic} onChange={function(e){setTopic(e.target.value)}}
+              placeholder="Skip to use the day theme, or steer it: e.g. 'Lillia rerolls feel busted on 14.10', 'r/CompetitiveTFT is mad about Aug X'..."
+              className="w-full rounded-md p-3 text-sm text-on-surface resize-none"
+              style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.08)', outline:'none'}}
+              rows={3}/>
+          </div>
+          <div>
+            <SectionLabel>Tone</SectionLabel>
+            <div className="flex flex-wrap gap-2">
+              {TONES.slice(0,5).map(function(t){
+                return <GoldChip key={t.id} active={tone === t.id} onClick={function(){setTone(t.id)}}><span className="mr-1">{t.emoji}</span>{t.label.toUpperCase()}</GoldChip>
+              })}
+            </div>
+          </div>
+          <button onClick={generatePrimary} disabled={loading}
+            className="w-full mt-2 py-4 rounded-lg font-bold text-sm"
+            style={{
+              background: loading ? 'rgba(232,168,56,0.15)' : 'linear-gradient(135deg, #E8A838 0%, #B8860B 100%)',
+              color: loading ? '#E8A838' : '#0B1220',
+              boxShadow: loading ? 'none' : '0 0 30px rgba(232,168,56,0.4), 0 4px 12px rgba(0,0,0,0.3)',
+              textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'Subtle, system-ui, sans-serif',
+              fontSize: '15px', border: 'none', cursor: loading ? 'wait' : 'pointer',
+            }}>
+            {loading ? (loadingMsg || 'Cooking...') : '\u26a1 Generate Today\u0027s Drop'}
+          </button>
+          <div className="text-[11px] text-on-surface/50" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
+            One ready-to-post X tweet. Variants for every other platform on demand. All saved as drafts.
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT: primary X drop + sibling variants */}
+      <div className="lg:col-span-8 flex flex-col gap-4">
+        {/* Primary X tile */}
+        <div className="rounded-xl p-5" style={{...surfaceBase, ...goldBorder, borderLeft:'3px solid #1DA1F2', minHeight:'200px'}}>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
+                style={{background:'rgba(29,161,242,0.18)', color:'#1DA1F2', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                <Icon name="tag" size={10}/> X / TWITTER (PRIMARY)
+              </span>
+              {primary && <span className="text-[10px] text-on-surface/50">{primary.length} CHARS{primary.length>280 && ' \u26a0 OVER 280'}</span>}
+            </div>
+            {primary && (
+              <div className="flex gap-1.5">
+                <Btn onClick={function(){copyText(primary)}}><Icon name="content_copy" size={12}/> Copy</Btn>
+                <button onClick={function(){openComposer('twitter', primary)}}
+                  className="px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1"
+                  style={{background:'linear-gradient(135deg,#1DA1F2,#1DA1F2aa)', color:'#fff', border:'none', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                  <Icon name="send" size={11}/> POST
+                </button>
+                <label className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] cursor-pointer"
+                  style={{background: postedMap['twitter'] ? 'rgba(125,211,252,0.18)' : 'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color: postedMap['twitter'] ? '#7DD3FC' : '#BECBD9'}}>
+                  <input type="checkbox" checked={!!postedMap['twitter']} onChange={function(){togglePosted('twitter')}} style={{accentColor:'#7DD3FC'}}/>
+                  POSTED
+                </label>
+              </div>
+            )}
+          </div>
+          {!primary && !loading && (
+            <div className="text-on-surface/40 text-sm py-10 text-center" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.08em'}}>
+              SMASH GENERATE TO COOK TODAY&apos;S X DROP
+            </div>
+          )}
+          {loading && !primary && (
+            <div className="flex items-center justify-center py-10">
+              <div className="text-sm text-on-surface/70" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.1em'}}>{(loadingMsg||'COOKING').toUpperCase()}</div>
+            </div>
+          )}
+          {primary && (
+            <pre className="whitespace-pre-wrap rounded-lg p-4 text-sm text-on-surface font-body leading-relaxed"
+              style={{background:'rgba(11,18,32,0.7)', border:'1px solid rgba(255,255,255,0.06)'}}>{primary}</pre>
+          )}
+        </div>
+
+        {/* Sibling platforms grid */}
+        {primary && (
+          <div className="rounded-xl p-5" style={{...surfaceBase, ...goldBorder}}>
+            <SectionLabel>Sibling Platforms (one click adapts + saves)</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {siblingPlatforms.map(function(p){
+                var content = variants[p.id] || ''
+                var hasContent = !!content
+                return (
+                  <div key={p.id} className="rounded-lg p-3"
+                    style={{background:'rgba(11,18,32,0.5)', border:'1px solid rgba(255,255,255,0.06)', borderLeft:'3px solid '+p.color}}>
+                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                      <span className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded"
+                        style={{background:p.color+'20', color:p.color, fontFamily:'Subtle, system-ui, sans-serif'}}>
+                        <Icon name={p.icon} size={10}/> {p.name.toUpperCase()}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {!hasContent && (
+                          <button onClick={function(){generateVariant(p.id)}} disabled={loading}
+                            className="px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                            style={{background:'rgba(232,168,56,0.15)', color:'#E8A838', border:'1px solid rgba(232,168,56,0.4)', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                            <Icon name="auto_awesome" size={10}/> ADAPT
+                          </button>
+                        )}
+                        {hasContent && (
+                          <>
+                            <button onClick={function(){copyText(content)}}
+                              className="px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                              style={{background:'rgba(255,255,255,0.04)', color:'#BECBD9', border:'1px solid rgba(255,255,255,0.1)', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                              <Icon name="content_copy" size={10}/> COPY
+                            </button>
+                            <button onClick={function(){openComposer(p.id, content)}}
+                              className="px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                              style={{background:'linear-gradient(135deg,'+p.color+','+p.color+'aa)', color:'#fff', border:'none', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                              <Icon name="send" size={10}/> POST
+                            </button>
+                            <label className="flex items-center gap-1 px-2 py-1 rounded text-[10px] cursor-pointer"
+                              style={{background: postedMap[p.id] ? 'rgba(125,211,252,0.18)' : 'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color: postedMap[p.id] ? '#7DD3FC' : '#BECBD9'}}>
+                              <input type="checkbox" checked={!!postedMap[p.id]} onChange={function(){togglePosted(p.id)}} style={{accentColor:'#7DD3FC'}}/>
+                              DONE
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {hasContent ? (
+                      <pre className="whitespace-pre-wrap text-xs text-on-surface/80 font-body max-h-40 overflow-auto rounded p-2"
+                        style={{background:'rgba(11,18,32,0.7)'}}>{content}</pre>
+                    ) : (
+                      <div className="text-[11px] text-on-surface/40 py-3" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
+                        Hit ADAPT to rewrite for {p.name}.
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════ IDEA INBOX TAB ═══════════════════════════════
+
+function IdeaInboxTab(props) {
+  var currentUser = props.currentUser
+  var toast = props.toast
+  var refreshLibrary = props.refreshLibrary
+
+  var [thought, setThought] = useState('')
+  var [tone, setTone] = useState('casual')
+  var [targets, setTargets] = useState({ twitter:true, reddit:true, tiktok:true, instagram:true })
+  var [loading, setLoading] = useState(false)
+  var [loadingMsg, setLoadingMsg] = useState('')
+  var [results, setResults] = useState({})
+
+  var toggleTarget = function(id){
+    setTargets(function(prev){ var n = Object.assign({}, prev); n[id] = !n[id]; return n })
+  }
+
+  var run = useCallback(async function(){
+    if (!currentUser) { toast('Sign in first', 'error'); return }
+    var t = thought.trim()
+    if (!t) { toast('Drop a raw thought first', 'error'); return }
+    var picked = Object.keys(targets).filter(function(k){return targets[k]})
+    if (!picked.length) { toast('Pick at least one platform', 'error'); return }
+    setLoading(true); setResults({})
+    try {
+      var out = {}
+      for (var i=0; i<picked.length; i++) {
+        var plat = picked[i]
+        setLoadingMsg('Cooking ' + plat + ' (' + (i+1) + '/' + picked.length + ')...')
+        var firstType = (CONTENT_TYPES[plat][0] || {}).id
+        var json = await callEdgeFn({
+          action:'generate',
+          platform: plat,
+          contentType: firstType,
+          tone: tone,
+          context: 'IDEA INBOX. Operator dropped this raw thought, you turn it into a ready-to-post ' + plat + ' post.\n\nRAW THOUGHT:\n' + t,
+          includeTrends: false,
+          variations: 1,
+        })
+        var content = (json.results && json.results[0]) || ''
+        out[plat] = content
+        if (content) {
+          await supabase.from('content_posts').insert({
+            owner_id: currentUser.auth_user_id,
+            platform: plat,
+            content_type: firstType,
+            tone: tone,
+            context: 'Idea Inbox: ' + t.slice(0, 80),
+            generated_content: content,
+            status: 'draft',
+            tags: ['idea-inbox'],
+          })
+        }
+        setResults(Object.assign({}, out))
+      }
+      if (refreshLibrary) refreshLibrary()
+      toast('Drafts saved across ' + picked.length + ' platforms', 'success')
+    } catch(e) { toast('Error: ' + e.message, 'error') }
+    setLoading(false); setLoadingMsg('')
+  }, [currentUser, thought, tone, targets, toast, refreshLibrary])
+
+  var copyText = function(text){
+    if (!text) return
+    navigator.clipboard.writeText(text)
+    toast('Copied', 'success')
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="lg:col-span-5">
+        <div className="rounded-xl p-5 space-y-4" style={{...surfaceBase, ...goldBorder, ...goldGlow}}>
+          <div>
+            <SectionLabel>Drop a Raw Thought</SectionLabel>
+            <textarea value={thought} onChange={function(e){setThought(e.target.value)}}
+              placeholder={'e.g. "Watched 30 tournament games this weekend, nobody is playing the obvious S-tier comp"\n\nor\n\n"We just shipped regional EU + NA splits, here is why"'}
+              className="w-full rounded-md p-3 text-sm text-on-surface resize-none"
+              style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.08)', outline:'none', minHeight:'180px'}}
+              rows={8}/>
+          </div>
+          <div>
+            <SectionLabel>Tone</SectionLabel>
+            <div className="flex flex-wrap gap-2">
+              {TONES.map(function(t){
+                return <GoldChip key={t.id} active={tone === t.id} onClick={function(){setTone(t.id)}}><span className="mr-1">{t.emoji}</span>{t.label.toUpperCase()}</GoldChip>
+              })}
+            </div>
+          </div>
+          <div>
+            <SectionLabel>Cook For</SectionLabel>
+            <div className="grid grid-cols-2 gap-2">
+              {PLATFORMS.map(function(p){
+                var on = !!targets[p.id]
+                return (
+                  <button key={p.id} onClick={function(){toggleTarget(p.id)}}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs text-left"
+                    style={{
+                      background: on ? p.color+'18' : 'rgba(255,255,255,0.02)',
+                      border:'1px solid '+(on ? p.color+'80' : 'rgba(255,255,255,0.08)'),
+                      color: on ? p.color : '#BECBD9',
+                      fontFamily:'Subtle, system-ui, sans-serif',
+                    }}>
+                    <Icon name={p.icon} size={12}/>
+                    <span className="font-bold">{p.name.toUpperCase()}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <button onClick={run} disabled={loading}
+            className="w-full py-4 rounded-lg font-bold text-sm"
+            style={{
+              background: loading ? 'rgba(232,168,56,0.15)' : 'linear-gradient(135deg, #E8A838 0%, #B8860B 100%)',
+              color: loading ? '#E8A838' : '#0B1220',
+              boxShadow: loading ? 'none' : '0 0 30px rgba(232,168,56,0.4)',
+              textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'Subtle, system-ui, sans-serif',
+              border: 'none', cursor: loading ? 'wait' : 'pointer',
+            }}>
+            {loading ? (loadingMsg || 'Cooking...') : '\u26a1 Turn It Into Posts'}
+          </button>
+          <div className="text-[11px] text-on-surface/50" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
+            One paste. One click. Drafts saved to Library across every selected platform.
+          </div>
+        </div>
+      </div>
+
+      <div className="lg:col-span-7">
+        <div className="rounded-xl p-5" style={{...surfaceBase, ...goldBorder, minHeight:'520px'}}>
+          <SectionLabel>Output</SectionLabel>
+          {!Object.keys(results).length && !loading && (
+            <div className="text-center py-16 text-on-surface/40">
+              <Icon name="inbox" size={40} style={{color:'#E8A838'}}/>
+              <div className="mt-3 text-xs" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.1em'}}>DROP A THOUGHT. PICK PLATFORMS. WATCH IT COOK.</div>
+            </div>
+          )}
+          <div className="space-y-3">
+            {Object.keys(results).map(function(plat){
+              var p = PLATFORMS.find(function(x){return x.id===plat}) || {color:'#E8A838', name:plat, icon:'help'}
+              var content = results[plat]
+              return (
+                <div key={plat} className="rounded-lg p-3"
+                  style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.06)', borderLeft:'3px solid '+p.color}}>
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
+                      style={{background:p.color+'20', color:p.color, fontFamily:'Subtle, system-ui, sans-serif'}}>
+                      <Icon name={p.icon} size={10}/> {p.name.toUpperCase()}
+                    </span>
+                    <div className="flex gap-1.5">
+                      <Btn onClick={function(){copyText(content)}}><Icon name="content_copy" size={11}/> Copy</Btn>
+                      <button onClick={function(){window.open(buildComposerUrl(plat, content, null), '_blank', 'noopener,noreferrer')}}
+                        className="px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1"
+                        style={{background:'linear-gradient(135deg,'+p.color+','+p.color+'aa)', color:'#fff', border:'none', fontFamily:'Subtle, system-ui, sans-serif'}}>
+                        <Icon name="send" size={11}/> POST
+                      </button>
+                    </div>
+                  </div>
+                  <pre className="whitespace-pre-wrap text-xs text-on-surface/80 font-body max-h-48 overflow-auto rounded p-2"
+                    style={{background:'rgba(11,18,32,0.7)'}}>{content}</pre>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ═══════════════════════════════ MAIN SCREEN ═══════════════════════════════
 
 export default function ContentEngineScreen(){
@@ -1058,7 +1636,7 @@ export default function ContentEngineScreen(){
   var toast = ctx.toast
   var isAdmin = ctx.isAdmin
 
-  var [tab, setTab] = useState('generate')
+  var [tab, setTab] = useState('daily')
   var [posts, setPosts] = useState([])
   var [social, setSocial] = useState(null)
 
@@ -1155,6 +1733,8 @@ export default function ContentEngineScreen(){
           })}
         </PillTabGroup>
 
+        {tab === 'daily'    && <DailyDropTab currentUser={currentUser} toast={toast} social={social} refreshLibrary={loadPosts} streak={streak} posts={posts}/>}
+        {tab === 'inbox'    && <IdeaInboxTab currentUser={currentUser} toast={toast} refreshLibrary={loadPosts}/>}
         {tab === 'generate' && <GenerateTab currentUser={currentUser} toast={toast} social={social} refreshLibrary={loadPosts}/>}
         {tab === 'campaign' && <CampaignTab currentUser={currentUser} toast={toast} refreshLibrary={loadPosts}/>}
         {tab === 'ideas'    && <IdeasTab toast={toast}/>}
