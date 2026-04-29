@@ -69,7 +69,7 @@ export async function execute(interaction) {
 
   if (error) {
     console.error('[checkin] DB error:', error);
-    return interaction.editReply('Failed to check in. Please try again or check in at tft-clash.vercel.app.');
+    return interaction.editReply('Failed to check in. Please try again or check in at tftclash.com.');
   }
 
   await interaction.editReply('✅ **Checked in!** You are confirmed for Clash #' + (ts.clashNumber || '?') + '. Good luck, ' + player.name + '!');

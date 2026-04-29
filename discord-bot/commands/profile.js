@@ -26,7 +26,7 @@ export async function execute(interaction) {
     } else {
       const link = await getLink(interaction.user.id);
       if (!link) {
-        return interaction.editReply('You have no linked account. Use `/link account <username>` or connect Discord on tft-clash.vercel.app > Account.');
+        return interaction.editReply('You have no linked account. Use `/link account <username>` or connect Discord on tftclash.com > Account.');
       }
       name = link.platform_name;
     }

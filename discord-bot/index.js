@@ -104,10 +104,12 @@ client.on(Events.InteractionCreate, async function(interaction) {
         ephemeral: true,
       });
 
-      // Post welcome in #general
-      const general = guild.channels.cache.find(function(c) { return c.name.includes('general'); });
-      if (general) {
-        await general.send({ embeds: [welcomeEmbed(member)] });
+      // Post welcome in #newcomers (fallback to #general for older servers)
+      const welcomeCh =
+        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('newcomers'); }) ||
+        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('general'); });
+      if (welcomeCh) {
+        await welcomeCh.send({ embeds: [welcomeEmbed(member)] });
       }
 
       console.log('[verify] ' + member.user.tag + ' verified');

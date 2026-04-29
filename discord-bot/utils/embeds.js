@@ -28,7 +28,8 @@ function bar(value, max, len = 12) {
 
 function rankIcon(rank) { return RANK_ICON[rank] ?? '🎮'; }
 
-const SITE_URL = 'https://tft-clash.vercel.app';
+const SITE_URL = 'https://tftclash.com';
+const TWITTER_URL = 'https://twitter.com/tftclash';
 
 // ─── RULES ────────────────────────────────────────────────────────────────────
 export function rulesEmbed() {
@@ -87,7 +88,8 @@ export function welcomeEmbed(member) {
       '> 1️⃣  Read the rules in #rules\n' +
       '> 2️⃣  Verify yourself in #verify\n' +
       '> 3️⃣  Link your account: `/link account <username>`\n' +
-      '> 4️⃣  Register at [tft-clash.vercel.app](' + SITE_URL + ')\n\n' +
+      '> 4️⃣  Register at [tftclash.com](' + SITE_URL + ')\n' +
+      '> 5️⃣  Follow us on [X / Twitter](' + TWITTER_URL + ')\n\n' +
       '*Free to compete, always.*'
     )
     .setFooter({ text: 'TFT Clash - Member #' + member.guild.memberCount })
@@ -103,6 +105,7 @@ export function welcomeDMEmbed(member) {
       'TFT Clash is a weekly competitive TFT platform with season standings, brackets, and a proper points system.\n\n' +
       '**Quick links:**\n' +
       '> 🌐 Platform: ' + SITE_URL + '\n' +
+      '> 🐦 Twitter / X: ' + TWITTER_URL + '\n' +
       '> 📖 Rulebook: EMEA Esports format\n' +
       '> 🏆 Points: 1st=8pts, 8th=1pt\n\n' +
       'See you in the lobby.'
@@ -327,7 +330,7 @@ export function seasonIntroEmbed(season) {
       '> 🏆 Top 4 earns season points (1st=8pts, 8th=1pt)\n' +
       '> 📊 Season leaderboard updated after every clash\n' +
       '> 👑 Season Champion crowned at the end\n\n' +
-      '🔗 [tft-clash.vercel.app](' + SITE_URL + ') - Use `/clash` for next event info'
+      '🔗 [tftclash.com](' + SITE_URL + ') - Use `/clash` for next event info'
     )
     .setFooter({ text: 'TFT Clash - Free to compete, always.' })
     .setTimestamp();
@@ -346,7 +349,7 @@ export function countdownEmbed(ts, season) {
   } else if (phase === 'checkin') {
     status = '🔵 **Check-in is open** - Head to the platform to check in!';
   } else if (phase === 'registration') {
-    status = '🟢 **Registration open** - Sign up at [tft-clash.vercel.app](' + SITE_URL + '/#/clash)';
+    status = '🟢 **Registration open** - Sign up at [tftclash.com](' + SITE_URL + '/#/clash)';
   } else if (phase === 'complete') {
     status = '✅ Clash #' + clashNum + ' is complete. Check `/standings` for updated rankings.';
   } else {
@@ -401,7 +404,7 @@ export function leaderboardEmbed(players, season) {
 export function phaseChangeEmbed(phase, ts) {
   const clashNum = (ts && ts.clashNumber) || '?';
   const labels = {
-    registration: { title: '📋 Registration is now OPEN', color: TEAL, desc: 'Clash #' + clashNum + ' registration has opened! Head to [tft-clash.vercel.app](' + SITE_URL + '/#/clash) to sign up.' },
+    registration: { title: '📋 Registration is now OPEN', color: TEAL, desc: 'Clash #' + clashNum + ' registration has opened! Head to [tftclash.com](' + SITE_URL + '/#/clash) to sign up.' },
     checkin: { title: '🔵 Check-in is now OPEN', color: 0x3498DB, desc: 'Clash #' + clashNum + ' check-in is live! Make sure to check in or you will lose your spot.' },
     inprogress: { title: '🔴 Clash #' + clashNum + ' is LIVE', color: RED, desc: 'The clash has started! Good luck to all players. May the best player win.' },
     complete: { title: '✅ Clash #' + clashNum + ' is COMPLETE', color: GOLD, desc: 'Results are in! Use `/standings` to see updated rankings.' },

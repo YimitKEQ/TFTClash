@@ -152,7 +152,7 @@ function howToClashEmbed() {
     .addFields(
       {
         name: '1 ・ Register',
-        value: 'When a clash opens, head to **tft-clash.vercel.app** and click Register on the active clash card. Free to compete, always.',
+        value: 'When a clash opens, head to **tftclash.com** and click Register on the active clash card. Free to compete, always.',
       },
       {
         name: '2 ・ Check in',
@@ -218,7 +218,7 @@ function faqEmbed() {
       },
       {
         name: 'How do I become a Host?',
-        value: 'Apply at **tft-clash.vercel.app/host/apply**. We onboard hosts personally so we can vouch for tournament quality.',
+        value: 'Apply at **tftclash.com/host/apply**. We onboard hosts personally so we can vouch for tournament quality.',
       },
     )
     .setFooter({ text: 'TFT Clash ・ Still stuck? Ping a @Host' })

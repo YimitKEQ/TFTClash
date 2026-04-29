@@ -41,6 +41,7 @@ const STRUCTURE = [
       { name: '📣・announcements', gate: 'public',   readOnly: true,  topic: 'Official TFT Clash announcements.' },
       { name: '📜・rules',         gate: 'public',   readOnly: true,  topic: 'Read the rules before competing.' },
       { name: '✅・verify',        gate: 'public',   readOnly: false, topic: 'Click the button to enter the server.' },
+      { name: '👋・newcomers',     gate: 'verified', readOnly: false, topic: 'Welcome posts for newly verified members. Say hi!' },
     ],
   },
   {

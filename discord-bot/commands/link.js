@@ -34,7 +34,7 @@ export async function execute(interaction) {
     var player = await getPlayer(username);
 
     if (!player) {
-      return interaction.editReply('No player named **' + username + '** found on TFT Clash. Check your username at tft-clash.vercel.app');
+      return interaction.editReply('No player named **' + username + '** found on TFT Clash. Check your username at tftclash.com');
     }
 
     await linkAccount(interaction.user.id, interaction.user.tag, player.name);
@@ -76,7 +76,7 @@ export async function execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
     var link = await getLink(interaction.user.id);
     if (!link) {
-      return interaction.editReply('No linked account. Use `/link account <username>` to connect, or link via tft-clash.vercel.app > Account > Connect Discord.');
+      return interaction.editReply('No linked account. Use `/link account <username>` to connect, or link via tftclash.com > Account > Connect Discord.');
     }
     return interaction.editReply('Linked to **' + link.platform_name + '**. Your roles are synced automatically.');
   }

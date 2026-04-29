@@ -26,7 +26,7 @@ export async function execute(interaction) {
   if (!player) {
     const link = await getLink(interaction.user.id);
     if (!link) {
-      return interaction.editReply('You need to link your TFT Clash account first. Use `/link account <username>` or connect Discord at tft-clash.vercel.app > Account.');
+      return interaction.editReply('You need to link your TFT Clash account first. Use `/link account <username>` or connect Discord at tftclash.com > Account.');
     }
     // Fetch full player data
     const { data: pData } = await supabase
@@ -42,7 +42,7 @@ export async function execute(interaction) {
 
   // Check if player has a Riot ID
   if (!player.riotId && !player.riotIdEu) {
-    return interaction.editReply('You need to set your Riot ID before registering. Go to tft-clash.vercel.app > Account and add your Riot ID.');
+    return interaction.editReply('You need to set your Riot ID before registering. Go to tftclash.com > Account and add your Riot ID.');
   }
 
   // Check if already registered
@@ -64,7 +64,7 @@ export async function execute(interaction) {
 
   if (error) {
     console.error('[register] DB error:', error);
-    return interaction.editReply('Failed to register. Please try again or register at tft-clash.vercel.app.');
+    return interaction.editReply('Failed to register. Please try again or register at tftclash.com.');
   }
 
   // Count directly off this tournament_id — avoids the stale state lookup
