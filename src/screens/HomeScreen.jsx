@@ -463,11 +463,39 @@ function LatestChampionStrip(props) {
 
 // ── HomeScreen ────────────────────────────────────────────────────────────────
 
+// Build a synthetic tournament-like object from site_settings tournament_state
+// so a region that's been *scheduled* (but not yet opened for registration via
+// the admin "Open Registration" flow) still surfaces on the public home page.
+function previewTournamentFromState(state, region) {
+  if (!state || !state.clashTimestamp) return null
+  var ts = new Date(state.clashTimestamp)
+  if (isNaN(ts.getTime())) return null
+  // Only show if it's within the future (or recent past, in case admin is mid-setup)
+  if (ts.getTime() < Date.now() - 6 * 60 * 60 * 1000) return null
+  // Treat scheduled-but-not-opened previews as 'draft' so the public page
+  // says "Scheduled" with a View Details CTA — never "Register Now" (there's
+  // nothing to register against until admin clicks Open Registration).
+  var statePhase = state.phase
+  var phase = statePhase && statePhase !== 'idle' && statePhase !== 'registration' ? statePhase : 'draft'
+  return {
+    id: 'preview-' + region,
+    name: state.clashName || 'Weekly Clash',
+    date: state.clashTimestamp.split('T')[0],
+    region: region,
+    phase: phase,
+    type: 'season_clash',
+    started_at: state.clashTimestamp,
+    is_finale: !!state.isFinale,
+    __preview: true
+  }
+}
+
 export default function HomeScreen() {
   var ctx = useApp()
   var players = ctx.players || []
   var currentUser = ctx.currentUser
   var tournamentState = ctx.tournamentState
+  var tournamentStateNa = ctx.tournamentStateNa
   var setAuthScreen = ctx.setAuthScreen
   var pastClashes = ctx.pastClashes || []
   var seasonConfig = ctx.seasonConfig || {}
@@ -497,6 +525,8 @@ export default function HomeScreen() {
 
   var stateClashId = tournamentState ? tournamentState.dbTournamentId : null
   var statePhase = tournamentState ? tournamentState.phase : null
+  var stateNaTs = tournamentStateNa ? tournamentStateNa.clashTimestamp : null
+  var stateEuTs = tournamentState ? tournamentState.clashTimestamp : null
   useEffect(function() {
     if (!supabase || !supabase.from) return
     var cancelled = false
@@ -522,6 +552,10 @@ export default function HomeScreen() {
             if (!na || (priority[t.phase] || 9) < (priority[na.phase] || 9)) na = t
           }
         })
+        // Fallback to site_settings preview when admin scheduled but didn't open
+        // registration yet — keeps both regions visible on the public home page.
+        if (!eu) eu = previewTournamentFromState(tournamentState, 'EU')
+        if (!na) na = previewTournamentFromState(tournamentStateNa, 'NA')
         setEuTournament(eu)
         setNaTournament(na)
       }).catch(function(err) {
@@ -530,7 +564,7 @@ export default function HomeScreen() {
         }
       })
     return function() { cancelled = true }
-  }, [stateClashId, statePhase])
+  }, [stateClashId, statePhase, stateEuTs, stateNaTs])
 
   function handleSignUp() {
     setAuthScreen && setAuthScreen('signup')
@@ -660,7 +694,7 @@ export default function HomeScreen() {
               <RegionCommandCard
                 region="NA"
                 tournament={naTournament}
-                tournamentState={tournamentState}
+                tournamentState={tournamentStateNa}
                 currentUser={currentUser}
                 userRegion={linkedUserRegion}
                 onSignUp={handleSignUp}
