@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -9,7 +10,7 @@ export default function SignUpScreen() {
   var toast = ctx.toast
   var setAuthScreen = ctx.setAuthScreen
   var currentUser = ctx.currentUser
-  var navTo = ctx.navTo
+  var navigate = useNavigate()
 
   var tosState = useState(false)
   var tos = tosState[0]
@@ -67,13 +68,13 @@ export default function SignUpScreen() {
                 I agree to the{' '}
                 <button
                   type="button"
-                  onClick={function() { navTo('terms') }}
+                  onClick={function() { setAuthScreen(null); navigate('/terms') }}
                   className="text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer font-bold"
                 >Terms of Service</button>
                 {' '}and{' '}
                 <button
                   type="button"
-                  onClick={function() { navTo('privacy') }}
+                  onClick={function() { setAuthScreen(null); navigate('/privacy') }}
                   className="text-primary hover:underline bg-transparent border-0 p-0 cursor-pointer font-bold"
                 >Privacy Policy</button>.
               </span>

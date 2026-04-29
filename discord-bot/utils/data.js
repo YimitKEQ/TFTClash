@@ -72,7 +72,7 @@ export async function getPlayer(name) {
     riotId: data.riot_id_eu || data.riot_id || '',
     riotIdEu: data.riot_id_eu || '',
     riotIdNa: data.riot_id_na || '',
-    region: data.region || 'EUW',
+    region: data.region || 'EU',
     bio: data.bio || '',
     auth_user_id: data.auth_user_id,
     discord_user_id: data.discord_user_id,
@@ -98,7 +98,7 @@ export async function getPlayerByDiscordId(discordUserId) {
     riotId: data.riot_id_eu || data.riot_id || '',
     riotIdEu: data.riot_id_eu || '',
     riotIdNa: data.riot_id_na || '',
-    region: data.region || 'EUW',
+    region: data.region || 'EU',
     auth_user_id: data.auth_user_id,
   };
 }

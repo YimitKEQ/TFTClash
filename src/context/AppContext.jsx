@@ -424,7 +424,7 @@ export function AppProvider(props) {
             if(pRes.data){
               setCurrentUser({
                 id:pRes.data.id,username:pRes.data.username,email:'levitate@tftclash.gg',
-                riotId:pRes.data.riot_id||'Levitate#EUW',rank:pRes.data.rank,region:pRes.data.region||'EUW',
+                riotId:pRes.data.riot_id||'Levitate#EUW',rank:pRes.data.rank,region:pRes.data.region||'EU',
                 is_admin:false,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
               });
               setIsAdmin(false);
@@ -467,16 +467,18 @@ export function AppProvider(props) {
           }
           var username=currentUser.username||currentUser.email&&currentUser.email.split('@')[0]||"Player";
           var riotId=currentUser.riotId||"";
-          var region=currentUser.region||"EUW";
-          supabase.from('players').insert({
+          var region=currentUser.region||null;
+          var insertRow={
             username:username,
             riot_id:riotId,
-            region:region,
             rank:'Iron',
             auth_user_id:currentUser.id
-          }).select().single().then(function(ins){
+          };
+          if(region)insertRow.region=region;
+          supabase.from('players').insert(insertRow).select().single().then(function(ins){
             if(ins.error){
-              if(ins.error.code==='23505'){loadPlayersFromTable();}
+              if(ins.error.code==='23505'){loadPlayersFromTable();return;}
+              if(ins.error.code==='23514'){loadPlayersFromTable();return;}
               return;
             }
             if(ins.data)setCurrentUser(Object.assign({}, ins.data, { riotId: ins.data.riot_id || '' }));
@@ -691,7 +693,7 @@ export function AppProvider(props) {
                 email: 'levitate@tftclash.gg',
                 riotId: simUser.riotId || 'Levitate#EUW',
                 rank: simUser.rank,
-                region: simUser.region || 'EUW',
+                region: simUser.region || 'EU',
                 is_admin: false,
                 auth_user_id: 'sim-auth-levitate'
               });

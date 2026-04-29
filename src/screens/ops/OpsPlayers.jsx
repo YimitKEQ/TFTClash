@@ -26,7 +26,7 @@ export default function OpsPlayers(props) {
   var showAdd = _showAdd[0]
   var setShowAdd = _showAdd[1]
 
-  var _addForm = useState({ name: '', riotId: '', region: 'EUW', rank: 'Gold' })
+  var _addForm = useState({ name: '', riotId: '', region: 'EU', rank: 'Gold' })
   var addForm = _addForm[0]
   var setAddForm = _addForm[1]
 
@@ -113,13 +113,13 @@ export default function OpsPlayers(props) {
     var r = sanitize(addForm.riotId.trim())
     if (!n || !r) { toast('Name and Riot ID required', 'error'); return }
     if (players.find(function(p) { return (p.name || '').toLowerCase() === n.toLowerCase() })) { toast('Name taken', 'error'); return }
-    supabase.from('players').insert({ username: n, riot_id: r, rank: addForm.rank || 'Gold', region: addForm.region || 'EUW' }).select().single()
+    supabase.from('players').insert({ username: n, riot_id: r, rank: addForm.rank || 'Gold', region: addForm.region || 'EU' }).select().single()
       .then(function(res) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
         setPlayers(function(ps) { return ps.concat([Object.assign({}, res.data, { name: n, pts: 0, wins: 0, games: 0 })]) })
         addAudit('ACTION', 'Player added: ' + n)
         toast(n + ' added!', 'success')
-        setAddForm({ name: '', riotId: '', region: 'EUW', rank: 'Gold' })
+        setAddForm({ name: '', riotId: '', region: 'EU', rank: 'Gold' })
         setShowAdd(false)
       }).catch(function() { toast('Failed to add', 'error') })
   }
@@ -174,8 +174,8 @@ export default function OpsPlayers(props) {
             </div>
             <div>
               <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Region</label>
-              <Sel value={editP.region || 'EUW'} onChange={function(v) { setEditP(Object.assign({}, editP, { region: v })) }}>
-                {(REGIONS || ['EUW', 'EUNE', 'NA', 'KR', 'TR']).map(function(r) { return <option key={r} value={r}>{r}</option> })}
+              <Sel value={editP.region || 'EU'} onChange={function(v) { setEditP(Object.assign({}, editP, { region: v })) }}>
+                {(REGIONS || ['EU', 'EUNE', 'NA', 'KR', 'TR']).map(function(r) { return <option key={r} value={r}>{r}</option> })}
               </Sel>
             </div>
             <div>
@@ -265,7 +265,7 @@ export default function OpsPlayers(props) {
             <div>
               <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Region</label>
               <Sel value={addForm.region} onChange={function(v) { setAddForm(Object.assign({}, addForm, { region: v })) }}>
-                {(REGIONS || ['EUW', 'EUNE', 'NA', 'KR', 'TR']).map(function(r) { return <option key={r} value={r}>{r}</option> })}
+                {(REGIONS || ['EU', 'EUNE', 'NA', 'KR', 'TR']).map(function(r) { return <option key={r} value={r}>{r}</option> })}
               </Sel>
             </div>
             <div>

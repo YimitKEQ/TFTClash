@@ -114,7 +114,7 @@ function OnboardingFlow(props) {
   // Screen 3: Your Player Card
   if (step === 3) {
     var displayName = riotIdEu || riotIdNa || (currentUser ? currentUser.username : "Player");
-    var displayRegion = riotIdEu ? "EU" : riotIdNa ? "NA" : "EUW";
+    var displayRegion = riotIdEu ? "EU" : riotIdNa ? "NA" : "--";
 
     return (
       <div className="fixed inset-0 bg-[#08080F] flex flex-col items-center justify-center z-[10000] p-8">

@@ -32,7 +32,7 @@ export var THEME = {
   onSurface: "#e4e1ec", onSurfaceVariant: "#d5c4af",
 };
 
-export var REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
+export var REGIONS = ["EU","NA"];
 
 // Fixed scoring - not configurable
 export var PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
