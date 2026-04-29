@@ -21,6 +21,32 @@ function findRole(guild, name) {
 }
 
 /**
+ * Add a role, swallowing 50013 (Missing Permissions) so one bad role
+ * doesn't abort the whole sync. Returns true if applied, false otherwise.
+ */
+async function safeAddRole(member, role, reason) {
+  try {
+    await member.roles.add(role, reason);
+    return true;
+  } catch (e) {
+    var msg = (e && e.message) || String(e);
+    console.warn('[roles] add ' + role.name + ' for ' + (member.user && member.user.tag) + ' failed: ' + msg);
+    return false;
+  }
+}
+
+async function safeRemoveRole(member, role, reason) {
+  try {
+    await member.roles.remove(role, reason);
+    return true;
+  } catch (e) {
+    var msg = (e && e.message) || String(e);
+    console.warn('[roles] remove ' + role.name + ' for ' + (member.user && member.user.tag) + ' failed: ' + msg);
+    return false;
+  }
+}
+
+/**
  * Get a player's subscription tier from user_subscriptions.
  * Returns 'free', 'pro', or 'host'.
  */
@@ -96,13 +122,11 @@ export async function syncPlayerRoles(guild, player) {
 
     if (rankName === targetRank) {
       if (!member.roles.cache.has(role.id)) {
-        await member.roles.add(role, 'Rank sync: ' + targetRank);
-        changes.added.push(rankName);
+        if (await safeAddRole(member, role, 'Rank sync: ' + targetRank)) changes.added.push(rankName);
       }
     } else {
       if (member.roles.cache.has(role.id)) {
-        await member.roles.remove(role, 'Rank sync: no longer ' + rankName);
-        changes.removed.push(rankName);
+        if (await safeRemoveRole(member, role, 'Rank sync: no longer ' + rankName)) changes.removed.push(rankName);
       }
     }
   }
@@ -115,32 +139,26 @@ export async function syncPlayerRoles(guild, player) {
 
   if (tier === 'pro') {
     if (proRole && !member.roles.cache.has(proRole.id)) {
-      await member.roles.add(proRole, 'Tier sync: Pro subscriber');
-      changes.added.push('Pro');
+      if (await safeAddRole(member, proRole, 'Tier sync: Pro subscriber')) changes.added.push('Pro');
     }
     if (hostRole && member.roles.cache.has(hostRole.id)) {
-      await member.roles.remove(hostRole, 'Tier sync: downgraded from Host');
-      changes.removed.push('Host');
+      if (await safeRemoveRole(member, hostRole, 'Tier sync: downgraded from Host')) changes.removed.push('Host');
     }
   } else if (tier === 'host') {
     if (hostRole && !member.roles.cache.has(hostRole.id)) {
-      await member.roles.add(hostRole, 'Tier sync: Host subscriber');
-      changes.added.push('Host');
+      if (await safeAddRole(member, hostRole, 'Tier sync: Host subscriber')) changes.added.push('Host');
     }
     // Host gets Pro perks too
     if (proRole && !member.roles.cache.has(proRole.id)) {
-      await member.roles.add(proRole, 'Tier sync: Host includes Pro');
-      changes.added.push('Pro');
+      if (await safeAddRole(member, proRole, 'Tier sync: Host includes Pro')) changes.added.push('Pro');
     }
   } else {
     // Free tier — remove paid roles
     if (proRole && member.roles.cache.has(proRole.id)) {
-      await member.roles.remove(proRole, 'Tier sync: no longer Pro');
-      changes.removed.push('Pro');
+      if (await safeRemoveRole(member, proRole, 'Tier sync: no longer Pro')) changes.removed.push('Pro');
     }
     if (hostRole && member.roles.cache.has(hostRole.id)) {
-      await member.roles.remove(hostRole, 'Tier sync: no longer Host');
-      changes.removed.push('Host');
+      if (await safeRemoveRole(member, hostRole, 'Tier sync: no longer Host')) changes.removed.push('Host');
     }
   }
 
@@ -149,19 +167,16 @@ export async function syncPlayerRoles(guild, player) {
   if (championRole) {
     var isChamp = await isSeasonChampion(player.username);
     if (isChamp && !member.roles.cache.has(championRole.id)) {
-      await member.roles.add(championRole, 'Season Champion: #1 in standings');
-      changes.added.push('Season Champion');
+      if (await safeAddRole(member, championRole, 'Season Champion: #1 in standings')) changes.added.push('Season Champion');
     } else if (!isChamp && member.roles.cache.has(championRole.id)) {
-      await member.roles.remove(championRole, 'Season Champion: no longer #1');
-      changes.removed.push('Season Champion');
+      if (await safeRemoveRole(member, championRole, 'Season Champion: no longer #1')) changes.removed.push('Season Champion');
     }
   }
 
   // ── Ensure Player role ─────────────────────────────────────────────────────
   var playerRole = findRole(guild, 'Player');
   if (playerRole && !member.roles.cache.has(playerRole.id)) {
-    await member.roles.add(playerRole, 'Auto: linked player');
-    changes.added.push('Player');
+    if (await safeAddRole(member, playerRole, 'Auto: linked player')) changes.added.push('Player');
   }
 
   return changes;

@@ -55,7 +55,8 @@ export function startListeners(client) {
     .channel('bot_site_settings')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings', filter: 'key=eq.tournament_state' }, async function(payload) {
       try {
-        const val = payload.new && payload.new.value ? JSON.parse(payload.new.value) : null;
+        const raw = payload.new && payload.new.value;
+        const val = raw == null ? null : (typeof raw === 'string' ? JSON.parse(raw) : raw);
         if (!val || !val.phase) return;
 
         // Only fire on actual phase transitions
