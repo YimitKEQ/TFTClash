@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
-import { Icon, PillTab, PillTabGroup } from '../components/ui';
+import { Icon, Btn, PillTab, PillTabGroup } from '../components/ui';
 import BTBoard from './brosephtech/BTBoard';
 import BTSchedule from './brosephtech/BTSchedule';
 import BTStudio from './brosephtech/BTStudio';
@@ -171,7 +171,7 @@ function BrosephTechScreen() {
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success animate-pulse border-2 border-[#13131A]" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">BrosephTech</h1>
+              <h1 className="font-editorial text-2xl font-bold text-on-surface tracking-tight">BrosephTech</h1>
               <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 <span>Creator command center</span>
@@ -186,15 +186,9 @@ function BrosephTechScreen() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleLock}
-              title="Lock workspace"
-              className="flex items-center gap-1.5 px-3 py-2 rounded font-label text-[10px] uppercase tracking-widest font-bold bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 text-on-surface/60 hover:text-on-surface transition-colors"
-            >
-              <Icon name="lock" size={12} />
-              Lock
-            </button>
+            <Btn v="dark" s="sm" onClick={handleLock}>
+              <Icon name="lock" size={14} /> Lock
+            </Btn>
           </div>
         </div>
 

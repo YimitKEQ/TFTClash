@@ -177,6 +177,8 @@ const TONE_BLOCKS: Record<string, string> = {
   unhinged: "TONE: Gen-Z shitpost energy. Chaotic. Viral-brain. Go absolutely feral.",
 };
 
+type ProviderPref = "auto" | "gemini" | "anthropic";
+
 interface GenerateBody {
   action: "generate";
   platform: string;
@@ -186,6 +188,7 @@ interface GenerateBody {
   includeTrends?: boolean;
   previousPosts?: string[];
   variations?: number;
+  provider?: ProviderPref;
 }
 
 interface TrendsBody {
@@ -258,6 +261,7 @@ interface LLMOptions {
   jsonOutput?: boolean;
   temperature?: number;
   maxOutputTokens?: number;
+  provider?: ProviderPref;
 }
 
 interface LLMResult {
@@ -345,16 +349,35 @@ async function callAnthropic(systemPrompt: string, userMsg: string, opts: LLMOpt
   return text;
 }
 
-// callLLM tries Gemini first; on transient error or missing key it falls back to Anthropic.
-// Returns both text and which provider succeeded so the client can surface a "fallback active" hint.
+// callLLM picks a provider based on preference and key availability.
+//   "auto"      -> try Gemini, fall back to Anthropic on transient error or missing key
+//   "gemini"    -> only Gemini (no fallback)
+//   "anthropic" -> only Anthropic / Haiku (no fallback)
+// Returns both text and which provider succeeded so the client can surface it.
 async function callLLM(systemPrompt: string, userMsg: string, opts: LLMOptions = {}): Promise<LLMResult> {
   const hasGemini = !!Deno.env.get("GEMINI_API_KEY");
   const hasAnthropic = !!Deno.env.get("ANTHROPIC_API_KEY");
+  const pref: ProviderPref = opts.provider || "auto";
 
   if (!hasGemini && !hasAnthropic) {
     throw new Error("No LLM configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.");
   }
 
+  // Hard override: anthropic only
+  if (pref === "anthropic") {
+    if (!hasAnthropic) throw new Error("ANTHROPIC_API_KEY not set. Add it in Supabase secrets to use Claude Haiku.");
+    const text = await callAnthropic(systemPrompt, userMsg, opts);
+    return { text, provider: "anthropic" };
+  }
+
+  // Hard override: gemini only
+  if (pref === "gemini") {
+    if (!hasGemini) throw new Error("GEMINI_API_KEY not set.");
+    const text = await callGemini(systemPrompt, userMsg, opts);
+    return { text, provider: "gemini" };
+  }
+
+  // auto: prefer gemini, fall back to anthropic on transient errors
   if (hasGemini) {
     try {
       const text = await callGemini(systemPrompt, userMsg, opts);
@@ -362,10 +385,8 @@ async function callLLM(systemPrompt: string, userMsg: string, opts: LLMOptions =
     } catch (err: any) {
       const transient = err?.transient || /not set/i.test(String(err?.message || ""));
       if (!hasAnthropic || !transient) {
-        // No fallback available, or this is a non-transient error (e.g., 400 bad request)
         throw err;
       }
-      // fall through to Anthropic
       console.log("Gemini failed, falling back to Anthropic:", err?.message);
     }
   }
@@ -395,6 +416,15 @@ serve(async (req) => {
 
     const body = await req.json();
 
+    if (body.action === "status") {
+      // Lightweight diagnostic so the UI can show which providers are configured.
+      return new Response(JSON.stringify({
+        gemini: !!Deno.env.get("GEMINI_API_KEY"),
+        anthropic: !!Deno.env.get("ANTHROPIC_API_KEY"),
+        models: { gemini: GEMINI_MODEL, anthropic: ANTHROPIC_MODEL },
+      }), { headers: { ...CORS, "Content-Type": "application/json" } });
+    }
+
     if (body.action === "trends") {
       const trends = await fetchRedditHot(supabase);
       return new Response(JSON.stringify({ trends }), {
@@ -407,20 +437,21 @@ serve(async (req) => {
       const sys = buildSystemPrompt(body, trends);
       const userMsg = `Generate a ${body.contentType} for ${body.platform} in a ${body.tone} tone. ${body.context || ""}`;
 
+      const pref: ProviderPref = body.provider || "auto";
       const variations = Math.max(1, Math.min(3, body.variations || 1));
       const results: string[] = [];
       const providersUsed: string[] = [];
       for (let i = 0; i < variations; i++) {
-        const r = await callLLM(sys, userMsg + (i > 0 ? `\n\n(Variation ${i + 1}: take a completely different angle)` : ""));
+        const r = await callLLM(sys, userMsg + (i > 0 ? `\n\n(Variation ${i + 1}: take a completely different angle)` : ""), { provider: pref });
         results.push(r.text);
         providersUsed.push(r.provider);
       }
 
       // Most-recent provider wins for the surface "provider" hint.
       const provider = providersUsed[providersUsed.length - 1];
-      const fallbackUsed = providersUsed.indexOf("anthropic") >= 0;
+      const fallbackUsed = pref === "auto" && providersUsed.indexOf("anthropic") >= 0;
 
-      return new Response(JSON.stringify({ results, trends, provider, fallbackUsed }), {
+      return new Response(JSON.stringify({ results, trends, provider, fallbackUsed, providerPref: pref }), {
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }

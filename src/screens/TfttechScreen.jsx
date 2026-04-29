@@ -24,7 +24,7 @@ function PortalCard(props) {
             <div className="font-label text-[10px] uppercase tracking-widest font-bold text-on-surface/40">
               {props.kicker}
             </div>
-            <h2 className="font-display text-xl font-bold text-on-surface tracking-tight leading-tight mt-0.5">
+            <h2 className="font-editorial text-xl font-bold text-on-surface tracking-tight leading-tight mt-0.5">
               {props.title}
             </h2>
           </div>
@@ -92,7 +92,7 @@ function TfttechScreen() {
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success animate-pulse border-2 border-[#13131A]" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">TFTTech</h1>
+              <h1 className="font-editorial text-2xl font-bold text-on-surface tracking-tight">TFTTech</h1>
               <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 <span>Operator portal / Two brands, one control room</span>

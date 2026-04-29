@@ -186,10 +186,24 @@ function buildComposerUrl(platform, content, social) {
   return '#'
 }
 
+// Read AI provider preference from localStorage. Values: 'auto' | 'gemini' | 'anthropic'.
+// 'auto' tries Gemini then Haiku. 'anthropic' forces Haiku. 'gemini' forces Gemini.
+function getProviderPref() {
+  try {
+    var v = localStorage.getItem('tcs_provider_pref')
+    if (v === 'gemini' || v === 'anthropic' || v === 'auto') return v
+  } catch (e) {}
+  return 'auto'
+}
+
 async function callEdgeFn(body) {
   var session = await supabase.auth.getSession()
   var token = session?.data?.session?.access_token
   if (!token) throw new Error('Not signed in')
+  // Inject provider preference for generate calls so the user's pick travels through automatically
+  var bodyWithProvider = body && body.action === 'generate' && !body.provider
+    ? Object.assign({}, body, { provider: getProviderPref() })
+    : body
   var res = await fetch(SUPABASE_URL + '/functions/v1/content-generate', {
     method: 'POST',
     headers: {
@@ -197,7 +211,7 @@ async function callEdgeFn(body) {
       'Authorization': 'Bearer ' + token,
       'apikey': SUPABASE_KEY,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(bodyWithProvider),
   })
   var json = await res.json()
   if (!res.ok || json.error) throw new Error(json.error || ('HTTP ' + res.status))
@@ -245,6 +259,58 @@ function StatPill(props) {
         <div className="font-label text-[9px] uppercase tracking-widest text-on-surface/40 leading-none">{props.label}</div>
         <div className="font-mono text-sm font-bold text-on-surface leading-tight mt-0.5">{props.value}</div>
       </div>
+    </div>
+  )
+}
+
+function KpiTile(props) {
+  return (
+    <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4 flex flex-col gap-1">
+      <div className="flex items-center gap-2 text-on-surface/40">
+        <Icon name={props.icon} size={16} />
+        <span className="font-label text-[10px] uppercase tracking-widest font-bold">{props.label}</span>
+      </div>
+      <div className="font-mono text-3xl font-black leading-none text-on-surface">{props.value}</div>
+    </div>
+  )
+}
+
+function ProviderSelector(props) {
+  var value = props.value
+  var status = props.status
+  var opts = [
+    { id: 'auto',      label: 'Auto',   icon: 'bolt',      title: 'Try Gemini, fall back to Haiku' },
+    { id: 'gemini',    label: 'Gemini', icon: 'memory',    title: 'Force Gemini 2.5 Flash' },
+    { id: 'anthropic', label: 'Haiku',  icon: 'psychology',title: 'Force Claude Haiku 4.5' },
+  ]
+  return (
+    <div className="flex items-center gap-1 bg-surface-container-low border border-outline-variant/10 rounded p-0.5">
+      {opts.map(function(o) {
+        var active = value === o.id
+        var disabled = status && (
+          (o.id === 'gemini' && !status.gemini) ||
+          (o.id === 'anthropic' && !status.anthropic)
+        )
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={function(){ if (!disabled) props.onChange(o.id) }}
+            disabled={disabled}
+            title={disabled ? (o.label + ' key not configured') : o.title}
+            className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded font-label text-[10px] uppercase tracking-widest font-bold transition-colors ' + (
+              active
+                ? 'bg-primary text-on-primary'
+                : disabled
+                  ? 'text-on-surface/20 cursor-not-allowed'
+                  : 'text-on-surface/60 hover:text-on-surface hover:bg-surface-container'
+            )}
+          >
+            <Icon name={o.icon} size={12} />
+            {o.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -1799,6 +1865,19 @@ function ContentEngineScreenInner(props){
   var [tab, setTab] = useState('daily')
   var [posts, setPosts] = useState([])
   var [social, setSocial] = useState(null)
+  var [providerPref, setProviderPrefState] = useState(getProviderPref())
+  var [providerStatus, setProviderStatus] = useState(null)
+
+  function setProviderPref(v) {
+    try { localStorage.setItem('tcs_provider_pref', v) } catch(e) {}
+    setProviderPrefState(v)
+    if (toast) toast(v === 'auto' ? 'AI: auto (Gemini -> Haiku)' : v === 'gemini' ? 'AI: Gemini only' : 'AI: Claude Haiku 4.5')
+  }
+
+  // Probe edge fn to learn which provider keys are configured
+  useEffect(function(){
+    callEdgeFn({ action: 'status' }).then(function(s){ setProviderStatus(s) }).catch(function(){})
+  }, [])
 
   var loadPosts = useCallback(async function(){
     if (!currentUser) return
@@ -1859,10 +1938,10 @@ function ContentEngineScreenInner(props){
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success animate-pulse border-2 border-[#13131A]" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">TFT Clash Studio</h1>
+              <h1 className="font-editorial text-2xl font-bold text-on-surface tracking-tight">TFT Clash Studio</h1>
               <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                <span>AI social command center / Powered by Gemini</span>
+                <span>{providerPref === 'anthropic' ? 'Claude Haiku 4.5' : providerPref === 'gemini' ? 'Gemini 2.5 Flash' : 'Auto: Gemini -> Haiku'}</span>
                 <button
                   type="button"
                   onClick={function(){ navigate('/tfttech') }}
@@ -1873,21 +1952,20 @@ function ContentEngineScreenInner(props){
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatPill icon="edit_note" label="Drafts" value={drafts}/>
-            <StatPill icon="schedule" label="Scheduled" value={scheduled}/>
-            <StatPill icon="send" label="Posted" value={posted}/>
-            <StatPill icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')}/>
-            <button
-              type="button"
-              onClick={props.onLock}
-              title="Lock studio"
-              className="flex items-center gap-1.5 px-3 py-2 rounded font-label text-[10px] uppercase tracking-widest font-bold bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 text-on-surface/60 hover:text-on-surface transition-colors"
-            >
-              <Icon name="lock" size={12} />
-              Lock
-            </button>
+          <div className="flex items-center gap-2">
+            <ProviderSelector value={providerPref} onChange={setProviderPref} status={providerStatus} />
+            <Btn v="dark" s="sm" onClick={props.onLock}>
+              <Icon name="lock" size={14} /> Lock
+            </Btn>
           </div>
+        </div>
+
+        {/* COMPACT KPI ROW (replaces in-header StatPills) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <KpiTile icon="edit_note" label="Drafts" value={drafts} />
+          <KpiTile icon="schedule" label="Scheduled" value={scheduled} />
+          <KpiTile icon="send" label="Posted" value={posted} />
+          <KpiTile icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')} />
         </div>
 
         {/* TABS */}
