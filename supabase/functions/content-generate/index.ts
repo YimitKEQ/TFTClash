@@ -1,6 +1,8 @@
-// Secure Gemini API proxy + TFT trend fetcher for the Content Engine.
+// Secure LLM proxy + TFT trend fetcher for the Content Engine.
+// Primary: Gemini 2.5 Flash. Fallback: Anthropic Claude Haiku 4.5.
 // Secrets required:
-//   GEMINI_API_KEY (free from aistudio.google.com)
+//   GEMINI_API_KEY (free from aistudio.google.com) - primary
+//   ANTHROPIC_API_KEY - fallback when Gemini quota / 5xx hits
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto-provided)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -12,7 +14,8 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 const BRAND_BLOCK = `You are the content brain behind TFT Clash, the dedicated competitive tournament platform for Teamfight Tactics players.
 
@@ -194,7 +197,6 @@ async function fetchRedditHot(supabase: any): Promise<any> {
   const { data: cached } = await supabase
     .from("trend_cache")
     .select("data, fetched_at")
-    .eq("source", "gemini")
     .eq("data_type", "tft_trends")
     .gt("expires_at", new Date().toISOString())
     .order("fetched_at", { ascending: false })
@@ -203,41 +205,36 @@ async function fetchRedditHot(supabase: any): Promise<any> {
 
   if (cached) return cached.data;
 
-  try {
-    const prompt = `List 12 hot TFT (Teamfight Tactics) talking points right now, based on Set 17 "Space Gods" hype cycle (launches April 15 2026), current meta comps, patch buzz, augment debates, and r/CompetitiveTFT discussion themes. Mix meta analysis, hot takes, balance complaints, set prediction, and community drama.
+  const prompt = `List 12 hot TFT (Teamfight Tactics) talking points right now, based on Set 17 "Space Gods" hype cycle (launches April 15 2026), current meta comps, patch buzz, augment debates, and r/CompetitiveTFT discussion themes. Mix meta analysis, hot takes, balance complaints, set prediction, and community drama.
 
 Output STRICT JSON only, no markdown fences, no preamble:
 {"posts":[{"title":"<short punchy title like a reddit post>","score":<int 100-3000>,"num_comments":<int 20-500>,"flair":"<Discussion|Patch Notes|Guide|Meta|Set 17>","url":"https://reddit.com/r/CompetitiveTFT"}]}`;
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) return { posts: [], error: "GEMINI_API_KEY not set" };
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.9, maxOutputTokens: 2048, responseMimeType: "application/json" },
-      }),
-    });
-    if (!res.ok) return { posts: [], error: `Gemini ${res.status}: ${await res.text().catch(() => "")}` };
-    const json = await res.json();
-    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-    const parsed = JSON.parse(text);
+  try {
+    const { text, provider } = await callLLM("", prompt, { jsonOutput: true });
+    const parsed = JSON.parse(stripJsonFences(text));
     const posts = parsed?.posts || [];
-    if (!posts.length) return { posts: [], error: "gemini returned no trends" };
+    if (!posts.length) return { posts: [], error: provider + " returned no trends" };
 
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
     await supabase.from("trend_cache").insert({
-      source: "gemini",
+      source: provider,
       data_type: "tft_trends",
       data: { posts },
       expires_at: expires,
     });
-    return { posts };
+    return { posts, provider };
   } catch (e) {
     return { posts: [], error: String(e) };
   }
+}
+
+function stripJsonFences(text: string): string {
+  let t = text.trim();
+  if (t.startsWith("```")) {
+    t = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+  }
+  return t.trim();
 }
 
 function buildSystemPrompt(body: GenerateBody, trends: any): string {
@@ -257,34 +254,124 @@ function buildSystemPrompt(body: GenerateBody, trends: any): string {
   return parts.join("\n\n");
 }
 
-async function callGemini(systemPrompt: string, userMsg: string): Promise<string> {
+interface LLMOptions {
+  jsonOutput?: boolean;
+  temperature?: number;
+  maxOutputTokens?: number;
+}
+
+interface LLMResult {
+  text: string;
+  provider: "gemini" | "anthropic";
+}
+
+// Errors that should NOT trigger fallback (programmer / config errors).
+function isTransientError(status: number): boolean {
+  // 429 quota, 500/502/503/504 outage, 401/403 sometimes mean billing exhausted on Gemini
+  return status === 429 || status === 401 || status === 403 || status >= 500;
+}
+
+async function callGemini(systemPrompt: string, userMsg: string, opts: LLMOptions = {}): Promise<string> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const generationConfig: Record<string, unknown> = {
+    temperature: opts.temperature ?? 1.0,
+    maxOutputTokens: opts.maxOutputTokens ?? 2048,
+  };
+  if (opts.jsonOutput) generationConfig.responseMimeType = "application/json";
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
+      ...(systemPrompt ? { system_instruction: { parts: [{ text: systemPrompt }] } } : {}),
       contents: [{ role: "user", parts: [{ text: userMsg }] }],
-      generationConfig: {
-        temperature: 1.0,
-        maxOutputTokens: 2048,
-      },
+      generationConfig,
     }),
   });
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API ${res.status}: ${err}`);
+    const err = await res.text().catch(() => "");
+    const e = new Error(`Gemini API ${res.status}: ${err}`);
+    (e as any).status = res.status;
+    (e as any).transient = isTransientError(res.status);
+    throw e;
   }
 
   const json = await res.json();
   const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error("Gemini returned no text: " + JSON.stringify(json));
   return text;
+}
+
+async function callAnthropic(systemPrompt: string, userMsg: string, opts: LLMOptions = {}): Promise<string> {
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
+
+  // If JSON output is requested, instruct the model to return raw JSON.
+  const sys = opts.jsonOutput
+    ? (systemPrompt + "\n\nReturn ONLY raw JSON. No markdown fences, no preamble.").trim()
+    : systemPrompt;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: ANTHROPIC_MODEL,
+      max_tokens: opts.maxOutputTokens ?? 2048,
+      temperature: opts.temperature ?? 1.0,
+      ...(sys ? { system: sys } : {}),
+      messages: [{ role: "user", content: userMsg }],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => "");
+    const e = new Error(`Anthropic API ${res.status}: ${err}`);
+    (e as any).status = res.status;
+    throw e;
+  }
+
+  const json = await res.json();
+  const text = json?.content?.[0]?.text;
+  if (!text) throw new Error("Anthropic returned no text: " + JSON.stringify(json));
+  return text;
+}
+
+// callLLM tries Gemini first; on transient error or missing key it falls back to Anthropic.
+// Returns both text and which provider succeeded so the client can surface a "fallback active" hint.
+async function callLLM(systemPrompt: string, userMsg: string, opts: LLMOptions = {}): Promise<LLMResult> {
+  const hasGemini = !!Deno.env.get("GEMINI_API_KEY");
+  const hasAnthropic = !!Deno.env.get("ANTHROPIC_API_KEY");
+
+  if (!hasGemini && !hasAnthropic) {
+    throw new Error("No LLM configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.");
+  }
+
+  if (hasGemini) {
+    try {
+      const text = await callGemini(systemPrompt, userMsg, opts);
+      return { text, provider: "gemini" };
+    } catch (err: any) {
+      const transient = err?.transient || /not set/i.test(String(err?.message || ""));
+      if (!hasAnthropic || !transient) {
+        // No fallback available, or this is a non-transient error (e.g., 400 bad request)
+        throw err;
+      }
+      // fall through to Anthropic
+      console.log("Gemini failed, falling back to Anthropic:", err?.message);
+    }
+  }
+
+  const text = await callAnthropic(systemPrompt, userMsg, opts);
+  return { text, provider: "anthropic" };
 }
 
 serve(async (req) => {
@@ -322,12 +409,18 @@ serve(async (req) => {
 
       const variations = Math.max(1, Math.min(3, body.variations || 1));
       const results: string[] = [];
+      const providersUsed: string[] = [];
       for (let i = 0; i < variations; i++) {
-        const text = await callGemini(sys, userMsg + (i > 0 ? `\n\n(Variation ${i + 1}: take a completely different angle)` : ""));
-        results.push(text);
+        const r = await callLLM(sys, userMsg + (i > 0 ? `\n\n(Variation ${i + 1}: take a completely different angle)` : ""));
+        results.push(r.text);
+        providersUsed.push(r.provider);
       }
 
-      return new Response(JSON.stringify({ results, trends }), {
+      // Most-recent provider wins for the surface "provider" hint.
+      const provider = providersUsed[providersUsed.length - 1];
+      const fallbackUsed = providersUsed.indexOf("anthropic") >= 0;
+
+      return new Response(JSON.stringify({ results, trends, provider, fallbackUsed }), {
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }

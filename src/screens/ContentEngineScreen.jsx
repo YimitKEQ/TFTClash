@@ -205,23 +205,16 @@ async function callEdgeFn(body) {
 }
 
 // ═══════════════════════════════ SHARED STYLE HELPERS ═══════════════════════════════
+// /ops design language: surface-container-low background, faint outline-variant border, no gradients/glow.
+// CSS vars from index.css: --md-surface-container-low, --md-outline-variant.
 
-var surfaceBase = {
-  background: 'linear-gradient(180deg, rgba(20,24,36,0.85), rgba(13,16,24,0.92))',
-}
-var goldBorder = {
-  border: '1px solid rgba(232,168,56,0.18)',
-  boxShadow: 'inset 0 1px 0 rgba(255,212,135,0.06)',
-}
-var goldGlow = {
-  boxShadow: '0 18px 60px -28px rgba(232,168,56,0.45), inset 0 1px 0 rgba(255,212,135,0.08)',
-}
+var surfaceBase = { background: '#1b1b23' } // bg-surface-container-low
+var goldBorder = { border: '1px solid rgba(80, 69, 53, 0.25)' } // outline-variant/25
+var goldGlow = {} // /ops aesthetic has no glow; kept as no-op for diff minimisation
 
 function SectionLabel(props) {
   return (
-    <div className="text-[10px] uppercase font-bold tracking-[0.22em] mb-2 flex items-center gap-2"
-      style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#E8A838' }}>
-      <span className="h-px w-3" style={{ background: 'rgba(232,168,56,0.6)' }} />
+    <div className="font-label text-[10px] uppercase font-bold tracking-widest mb-2 text-on-surface/50">
       {props.children}
     </div>
   )
@@ -230,14 +223,15 @@ function SectionLabel(props) {
 function GoldChip(props) {
   var active = props.active
   return (
-    <button onClick={props.onClick} disabled={props.disabled}
-      className={'px-3 py-1.5 rounded-md text-[11px] font-bold transition-all border tracking-wider ' + (active ? 'border-primary' : 'border-white/10 hover:border-white/25')}
-      style={{
-        fontFamily: 'Subtle, system-ui, sans-serif',
-        background: active ? 'linear-gradient(135deg, #FFD487, #E8A838)' : 'rgba(255,255,255,0.03)',
-        color: active ? '#0B0E16' : 'rgba(245,242,234,0.75)',
-        boxShadow: active ? '0 6px 20px -8px rgba(232,168,56,0.55)' : 'none',
-      }}>
+    <button
+      onClick={props.onClick}
+      disabled={props.disabled}
+      className={'px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-colors border ' + (
+        active
+          ? 'bg-primary text-on-primary border-primary'
+          : 'bg-surface-container hover:bg-surface-container-high text-on-surface/70 hover:text-on-surface border-outline-variant/15'
+      )}
+    >
       {props.children}
     </button>
   )
@@ -245,26 +239,11 @@ function GoldChip(props) {
 
 function StatPill(props) {
   return (
-    <div
-      className="flex items-center gap-2.5 px-3 py-2 rounded-xl border"
-      style={{
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
-        borderColor: 'rgba(232,168,56,0.18)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
-      }}
-    >
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center"
-        style={{
-          background: 'linear-gradient(135deg, rgba(232,168,56,0.22), rgba(232,168,56,0.06))',
-          border: '1px solid rgba(232,168,56,0.30)',
-        }}
-      >
-        <Icon name={props.icon} size={14} style={{ color: '#FFD487' }}/>
-      </div>
+    <div className="flex items-center gap-2 px-3 py-2 rounded bg-surface-container-low border border-outline-variant/10">
+      <Icon name={props.icon} size={14} className="text-primary" />
       <div>
-        <div className="text-[9px] uppercase tracking-[0.18em] leading-none" style={{fontFamily:'Subtle, system-ui, sans-serif', color:'rgba(245,242,234,0.55)'}}>{props.label}</div>
-        <div className="text-sm font-bold leading-tight mt-0.5" style={{ color: '#F5F2EA' }}>{props.value}</div>
+        <div className="font-label text-[9px] uppercase tracking-widest text-on-surface/40 leading-none">{props.label}</div>
+        <div className="font-mono text-sm font-bold text-on-surface leading-tight mt-0.5">{props.value}</div>
       </div>
     </div>
   )
@@ -1661,80 +1640,42 @@ function IdeaInboxTab(props) {
 
 // ═══════════════════════════════ PIN GATE ═══════════════════════════════════
 
-function TCSPinDot(props){
-  var bg, border, color
-  if (props.error) { bg = 'rgba(239,68,68,0.18)'; border = 'rgba(239,68,68,0.65)'; color = '#FCA5A5' }
-  else if (props.filled) { bg = 'rgba(232,168,56,0.20)'; border = 'rgba(232,168,56,0.70)'; color = '#FFD487' }
-  else { bg = 'rgba(255,255,255,0.04)'; border = 'rgba(255,255,255,0.12)'; color = 'rgba(255,255,255,0.30)' }
-  return (
-    <div
-      className="w-11 h-13 rounded-xl flex items-center justify-center text-xl font-bold transition-all border"
-      style={{ background: bg, borderColor: border, color: color, height: '52px', boxShadow: props.filled || props.error ? 'inset 0 1px 0 rgba(255,255,255,0.18)' : 'inset 0 1px 0 rgba(255,255,255,0.06)' }}
-    >
-      {props.filled ? '\u2022' : ''}
-    </div>
-  )
-}
-
-function TCSPinKey(props){
-  return (
-    <button
-      type="button"
-      onClick={props.onClick}
-      className="h-14 rounded-xl flex items-center justify-center text-lg font-bold border transition-all hover:bg-primary/10 hover:border-primary/40 active:scale-95"
-      style={{
-        fontFamily: 'Subtle, system-ui, sans-serif',
-        background: 'rgba(255,255,255,0.03)',
-        borderColor: 'rgba(255,255,255,0.10)',
-        color: '#F5F2EA',
-      }}
-    >
-      {props.children}
-    </button>
-  )
-}
-
-function TCSPinGate(props){
+function PinGate(props){
   var [input, setInput] = useState('')
   var [error, setError] = useState(false)
   var [shake, setShake] = useState(false)
   var bufferRef = useRef('')
   var lockedRef = useRef(false)
+  var pin = props.pin
+  var sessionKey = props.sessionKey
 
   function tryUnlock(next){
-    if (next.length !== TCS_PIN.length) return
+    if (next.length !== pin.length) return
     lockedRef.current = true
-    if (next === TCS_PIN) {
-      try { localStorage.setItem(TCS_SESSION_KEY, '1') } catch(e) {}
+    if (next === pin) {
+      try { localStorage.setItem(sessionKey, '1') } catch(e) {}
       setTimeout(function(){ props.onUnlock() }, 150)
     } else {
-      setError(true)
-      setShake(true)
+      setError(true); setShake(true)
       setTimeout(function(){
-        setShake(false)
-        setInput('')
-        setError(false)
-        bufferRef.current = ''
-        lockedRef.current = false
+        setShake(false); setInput(''); setError(false)
+        bufferRef.current = ''; lockedRef.current = false
       }, 700)
     }
   }
 
   function handlePress(k){
     if (lockedRef.current) return
-    if (bufferRef.current.length >= TCS_PIN.length) return
+    if (bufferRef.current.length >= pin.length) return
     var next = bufferRef.current + k
-    bufferRef.current = next
-    setInput(next)
-    setError(false)
+    bufferRef.current = next; setInput(next); setError(false)
     tryUnlock(next)
   }
 
   function handleBackspace(){
     if (lockedRef.current) return
     bufferRef.current = bufferRef.current.slice(0, -1)
-    setInput(bufferRef.current)
-    setError(false)
+    setInput(bufferRef.current); setError(false)
   }
 
   useEffect(function(){
@@ -1747,103 +1688,81 @@ function TCSPinGate(props){
   }, [])
 
   var keys = ['1','2','3','4','5','6','7','8','9','','0','back']
+  var dots = []
+  for (var i = 0; i < pin.length; i++) dots.push(i)
+  var label = props.label || 'Operator access'
+  var brand = props.brand || 'PRIVATE'
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-      style={{
-        background: 'radial-gradient(120% 80% at 50% 0%, rgba(232,168,56,0.10) 0%, rgba(15,18,28,0.0) 55%), #0B0E16',
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.10]"
-        aria-hidden="true"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(232,168,56,0.6) 1px, transparent 1px)',
-          backgroundSize: '34px 34px',
-        }}
-      />
-      <Panel
-        className={'relative z-10 w-full max-w-sm flex flex-col items-center gap-6 px-7 py-8 sm:px-9 sm:py-10 ' + (shake ? 'animate-[tcs-wiggle_0.5s]' : '')}
-        style={{
-          background: 'linear-gradient(180deg, rgba(20,24,36,0.92), rgba(11,14,22,0.96))',
-          border: '1px solid rgba(232,168,56,0.22)',
-          boxShadow: '0 30px 80px -30px rgba(232,168,56,0.35), 0 0 0 1px rgba(255,255,255,0.04) inset',
-        }}
-      >
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black tracking-tight"
-            style={{
-              background: 'linear-gradient(135deg, #FFD487 0%, #E8A838 50%, #B07820 100%)',
-              color: '#0B0E16',
-              boxShadow: '0 14px 40px -10px rgba(232,168,56,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
-              fontFamily: 'Subtle, system-ui, sans-serif',
-            }}
-          >
-            TC
+    <PageLayout>
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
+        <div className={'w-full max-w-sm bg-surface-container-low border border-outline-variant/15 rounded p-6 sm:p-8 flex flex-col items-center gap-5 ' + (shake ? 'animate-[pin-wiggle_0.5s]' : '')}>
+          <div className="flex flex-col items-center gap-2">
+            <Icon name="lock" size={28} className="text-primary" />
+            <div className="font-label text-[10px] uppercase tracking-widest font-bold text-on-surface/40">
+              {brand}
+            </div>
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-on-surface tracking-tight">
+              {label}
+            </h1>
           </div>
-          <div
-            className="h-px w-32"
-            style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(232,168,56,0.6) 50%, transparent 100%)' }}
-          />
-        </div>
 
-        <div className="text-center">
-          <h1
-            className="text-2xl sm:text-3xl font-bold tracking-tight"
-            style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#F5F2EA' }}
-          >
-            TFT Clash Studio
-          </h1>
-          <p
-            className="text-[10px] mt-2 tracking-[0.3em] uppercase font-bold"
-            style={{ color: '#E8A838' }}
-          >
-            Operator access only
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          {[0,1,2,3,4,5].map(function(i){
-            return <TCSPinDot key={i} filled={input.length > i} error={error} />
-          })}
-        </div>
-
-        {error ? (
-          <p className="text-red-300 text-sm font-medium">Wrong PIN</p>
-        ) : (
-          <p className="text-on-surface/45 text-xs tracking-wide">Enter 6-digit PIN</p>
-        )}
-
-        <div className="grid grid-cols-3 gap-2.5 w-64">
-          {keys.map(function(k, i){
-            if (k === '') return <div key={'empty-' + i} />
-            if (k === 'back') {
+          <div className="flex gap-2">
+            {dots.map(function(idx){
+              var filled = input.length > idx
+              var stateClass = error
+                ? 'border-error/60 text-error'
+                : filled
+                  ? 'border-primary/60 text-primary'
+                  : 'border-outline-variant/20 text-on-surface/30'
               return (
-                <TCSPinKey key="back" onClick={handleBackspace}>
-                  <Icon name="backspace" size={18} />
-                </TCSPinKey>
+                <div
+                  key={idx}
+                  className={'w-10 h-12 rounded bg-surface-container border flex items-center justify-center text-lg font-mono font-bold ' + stateClass}
+                >
+                  {filled ? '\u2022' : ''}
+                </div>
               )
-            }
-            return (
-              <TCSPinKey key={k} onClick={function(){ handlePress(k) }}>
-                {k}
-              </TCSPinKey>
-            )
-          })}
+            })}
+          </div>
+
+          {error ? (
+            <p className="text-error text-xs font-label uppercase tracking-wider">Wrong PIN</p>
+          ) : (
+            <p className="text-on-surface/40 text-[11px] font-label uppercase tracking-wider">Enter {pin.length}-digit PIN</p>
+          )}
+
+          <div className="grid grid-cols-3 gap-2 w-full max-w-[260px]">
+            {keys.map(function(k, i){
+              if (k === '') return <div key={'empty-' + i} />
+              if (k === 'back') {
+                return (
+                  <button
+                    key="back"
+                    type="button"
+                    onClick={handleBackspace}
+                    className="h-12 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/15 text-on-surface/70 flex items-center justify-center transition-colors"
+                  >
+                    <Icon name="backspace" size={18} />
+                  </button>
+                )
+              }
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={function(){ handlePress(k) }}
+                  className="h-12 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/15 text-on-surface font-mono text-base font-bold transition-colors"
+                >
+                  {k}
+                </button>
+              )
+            })}
+          </div>
         </div>
-
-        <p
-          className="text-[10px] tracking-[0.3em] uppercase font-bold"
-          style={{ color: 'rgba(255,255,255,0.30)' }}
-        >
-          TFT Clash - Private
-        </p>
-      </Panel>
-
-      <style>{'@keyframes tcs-wiggle { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }'}</style>
-    </div>
+        <style>{'@keyframes pin-wiggle { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }'}</style>
+      </div>
+    </PageLayout>
   )
 }
 
@@ -1854,7 +1773,15 @@ export default function ContentEngineScreen(){
     try { return localStorage.getItem(TCS_SESSION_KEY) === '1' } catch(e) { return false }
   })
   if (!unlocked) {
-    return <TCSPinGate onUnlock={function(){ setUnlocked(true) }} />
+    return (
+      <PinGate
+        pin={TCS_PIN}
+        sessionKey={TCS_SESSION_KEY}
+        label="TFT Clash Studio"
+        brand="OPERATOR ACCESS"
+        onUnlock={function(){ setUnlocked(true) }}
+      />
+    )
   }
   return <ContentEngineScreenInner onLock={function(){
     try { localStorage.removeItem(TCS_SESSION_KEY) } catch(e) {}
@@ -1909,9 +1836,9 @@ function ContentEngineScreenInner(props){
   if (!currentUser || !isAdmin) {
     return (
       <PageLayout>
-        <div className="page wrap text-center pt-20">
-          <div className="text-4xl mb-4">{'\ud83d\udd12'}</div>
-          <h2 className="text-on-surface mb-2">Admin only</h2>
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+          <Icon name="lock" size={40} className="block mx-auto mb-3 text-on-surface/40" />
+          <div className="font-display text-sm font-bold text-on-surface/60">Studio requires admin access</div>
         </div>
       </PageLayout>
     )
@@ -1923,104 +1850,48 @@ function ContentEngineScreenInner(props){
 
   return (
     <PageLayout>
-      <div className="page wrap max-w-7xl mx-auto px-4 py-6">
-        {/* HEADER */}
-        <div
-          className="relative overflow-hidden rounded-2xl mb-6 px-5 py-5 sm:px-7 sm:py-6"
-          style={{
-            background: 'linear-gradient(180deg, rgba(28,32,46,0.88) 0%, rgba(13,16,24,0.94) 100%)',
-            border: '1px solid rgba(232,168,56,0.22)',
-            boxShadow: '0 24px 60px -30px rgba(232,168,56,0.35), inset 0 1px 0 rgba(255,212,135,0.08)',
-          }}
-        >
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.10]"
-            aria-hidden="true"
-            style={{
-              backgroundImage: 'radial-gradient(rgba(232,168,56,0.6) 1px, transparent 1px)',
-              backgroundSize: '34px 34px',
-            }}
-          />
-          <div
-            className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 rounded-full opacity-30"
-            style={{ background: 'radial-gradient(circle, rgba(232,168,56,0.55), transparent 70%)' }}
-            aria-hidden="true"
-          />
-          <div className="relative flex items-start justify-between flex-wrap gap-5">
-            <div className="flex items-start gap-4 min-w-0">
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, #FFD487 0%, #E8A838 50%, #B07820 100%)',
-                  color: '#0B0E16',
-                  fontFamily: 'Subtle, system-ui, sans-serif',
-                  fontSize: '22px',
-                  fontWeight: 900,
-                  boxShadow: '0 14px 36px -10px rgba(232,168,56,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
-                }}
-              >
-                TC
-              </div>
-              <div className="min-w-0">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+        {/* OPS-STYLE HEADER */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Icon name="rocket_launch" size={32} className="text-primary" />
+              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success animate-pulse border-2 border-[#13131A]" />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">TFT Clash Studio</h1>
+              <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                <span>AI social command center / Powered by Gemini</span>
                 <button
                   type="button"
-                  onClick={function() { navigate('/tfttech') }}
-                  className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-bold mb-1.5 transition-colors"
-                  style={{ color: 'rgba(245,242,234,0.45)' }}
-                  onMouseEnter={function(e){ e.currentTarget.style.color = '#FFD487' }}
-                  onMouseLeave={function(e){ e.currentTarget.style.color = 'rgba(245,242,234,0.45)' }}
+                  onClick={function(){ navigate('/tfttech') }}
+                  className="text-on-surface/30 hover:text-primary transition-colors"
                 >
-                  <Icon name="arrow_back" size={12} />
-                  Back to TFTTech
+                  / Back to TFTTech
                 </button>
-                <h1
-                  className="text-2xl sm:text-3xl font-bold tracking-tight"
-                  style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#F5F2EA', letterSpacing: '-0.015em' }}
-                >
-                  TFT Clash Studio
-                </h1>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className="h-px w-6"
-                    style={{ background: 'linear-gradient(90deg, #E8A838, transparent)' }}
-                  />
-                  <div
-                    className="text-[10px] uppercase font-bold tracking-[0.22em]"
-                    style={{ color: '#E8A838', fontFamily: 'Subtle, system-ui, sans-serif' }}
-                  >
-                    AI Social Command Center / Powered by Gemini
-                  </div>
-                </div>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap items-center">
-              <StatPill icon="edit_note"    label="Drafts"    value={drafts}/>
-              <StatPill icon="schedule"     label="Scheduled" value={scheduled}/>
-              <StatPill icon="send"         label="Posted"    value={posted}/>
-              <StatPill icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')}/>
-              <button
-                type="button"
-                onClick={props.onLock}
-                title="Lock studio"
-                className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold border transition-colors"
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  borderColor: 'rgba(255,255,255,0.10)',
-                  color: 'rgba(245,242,234,0.65)',
-                  fontFamily: 'Subtle, system-ui, sans-serif',
-                }}
-                onMouseEnter={function(e){ e.currentTarget.style.borderColor = 'rgba(232,168,56,0.40)'; e.currentTarget.style.color = '#FFD487' }}
-                onMouseLeave={function(e){ e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; e.currentTarget.style.color = 'rgba(245,242,234,0.65)' }}
-              >
-                <Icon name="lock" size={12} />
-                Lock
-              </button>
-            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatPill icon="edit_note" label="Drafts" value={drafts}/>
+            <StatPill icon="schedule" label="Scheduled" value={scheduled}/>
+            <StatPill icon="send" label="Posted" value={posted}/>
+            <StatPill icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')}/>
+            <button
+              type="button"
+              onClick={props.onLock}
+              title="Lock studio"
+              className="flex items-center gap-1.5 px-3 py-2 rounded font-label text-[10px] uppercase tracking-widest font-bold bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 text-on-surface/60 hover:text-on-surface transition-colors"
+            >
+              <Icon name="lock" size={12} />
+              Lock
+            </button>
           </div>
         </div>
 
         {/* TABS */}
-        <PillTabGroup align="start" className="mb-6">
+        <PillTabGroup align="start">
           {TABS.map(function(t){
             return (
               <PillTab
