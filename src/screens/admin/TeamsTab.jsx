@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase.js';
 import { Panel, Btn, Inp, Icon, Tag } from '../../components/ui';
 import { useApp } from '../../context/AppContext';
-import { disbandTeam, kickMember } from '../../lib/teams.js';
+import { disbandTeam, kickMember, notifyTeamMembers } from '../../lib/teams.js';
 import { writeAuditLog, createNotification } from '../../lib/notifications.js';
 
 function TeamRow(props) {
@@ -289,6 +289,16 @@ export default function TeamsTab() {
     supabase.from('registrations').delete().eq('id', reg.id).then(function(res) {
       if (res.error) { if (toast) toast('Withdraw failed: ' + res.error.message); return; }
       writeAuditLog('tournament.admin_force_withdraw', actorContext(), { type: 'registration', id: reg.id }, { tournament_id: t.id, team_id: reg.team_id });
+      if (reg.team_id) {
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Team Withdrawn',
+            'Your team was removed from ' + (t.name || 'the tournament') + ' by an admin.',
+            'logout'
+          );
+        } catch (e) {}
+      }
       if (toast) toast('Team withdrawn from ' + (t.name || 'tournament') + '.');
       refresh();
     }).catch(function() { if (toast) toast('Network error'); });
@@ -311,6 +321,16 @@ export default function TeamsTab() {
       if (reg.player_id) {
         createNotification(reg.player_id, 'Team Checked In by Admin', 'An admin has checked your team in to ' + (t.name || 'the tournament') + '.', 'checkmark');
       }
+      if (reg.team_id) {
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Team Checked In',
+            'Your team was checked in to ' + (t.name || 'the tournament') + ' by an admin.',
+            'checkmark'
+          );
+        } catch (e) {}
+      }
       if (toast) toast('Team checked in.');
       refresh();
     }).catch(function() { if (toast) toast('Network error'); });
@@ -322,6 +342,16 @@ export default function TeamsTab() {
     supabase.from('registrations').update({status: 'registered', checked_in_at: null}).eq('id', reg.id).then(function(res) {
       if (res.error) { if (toast) toast('Failed: ' + res.error.message); return; }
       writeAuditLog('tournament.admin_uncheckin', actorContext(), { type: 'registration', id: reg.id }, { tournament_id: t.id, team_id: reg.team_id });
+      if (reg.team_id) {
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Check-in Reverted',
+            'Your team was reverted to registered for ' + (t.name || 'the tournament') + ' by an admin.',
+            'undo'
+          );
+        } catch (e) {}
+      }
       if (toast) toast('Reverted to registered.');
       refresh();
     }).catch(function() { if (toast) toast('Network error'); });

@@ -338,6 +338,39 @@ export async function kickMember(memberId, reason) {
   return result;
 }
 
+/**
+ * Send a notification to every active member of a team. Used for tournament
+ * registration, check-in, lineup changes, and admin overrides — anything where
+ * the team as a whole should hear about it, not just the captain.
+ *
+ * options: { excludePlayerIds?: string[] } — omit specific player IDs (e.g.
+ * suppress sending to the actor, or to non-starters).
+ */
+export async function notifyTeamMembers(teamId, title, body, icon, options) {
+  if (!teamId || !title) return;
+  options = options || {};
+  var exclude = (options.excludePlayerIds || []).map(String);
+  try {
+    var memRes = await supabase
+      .from('team_members')
+      .select('player_id, players(auth_user_id)')
+      .eq('team_id', teamId)
+      .is('removed_at', null);
+    if (memRes.error || !memRes.data) return;
+    memRes.data.forEach(function(m) {
+      if (!m.player_id) return;
+      if (exclude.indexOf(String(m.player_id)) !== -1) return;
+      var auth = m.players && m.players.auth_user_id;
+      if (!auth) return;
+      try {
+        createNotification(auth, title, body, icon || 'group');
+      } catch (e) {}
+    });
+  } catch (err) {
+    console.warn('notifyTeamMembers failed:', err);
+  }
+}
+
 // ─── Internals ──────────────────────────────────────────────────────────────
 
 async function notifyCaptainOnInviteResponse(invite, outcome) {

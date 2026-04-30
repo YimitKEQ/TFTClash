@@ -15,6 +15,8 @@ import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
+import { notifyTeamMembers } from '../lib/teams.js'
+import { createNotification } from '../lib/notifications.js'
 
 var PLACE_POINTS = [
   { place: '1st', pts: '8 PTS', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
@@ -206,7 +208,7 @@ export default function TournamentDetailScreen() {
       var members = (memRes && memRes.data) || [];
       var pids = members.map(function(m){ return m.player_id; });
       if (pids.length === 0) { setTeamRoster([]); setMyTeamReg(regRes && regRes.data); setLineupSel([]); return; }
-      supabase.from('players').select('id, username, riot_id').in('id', pids).then(function(pRes){
+      supabase.from('players').select('id, username, riot_id, auth_user_id').in('id', pids).then(function(pRes){
         if (cancelled) return;
         var byPid = {};
         ((pRes && pRes.data) || []).forEach(function(p){ byPid[p.id] = p; });
@@ -252,6 +254,22 @@ export default function TournamentDetailScreen() {
         if (r && r.error) { toast('Check-in failed: ' + r.error.message, 'error'); return; }
         toast(myCaptainTeam.name + ' checked in.', 'success');
         setMyTeamReg(Object.assign({}, myTeamReg, { status: 'checked_in', lineup_player_ids: lineupSel }));
+        try {
+          var startersSet = {};
+          lineupSel.forEach(function(pid){ startersSet[String(pid)] = true; });
+          (teamRoster || []).forEach(function(m){
+            if (!m || !m.player) return;
+            if (linkedPlayer && String(m.player_id) === String(linkedPlayer.id)) return;
+            var auth = m.player && m.player.auth_user_id;
+            if (!auth) return;
+            var isStarter = !!startersSet[String(m.player_id)];
+            var title = isStarter ? 'Starting in ' + event.name : 'On bench for ' + event.name;
+            var body = isStarter
+              ? myCaptainTeam.name + ' is checked in. You are starting.'
+              : myCaptainTeam.name + ' is checked in. You are on bench.';
+            try { createNotification(auth, title, body, isStarter ? 'sports_esports' : 'event_seat'); } catch (e) {}
+          });
+        } catch (e) {}
         refreshLiveReg();
       })
       .catch(function(){ setCheckInBusy(false); toast('Check-in failed', 'error'); });
@@ -345,6 +363,15 @@ export default function TournamentDetailScreen() {
               return
             }
             toast('Withdrew ' + myCaptainTeam.name + ' from ' + event.name, 'info')
+            try {
+              notifyTeamMembers(
+                myCaptainTeam.id,
+                'Team Withdrew',
+                myCaptainTeam.name + ' was withdrawn from ' + event.name + '.',
+                'logout',
+                { excludePlayerIds: linkedPlayer ? [linkedPlayer.id] : [] }
+              );
+            } catch (e) {}
             refreshLiveReg()
           })
           .catch(function() {
@@ -368,6 +395,15 @@ export default function TournamentDetailScreen() {
             return
           }
           toast(myCaptainTeam.name + ' registered for ' + event.name + '!', 'success')
+          try {
+            notifyTeamMembers(
+              myCaptainTeam.id,
+              'Team Registered',
+              myCaptainTeam.name + ' is registered for ' + event.name + '. Check-in opens before the event.',
+              'sports_esports',
+              { excludePlayerIds: linkedPlayer ? [linkedPlayer.id] : [] }
+            );
+          } catch (e) {}
           refreshLiveReg()
         })
         .catch(function() {

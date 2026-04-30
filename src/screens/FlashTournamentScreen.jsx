@@ -6,6 +6,7 @@ import { PTS, RANKS } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
+import { notifyTeamMembers } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
@@ -433,6 +434,22 @@ export default function FlashTournamentScreen(props) {
       toast('Check-in opened!', 'success');
       broadcastUpdate('phase_change');
       supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Check-in is Open', p_body: 'Check in now to secure your spot in ' + (tournament ? tournament.name : 'the tournament') + '!', p_icon: 'checkmark', p_statuses: ['registered']}).catch(function() {});
+      if (isTeamEvent) {
+        var registeredTeamIds = registrations.filter(function(r){ return r.status === 'registered' && r.team_id; }).map(function(r){ return r.team_id; });
+        var seen = {};
+        registeredTeamIds.forEach(function(tid) {
+          if (seen[tid]) return;
+          seen[tid] = true;
+          try {
+            notifyTeamMembers(
+              tid,
+              'Check-in is Open',
+              'Captain: lock your lineup and check in for ' + (tournament ? tournament.name : 'the tournament') + '.',
+              'checkmark'
+            );
+          } catch (e) {}
+        });
+      }
     }).catch(function() { toast('Failed to open check-in', 'error'); });
   }
 
@@ -650,6 +667,17 @@ export default function FlashTournamentScreen(props) {
       if (reg.player_id) {
         createNotification(reg.player_id, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
       }
+      if (reg.team_id) {
+        var tName = (reg.teams && reg.teams.name) || 'Your team';
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Team Checked In',
+            tName + ' was checked in to ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
+            'checkmark'
+          );
+        } catch (e) {}
+      }
       toast('Checked in', 'success');
       broadcastUpdate('admin_force_checkin');
       loadRegistrations();
@@ -664,6 +692,17 @@ export default function FlashTournamentScreen(props) {
     supabase.from('registrations').update({status: 'registered', checked_in_at: null}).eq('id', regId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       writeAuditLog('tournament.admin_uncheckin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+      if (reg.team_id) {
+        var tName2 = (reg.teams && reg.teams.name) || 'Your team';
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Check-in Reverted',
+            tName2 + ' was reverted to registered by an admin.',
+            'undo'
+          );
+        } catch (e) {}
+      }
       toast('Reverted to registered', 'success');
       broadcastUpdate('admin_uncheckin');
       loadRegistrations();
@@ -680,6 +719,17 @@ export default function FlashTournamentScreen(props) {
       writeAuditLog('tournament.admin_force_withdraw', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
       if (reg.player_id) {
         createNotification(reg.player_id, 'Removed from Tournament', 'An admin has removed you from ' + (tournament ? tournament.name : 'the tournament') + '.', 'bell');
+      }
+      if (reg.team_id) {
+        var tName3 = (reg.teams && reg.teams.name) || 'Your team';
+        try {
+          notifyTeamMembers(
+            reg.team_id,
+            'Team Withdrawn',
+            tName3 + ' was removed from ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
+            'logout'
+          );
+        } catch (e) {}
       }
       toast('Withdrawn', 'success');
       broadcastUpdate('admin_force_withdraw');
@@ -750,9 +800,22 @@ export default function FlashTournamentScreen(props) {
       toast('Lineup must have exactly ' + teamSizeNum + ' players', 'error');
       return;
     }
+    var modalSnapshot = adminLineupModal;
+    var regForLookup = registrations.find(function(r){ return r.id === modalSnapshot.regId; });
+    var teamIdForNotify = regForLookup && regForLookup.team_id;
     supabase.from('registrations').update({lineup_player_ids: newLineup}).eq('id', adminLineupModal.regId).then(function(res) {
       if (res.error) { toast('Lineup update failed: ' + res.error.message, 'error'); return; }
-      writeAuditLog('tournament.admin_edit_lineup', actorContext(), { type: 'registration', id: adminLineupModal.regId }, { tournament_id: tournamentId, lineup: newLineup });
+      writeAuditLog('tournament.admin_edit_lineup', actorContext(), { type: 'registration', id: modalSnapshot.regId }, { tournament_id: tournamentId, lineup: newLineup });
+      if (teamIdForNotify) {
+        try {
+          notifyTeamMembers(
+            teamIdForNotify,
+            'Lineup Updated',
+            (modalSnapshot.teamName || 'Your team') + ' lineup was updated by an admin for ' + (tournament ? tournament.name : 'the tournament') + '.',
+            'edit'
+          );
+        } catch (e) {}
+      }
       toast('Lineup updated', 'success');
       setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''});
       broadcastUpdate('admin_edit_lineup');
