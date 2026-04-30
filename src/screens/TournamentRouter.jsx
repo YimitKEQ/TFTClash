@@ -1,16 +1,12 @@
 /**
- * TournamentRouter -- thin dispatcher for /tournament/:id
+ * TournamentRouter -- thin wrapper for /tournament/:id
  *
- * Looks up the tournament's team_size once and renders the right detail
- * screen:
- *   - team_size <= 1 -> FlashTournamentScreen (solo, has admin tools,
- *     player self-report, lobby management)
- *   - team_size  > 1 -> TournamentDetailScreen (legacy team captain
- *     register / check-in / lineup flow)
- *
- * This lets us collapse /flash/:id and /tournament/:id into a single URL
- * without losing the team captain UI that only lives in
- * TournamentDetailScreen today.
+ * The rich FlashTournamentScreen is the universal tournament view: it
+ * carries the full info card (rules, prize pool, share link, region),
+ * admin tools (open/close check-in, generate lobbies, finalize, broadcast,
+ * dispute resolution, force placement, lineup edit), and the live
+ * dashboard for solo + team events. We always render it so admins always
+ * see the same admin surface no matter where they came from.
  */
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -18,7 +14,6 @@ import { useApp } from '../context/AppContext';
 import PageLayout from '../components/layout/PageLayout';
 
 var FlashTournamentScreen = lazy(function() { return import('./FlashTournamentScreen'); });
-var TournamentDetailScreen = lazy(function() { return import('./TournamentDetailScreen'); });
 
 function LoadingShell() {
   return (
@@ -44,38 +39,7 @@ export default function TournamentRouter() {
   }
   var tournamentId = rawId && rawId.indexOf('host-') === 0 ? rawId.replace('host-', '') : rawId;
 
-  var [teamSize, setTeamSize] = useState(null);
-
-  useEffect(function() {
-    if (!tournamentId) return;
-    var cancelled = false;
-    supabase
-      .from('tournaments')
-      .select('team_size')
-      .eq('id', tournamentId)
-      .maybeSingle()
-      .then(function(res) {
-        if (cancelled) return;
-        if (res && res.data && res.data.team_size != null) {
-          setTeamSize(parseInt(res.data.team_size, 10) || 1);
-        } else {
-          setTeamSize(1);
-        }
-      })
-      .catch(function() { if (!cancelled) setTeamSize(1); });
-    return function() { cancelled = true; };
-  }, [tournamentId]);
-
   if (!tournamentId) return <LoadingShell />;
-  if (teamSize == null) return <LoadingShell />;
-
-  if (teamSize > 1) {
-    return (
-      <Suspense fallback={<LoadingShell />}>
-        <TournamentDetailScreen />
-      </Suspense>
-    );
-  }
 
   return (
     <Suspense fallback={<LoadingShell />}>

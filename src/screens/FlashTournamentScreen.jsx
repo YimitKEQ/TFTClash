@@ -66,6 +66,15 @@ export default function FlashTournamentScreen(props) {
   var _adminLineupModal = useState({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''});
   var adminLineupModal = _adminLineupModal[0];
   var setAdminLineupModal = _adminLineupModal[1];
+  var _myCaptainTeam = useState(null);
+  var myCaptainTeam = _myCaptainTeam[0];
+  var setMyCaptainTeam = _myCaptainTeam[1];
+  var _myTeamRoster = useState([]);
+  var myTeamRoster = _myTeamRoster[0];
+  var setMyTeamRoster = _myTeamRoster[1];
+  var _captainLineupSel = useState([]);
+  var captainLineupSel = _captainLineupSel[0];
+  var setCaptainLineupSel = _captainLineupSel[1];
   var channelRef = useRef(null);
 
   function loadTournament() {
@@ -155,6 +164,69 @@ export default function FlashTournamentScreen(props) {
       setActiveTab('live');
     }
   }, [phase]);
+
+  useEffect(function() {
+    var pid = currentUser ? ((players || []).find(function(p) { return (currentUser.auth_user_id && p.authUserId === currentUser.auth_user_id) || p.id === currentUser.id; }) || {}).id : null;
+    if (!pid || !supabase.from) { setMyCaptainTeam(null); return; }
+    var cancelled = false;
+    supabase.from('teams')
+      .select('id, name, tag, captain_player_id, archived_at')
+      .eq('captain_player_id', pid)
+      .is('archived_at', null)
+      .maybeSingle()
+      .then(function(r) {
+        if (cancelled) return;
+        if (r.error || !r.data) { setMyCaptainTeam(null); return; }
+        setMyCaptainTeam(r.data);
+      })
+      .catch(function() { if (!cancelled) setMyCaptainTeam(null); });
+    return function() { cancelled = true; };
+  }, [currentUser && currentUser.auth_user_id, players]);
+
+  useEffect(function() {
+    if (!myCaptainTeam || !supabase.from) { setMyTeamRoster([]); return; }
+    var cancelled = false;
+    supabase.from('team_members')
+      .select('id, player_id, role, joined_at')
+      .eq('team_id', myCaptainTeam.id)
+      .is('removed_at', null)
+      .then(function(memRes) {
+        if (cancelled) return;
+        var members = (memRes && memRes.data) || [];
+        var pids = members.map(function(m) { return m.player_id; });
+        if (pids.length === 0) { setMyTeamRoster([]); return; }
+        supabase.from('players').select('id, username, riot_id, auth_user_id').in('id', pids).then(function(pRes) {
+          if (cancelled) return;
+          var byPid = {};
+          ((pRes && pRes.data) || []).forEach(function(p) { byPid[p.id] = p; });
+          setMyTeamRoster(members.map(function(m) { return Object.assign({}, m, { player: byPid[m.player_id] || null }); }));
+        }).catch(function() {});
+      })
+      .catch(function() {});
+    return function() { cancelled = true; };
+  }, [myCaptainTeam && myCaptainTeam.id]);
+
+  useEffect(function() {
+    var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+    var teamLive = Number.isFinite(ts) && ts > 1;
+    if (!teamLive || !myCaptainTeam) { setCaptainLineupSel([]); return; }
+    var reg = registrations.find(function(r) { return r.team_id === myCaptainTeam.id; });
+    var existing = reg && Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
+    setCaptainLineupSel(existing);
+  }, [tournament && tournament.team_size, myCaptainTeam && myCaptainTeam.id, registrations]);
+
+  function toggleCaptainLineup(playerId) {
+    var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+    if (captainLineupSel.indexOf(playerId) !== -1) {
+      setCaptainLineupSel(captainLineupSel.filter(function(x) { return x !== playerId; }));
+    } else {
+      if (captainLineupSel.length >= ts) {
+        toast('Lineup full (' + ts + ' starters). Deselect to swap.', 'info');
+        return;
+      }
+      setCaptainLineupSel(captainLineupSel.concat([playerId]));
+    }
+  }
 
   function broadcastUpdate(type) {
     if (channelRef.current) {
@@ -327,7 +399,16 @@ export default function FlashTournamentScreen(props) {
   }
 
   var myPlayer = currentUser ? (players || []).find(function(p) { return (currentUser.auth_user_id && p.authUserId === currentUser.auth_user_id) || p.id === currentUser.id; }) : null;
-  var myReg = myPlayer ? registrations.find(function(r) { return r.player_id === myPlayer.id; }) : null;
+  var myReg = null;
+  if (myPlayer) {
+    var _ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+    var _isTeam = Number.isFinite(_ts) && _ts > 1;
+    if (_isTeam && myCaptainTeam) {
+      myReg = registrations.find(function(r) { return r.team_id === myCaptainTeam.id; }) || null;
+    } else if (!_isTeam) {
+      myReg = registrations.find(function(r) { return r.player_id === myPlayer.id && !r.team_id; }) || null;
+    }
+  }
   var regCount = registrations.filter(function(r) { return r.status === 'registered' || r.status === 'checked_in'; }).length;
   var currentGameNumber = tournament ? (tournament.current_round || 1) : 1;
   var currentLobbiesForMe = lobbies.filter(function(l) { return l.game_number === currentGameNumber; });
@@ -357,6 +438,37 @@ export default function FlashTournamentScreen(props) {
       var regMsg = regionMismatchMessage(myPlayer.region, tournament.region);
       toast(regMsg || 'Region mismatch. Check your account region.', 'error');
       if (!myPlayer.region) navigate('/account');
+      return;
+    }
+    if (isTeamEvent) {
+      if (!myCaptainTeam) {
+        toast('Only team captains can register a team for this event.', 'error');
+        navigate('/teams');
+        return;
+      }
+      if (regCount >= maxP) { toast('Tournament is full', 'error'); return; }
+      setActionLoading(true);
+      supabase.from('registrations').upsert({
+        tournament_id: tournamentId,
+        player_id: myPlayer.id,
+        team_id: myCaptainTeam.id,
+        status: 'registered'
+      }, { onConflict: 'tournament_id,team_id' }).then(function(res) {
+        setActionLoading(false);
+        if (res.error) { toast('Registration failed: ' + res.error.message, 'error'); return; }
+        toast(myCaptainTeam.name + ' registered for ' + (tournament ? tournament.name : 'the tournament') + '!', 'success');
+        try {
+          notifyTeamMembers(
+            myCaptainTeam.id,
+            'Team Registered',
+            myCaptainTeam.name + ' is registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check-in opens before the event.',
+            'sports_esports',
+            { excludePlayerIds: myPlayer ? [myPlayer.id] : [] }
+          );
+        } catch (e) {}
+        broadcastUpdate('registration');
+        loadRegistrations();
+      }).catch(function() { setActionLoading(false); toast('Registration failed', 'error'); });
       return;
     }
     setActionLoading(true);
@@ -417,6 +529,42 @@ export default function FlashTournamentScreen(props) {
 
   function handleCheckIn() {
     if (!myReg) return;
+    if (isTeamEvent) {
+      if (!myCaptainTeam) { toast('Only the captain can check in this team.', 'error'); return; }
+      if (captainLineupSel.length !== teamSizeNum) {
+        toast('Pick exactly ' + teamSizeNum + ' starters before checking in.', 'error');
+        return;
+      }
+      setActionLoading(true);
+      supabase.from('registrations')
+        .update({ status: 'checked_in', lineup_player_ids: captainLineupSel, checked_in_at: new Date().toISOString() })
+        .eq('id', myReg.id)
+        .then(function(res) {
+          setActionLoading(false);
+          if (res.error) { toast('Check-in failed: ' + res.error.message, 'error'); return; }
+          toast(myCaptainTeam.name + ' checked in.', 'success');
+          try {
+            var startersSet = {};
+            captainLineupSel.forEach(function(pid) { startersSet[String(pid)] = true; });
+            (myTeamRoster || []).forEach(function(m) {
+              if (!m || !m.player) return;
+              if (myPlayer && String(m.player_id) === String(myPlayer.id)) return;
+              var auth = m.player && m.player.auth_user_id;
+              if (!auth) return;
+              var isStarter = !!startersSet[String(m.player_id)];
+              var title = isStarter ? 'Starting in ' + (tournament ? tournament.name : 'the tournament') : 'On bench for ' + (tournament ? tournament.name : 'the tournament');
+              var body = isStarter
+                ? myCaptainTeam.name + ' is checked in. You are starting.'
+                : myCaptainTeam.name + ' is checked in. You are on bench.';
+              try { createNotification(auth, title, body, isStarter ? 'sports_esports' : 'event_seat'); } catch (e) {}
+            });
+          } catch (e) {}
+          broadcastUpdate('registration');
+          loadRegistrations();
+        })
+        .catch(function() { setActionLoading(false); toast('Check-in failed', 'error'); });
+      return;
+    }
     setActionLoading(true);
     supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).eq('id', myReg.id).then(function(res) {
       setActionLoading(false);
@@ -1269,6 +1417,40 @@ export default function FlashTournamentScreen(props) {
             )}
           </div>
         </div>
+
+        {isTeamEvent && myCaptainTeam && myReg && phase === 'check_in' && myReg.status === 'registered' && (
+          <div className="mb-6 bg-surface-container border border-outline-variant/15 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="groups" size={18} className="text-primary" />
+              <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{'Lineup - pick ' + teamSizeNum + ' starters'}</span>
+              <span className="ml-auto text-xs font-mono text-on-surface-variant/60">{captainLineupSel.length + '/' + teamSizeNum}</span>
+            </div>
+            {myTeamRoster.length === 0 ? (
+              <div className="text-sm text-on-surface-variant">No team members loaded yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {myTeamRoster.map(function(m) {
+                  var pid = m.player_id;
+                  var isPicked = captainLineupSel.indexOf(pid) !== -1;
+                  var name = (m.player && (m.player.username || m.player.riot_id)) || 'Unknown';
+                  return (
+                    <button
+                      key={pid}
+                      type="button"
+                      onClick={function() { toggleCaptainLineup(pid); }}
+                      className={'flex items-center gap-2 px-3 py-2 rounded border text-left text-sm ' + (isPicked ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/20 bg-surface-container-low text-on-surface hover:bg-white/5')}
+                    >
+                      <Icon name={isPicked ? 'check_circle' : 'radio_button_unchecked'} size={16} fill={isPicked} />
+                      <span className="font-semibold flex-1">{name}</span>
+                      {m.role === 'captain' && <span className="text-[10px] uppercase tracking-wider text-primary/70">Captain</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="text-[11px] text-on-surface-variant/50 mt-3">{'After check-in starters get a "you are starting" notification, others get bench notice.'}</div>
+          </div>
+        )}
 
         {/* ── All lobbies locked banner ── */}
         {isLive && allLobbiesLocked && (
