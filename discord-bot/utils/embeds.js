@@ -426,3 +426,19 @@ export function newRegistrationEmbed(playerName, regCount, clashNum) {
     .setDescription('🎟️ **' + playerName + '** registered for Clash #' + clashNum + ' (' + regCount + ' total)')
     .setTimestamp();
 }
+
+export function newCustomRegistrationEmbed(playerName, regCount, tournamentName) {
+  var label = tournamentName || 'the tournament';
+  return new EmbedBuilder()
+    .setColor(TEAL)
+    .setDescription('🎟️ **' + playerName + '** registered for **' + label + '** (' + regCount + ' total)')
+    .setTimestamp();
+}
+
+export function newTeamRegistrationEmbed(teamName, regCount, tournamentName, isSeasonClash, clashNum) {
+  var label = isSeasonClash ? ('Clash #' + (clashNum || '?')) : ('**' + (tournamentName || 'the tournament') + '**');
+  return new EmbedBuilder()
+    .setColor(TEAL)
+    .setDescription('🎟️ **' + teamName + '** registered for ' + label + ' (' + regCount + ' total)')
+    .setTimestamp();
+}

@@ -5,9 +5,14 @@
 
 import { supabase } from './utils/supabase.js';
 import { getTournamentState, getRegistrations, getClashResults } from './utils/data.js';
-import { phaseChangeEmbed, newRegistrationEmbed, resultsEmbed } from './utils/embeds.js';
+import { phaseChangeEmbed, newRegistrationEmbed, newCustomRegistrationEmbed, newTeamRegistrationEmbed, resultsEmbed } from './utils/embeds.js';
 import { syncPlayerRoles } from './utils/roles.js';
 import { createLobbyChannels, destroyLobbyChannels } from './utils/lobbies.js';
+import {
+  createTournamentChannels,
+  createTournamentLobbyChannels,
+  destroyTournamentChannels,
+} from './utils/customTournamentChannels.js';
 import { resolveChannel } from './utils/channels.js';
 
 var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
@@ -116,69 +121,167 @@ export function startListeners(client) {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'registrations' }, async function(payload) {
       try {
         const row = payload.new;
-        if (!row || !row.player_id) return;
+        if (!row) return;
 
-        // Look up player name
-        const { data: player } = await supabase
-          .from('players')
-          .select('username')
-          .eq('id', row.player_id)
-          .single();
-
-        const playerName = (player && player.username) || 'Unknown';
-
-        // Resolve clash number from the tournament that owns this registration
+        // Resolve tournament metadata: type, name, clash_number, team_size
+        let tournamentType = 'season_clash';
+        let tournamentName = null;
         let clashNum = '?';
+        let teamSize = 1;
         if (row.tournament_id) {
           const { data: tour } = await supabase
             .from('tournaments')
-            .select('clash_number,name')
+            .select('type,clash_number,name,team_size')
             .eq('id', row.tournament_id)
             .single();
           if (tour) {
-            clashNum = tour.clash_number || (tour.name ? tour.name.replace(/\D+/g, '') : '?') || '?';
+            tournamentType = tour.type || 'season_clash';
+            tournamentName = tour.name || null;
+            teamSize = tour.team_size || 1;
+            if (tour.clash_number) clashNum = tour.clash_number;
+            else if (tournamentType === 'season_clash' && tour.name) clashNum = tour.name.replace(/\D+/g, '') || '?';
           }
         }
-        if (clashNum === '?') {
+        if (clashNum === '?' && tournamentType === 'season_clash') {
           const ts = await getTournamentState();
           if (ts && ts.clashNumber) clashNum = ts.clashNumber;
         }
 
-        // Count registrations directly off the tournament_id from the inserted row.
-        // Avoids the broken getRegistrations() lookup chain that returned 0.
+        const isSeasonClash = tournamentType === 'season_clash';
+        const isTeamReg = !!(row.team_id && teamSize > 1);
+
+        // Resolve display name (player or team)
+        let displayName = 'Unknown';
+        if (isTeamReg) {
+          const { data: team } = await supabase
+            .from('teams')
+            .select('name,tag')
+            .eq('id', row.team_id)
+            .single();
+          if (team) displayName = team.tag ? (team.name + ' [' + team.tag + ']') : team.name;
+        } else if (row.player_id) {
+          const { data: player } = await supabase
+            .from('players')
+            .select('username')
+            .eq('id', row.player_id)
+            .single();
+          if (player && player.username) displayName = player.username;
+        } else {
+          return;
+        }
+
+        // Count registrations on this specific tournament
         let regCount = 0;
         if (row.tournament_id) {
           const countRes = await supabase
             .from('registrations')
             .select('*', { count: 'exact', head: true })
             .eq('tournament_id', row.tournament_id);
-          if (countRes.error) {
-            console.error('[listener] count query failed:', countRes.error.message);
-          }
+          if (countRes.error) console.error('[listener] count query failed:', countRes.error.message);
           regCount = countRes.count || 0;
-        } else {
-          console.warn('[listener] registration row has no tournament_id, using fallback');
         }
         if (!regCount) {
-          // Fallback to the legacy helper if the direct count failed
-          try {
-            const regs = await getRegistrations();
-            regCount = regs.length || 1;
-          } catch (e) {
+          if (isSeasonClash) {
+            try {
+              const regs = await getRegistrations();
+              regCount = regs.length || 1;
+            } catch (e) { regCount = 1; }
+          } else {
             regCount = 1;
           }
         }
 
-        const embed = newRegistrationEmbed(playerName, regCount, clashNum);
-        // Prefer a dedicated registrations channel, fall back to clash-schedule
-        const targetCh = ch('clash-registrations') || ch('registrations') || ch('clash-schedule');
-        if (targetCh) {
-          await targetCh.send({ embeds: [embed] });
+        // Pick the right embed
+        let embed;
+        if (isTeamReg) {
+          embed = newTeamRegistrationEmbed(displayName, regCount, tournamentName, isSeasonClash, clashNum);
+        } else if (isSeasonClash) {
+          embed = newRegistrationEmbed(displayName, regCount, clashNum);
+        } else {
+          embed = newCustomRegistrationEmbed(displayName, regCount, tournamentName);
         }
 
-        console.log('[listener] New registration: ' + playerName + ' (' + regCount + ' total)');
+        // Prefer a per-tournament category channel, then dedicated registrations, then schedule
+        const slug = (tournamentName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
+        const tournamentCh = slug ? (ch('registrations-' + slug) || ch(slug + '-registrations') || ch(slug + '-general')) : null;
+        const targetCh = tournamentCh || ch('clash-registrations') || ch('registrations') || ch('clash-schedule');
+        if (targetCh) await targetCh.send({ embeds: [embed] });
+
+        console.log('[listener] New registration: ' + displayName + ' for "' + (tournamentName || 'unknown') + '" (' + regCount + ' total)');
       } catch (err) {
         console.error('[listener] registration error:', err);
+      }
+    })
+    .subscribe();
+
+  // ─── Custom tournament phase changes ─────────────────────────────────────────
+  // Watches tournaments table for phase transitions on flash_tournament rows.
+  // Auto-creates a Discord category + channels when registration opens, adds
+  // per-lobby channels when the event goes in_progress, and schedules cleanup
+  // when it completes.
+  supabase
+    .channel('bot_tournaments')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, async function(payload) {
+      try {
+        var row = payload.new || payload.old;
+        if (!row || !row.id) return;
+        if (row.type === 'season_clash') return;
+
+        var prev = payload.old || {};
+        var next = payload.new || {};
+        var phasePrev = prev.phase || null;
+        var phaseNext = next.phase || null;
+
+        var g = guild();
+        if (!g) return;
+
+        // Open registration → ensure category + channels exist
+        if (phaseNext && phaseNext !== phasePrev && (phaseNext === 'registration' || phaseNext === 'check_in')) {
+          createTournamentChannels(g, next).then(function(res) {
+            if (res && res.created) {
+              console.log('[listener] Created Discord channels for tournament "' + (next.name || next.id) + '"');
+            }
+          }).catch(function(e) {
+            console.error('[listener] createTournamentChannels failed:', e && e.message);
+          });
+        }
+
+        // In progress → create per-lobby channels for this tournament's lobbies
+        if (phaseNext === 'in_progress' && phaseNext !== phasePrev) {
+          try {
+            var lobbiesRes = await supabase
+              .from('lobbies')
+              .select('id, lobby_number, player_ids, host_player_id')
+              .eq('tournament_id', next.id)
+              .order('lobby_number', { ascending: true });
+            var lobbies = (lobbiesRes && lobbiesRes.data) || [];
+            createTournamentLobbyChannels(g, next, lobbies).catch(function(e) {
+              console.error('[listener] createTournamentLobbyChannels failed:', e && e.message);
+            });
+          } catch (e) {
+            console.error('[listener] lobby fetch for tournament channels failed:', e && e.message);
+          }
+        }
+
+        // Complete → schedule cleanup after 30 min so people can chat afterwards
+        if (phaseNext === 'complete' && phaseNext !== phasePrev) {
+          var tid = next.id;
+          setTimeout(function() {
+            destroyTournamentChannels(g, tid).catch(function(e) {
+              console.error('[listener] destroyTournamentChannels failed:', e && e.message);
+            });
+          }, 30 * 60 * 1000);
+          console.log('[listener] Tournament "' + (next.name || tid) + '" channels will be cleaned up in 30 minutes');
+        }
+
+        // Tournament deleted → wipe channels immediately
+        if (payload.eventType === 'DELETE' && payload.old && payload.old.id) {
+          destroyTournamentChannels(g, payload.old.id).catch(function(e) {
+            console.error('[listener] destroyTournamentChannels (delete) failed:', e && e.message);
+          });
+        }
+      } catch (err) {
+        console.error('[listener] tournaments error:', err);
       }
     })
     .subscribe();
