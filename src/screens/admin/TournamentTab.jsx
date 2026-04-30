@@ -138,9 +138,12 @@ export default function TournamentTab() {
   var _flashTournaments = useState([])
   var flashTournaments = _flashTournaments[0]
   var setFlashTournaments = _flashTournaments[1]
+  var _showArchived = useState(false)
+  var showArchived = _showArchived[0]
+  var setShowArchived = _showArchived[1]
 
   useEffect(function() {
-    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
+    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed, archived_at').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
   }, [])
@@ -643,6 +646,10 @@ export default function TournamentTab() {
     )
   }
 
+  var flashVisibleList = (flashTournaments || []).filter(function(t) { return showArchived || !t.archived_at })
+  var flashArchivedCount = (flashTournaments || []).filter(function(t) { return !!t.archived_at }).length
+  var flashVisibleCount = flashVisibleList.length
+
   return (
     <div className="p-4 md:p-6 space-y-6">
 
@@ -1084,17 +1091,30 @@ export default function TournamentTab() {
         <Btn variant="primary" onClick={createFlashTournament}>Create Tournament</Btn>
         {flashTournaments.length > 0 && (
           <div className="mt-4 space-y-1.5">
-            <div className="text-[11px] text-on-surface/40 font-bold uppercase tracking-wider mb-2">Existing ({flashTournaments.length})</div>
-            {flashTournaments.map(function(t) {
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[11px] text-on-surface/40 font-bold uppercase tracking-wider">Existing ({flashVisibleCount}{flashArchivedCount > 0 ? ' / ' + flashTournaments.length : ''})</div>
+              {flashArchivedCount > 0 && (
+                <button type="button" onClick={function() { setShowArchived(!showArchived) }} className="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface/50 hover:text-on-surface flex items-center gap-1">
+                  <Icon name={showArchived ? 'visibility_off' : 'visibility'} size={12} />
+                  {showArchived ? 'Hide archived' : 'Show archived (' + flashArchivedCount + ')'}
+                </button>
+              )}
+            </div>
+            {flashVisibleList.map(function(t) {
               return (
-                <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
-                  <Icon name="bolt" size={14} className="text-on-surface/40 flex-shrink-0" />
+                <div key={t.id} className={'flex items-center gap-2 px-3 py-2 bg-surface-container border rounded ' + (t.archived_at ? 'border-outline-variant/5 opacity-60' : 'border-outline-variant/10')}>
+                  <Icon name={t.archived_at ? 'inventory_2' : 'bolt'} size={14} className="text-on-surface/40 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-on-surface flex items-center gap-1.5 flex-wrap">
                       <span>{t.name}</span>
                       {t.team_size && t.team_size > 1 ? (
                         <span className="text-[9px] font-label font-black uppercase tracking-widest text-tertiary bg-tertiary/15 border border-tertiary/30 px-1.5 py-0.5 rounded">{t.team_size}v{t.team_size}</span>
                       ) : null}
+                      {t.archived_at && (
+                        <span className="text-[9px] font-label font-black uppercase tracking-widest text-on-surface/50 bg-on-surface/5 border border-outline-variant/20 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                          <Icon name="inventory_2" size={9} />Archived
+                        </span>
+                      )}
                     </div>
                     <div className="text-[11px] text-on-surface/40">{t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} - <span className="uppercase font-bold">{t.phase || 'draft'}</span></div>
                   </div>
@@ -1111,23 +1131,28 @@ export default function TournamentTab() {
                   {(t.phase === 'complete' || t.phase === 'in_progress') && (
                     <Btn variant="ghost" size="sm" onClick={function() { finalizePrizeClaims(t) }}>Claims</Btn>
                   )}
-                  {t.phase !== 'complete' && t.phase !== 'cancelled' && (
+                  {!t.archived_at && (
                     <Btn variant="ghost" size="sm" onClick={function() {
-                      if (!window.confirm('Force complete ' + t.name + '?\n\nThis flips phase to complete and stamps archived_at so it falls out of upcoming/live feeds. Registrations and results are preserved.')) return
+                      var stillLive = t.phase !== 'complete' && t.phase !== 'cancelled'
+                      var msg = stillLive
+                        ? 'Archive ' + t.name + '?\n\nForces phase to complete and stamps archived_at so it falls out of upcoming/live feeds. Registrations and results are preserved.'
+                        : 'Archive ' + t.name + '?\n\nMarks archived_at on this already-complete tournament so it is hidden from upcoming/live feeds. Registrations and results are preserved.'
+                      if (!window.confirm(msg)) return
                       var nowIso = new Date().toISOString()
-                      supabase.from('tournaments').update({ phase: 'complete', archived_at: nowIso }).eq('id', t.id).then(function(r) {
+                      var patch = stillLive ? { phase: 'complete', archived_at: nowIso } : { archived_at: nowIso }
+                      supabase.from('tournaments').update(patch).eq('id', t.id).then(function(r) {
                         if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
-                        setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'complete', archived_at: nowIso }) : x }) })
+                        setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, patch) : x }) })
                         if (tournamentStateEu && tournamentStateEu.dbTournamentId === t.id && setTournamentStateEu) {
                           setTournamentStateEu(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
                         }
                         if (tournamentStateNa && tournamentStateNa.dbTournamentId === t.id && setTournamentStateNa) {
                           setTournamentStateNa(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
                         }
-                        addAudit('ACTION', 'Tournament archived (force complete): ' + t.name)
+                        addAudit('ACTION', (stillLive ? 'Tournament archived (force complete): ' : 'Tournament archived: ') + t.name)
                         toast('Archived', 'success')
                       }).catch(function() { toast('Archive failed', 'error') })
-                    }}>Archive</Btn>
+                    }}><Icon name="inventory_2" size={12} className="mr-1" />Archive</Btn>
                   )}
                   <Btn variant="ghost" size="sm" onClick={function() {
                     if (!window.confirm('Delete ' + t.name + '?')) return
