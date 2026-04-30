@@ -1056,22 +1056,68 @@ export default function TournamentDetailScreen() {
               <div className="space-y-5">
                 {bracketRoundKeys.map(function(rk) {
                   var roundResults = bracketRounds[rk].sort(function(a, b) { return a.placement - b.placement; })
+                  var teamScores = []
+                  if (isTeamEvent) {
+                    var byTeam = {}
+                    roundResults.forEach(function(r) {
+                      if (!r.team_id) return
+                      if (!byTeam[r.team_id]) byTeam[r.team_id] = { team_id: r.team_id, score: 0, top4: 0, top2: 0, bestPlacement: 9 }
+                      var s = byTeam[r.team_id]
+                      s.score += r.points || 0
+                      if (r.placement <= 4) s.top4 += 1
+                      if (r.placement <= 2) s.top2 += 1
+                      if (r.placement < s.bestPlacement) s.bestPlacement = r.placement
+                    })
+                    teamScores = Object.values(byTeam).sort(function(a, b) {
+                      if (b.score !== a.score) return b.score - a.score
+                      if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement
+                      if (b.top2 !== a.top2) return b.top2 - a.top2
+                      return b.top4 - a.top4
+                    })
+                  }
                   return (
                     <div key={rk} className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                       <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                         <Icon name="emoji_events" size={18} className="text-tertiary" />
                         <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{rk}</span>
                       </div>
+                      {isTeamEvent && teamScores.length > 0 && (
+                        <div className="px-5 py-3 bg-primary/[0.04] border-b border-outline-variant/5">
+                          <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-2">Team Score</div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {teamScores.map(function(ts, idx) {
+                              var meta = eventTeams[ts.team_id] || {}
+                              var label = (meta.name || 'Team') + (meta.tag ? ' [' + meta.tag + ']' : '')
+                              return (
+                                <div key={ts.team_id} className={"flex items-center gap-2 px-3 py-2 rounded border " + (idx === 0 ? 'border-primary/30 bg-primary/10' : 'border-outline-variant/15 bg-surface-container/40')}>
+                                  <span className={"font-mono text-xs font-bold " + (idx === 0 ? 'text-primary' : 'text-on-surface-variant/60')}>{idx === 0 ? 'W' : '.'}</span>
+                                  <span className="flex-1 text-sm font-bold text-on-surface truncate">{label}</span>
+                                  <span className="font-mono text-xs text-on-surface-variant/60">{'top4 ' + ts.top4}</span>
+                                  <span className={"font-mono text-sm font-bold " + (idx === 0 ? 'text-primary' : 'text-tertiary')}>{ts.score + ' pts'}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                       <div className="divide-y divide-outline-variant/5">
                         {roundResults.map(function(r) {
                           var playerName = playerNameMap[r.player_id] || 'Player ' + r.player_id
                           var placeClass = PLACE_CLASSES[Math.min(r.placement - 1, 7)] || 'text-on-surface-variant/40'
+                          var teamMeta = isTeamEvent && r.team_id ? (eventTeams[r.team_id] || {}) : null
                           return (
                             <div key={r.player_id} className={"flex items-center gap-3 px-5 py-2.5 " + (r.placement <= 3 ? 'bg-primary/3' : '')}>
                               <span className={"font-mono text-sm font-bold min-w-[22px] text-center " + placeClass}>
                                 {r.placement}
                               </span>
-                              <span className="flex-1 text-sm text-on-surface">{playerName}</span>
+                              <span className="flex-1 text-sm text-on-surface flex items-center gap-2 min-w-0">
+                                <span className="truncate">{playerName}</span>
+                                {teamMeta && teamMeta.tag ? (
+                                  <span className="text-[9px] font-label font-bold uppercase tracking-widest text-on-surface-variant/50 bg-surface-container/60 px-1.5 py-0.5 rounded">
+                                    {teamMeta.tag}
+                                  </span>
+                                ) : null}
+                              </span>
                               <span className="font-mono text-xs font-bold text-primary">{r.points + " pts"}</span>
                             </div>
                           )
