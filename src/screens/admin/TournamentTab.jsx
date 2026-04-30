@@ -131,9 +131,31 @@ export default function TournamentTab() {
   var newEvent = _newEvent[0]
   var setNewEvent = _newEvent[1]
 
-  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', prizeRows: [{ placement: '1', prize: '' }] })
+  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
+
+  // Apply a TOURNAMENT_FORMATS preset to the custom-tourney form. Mirrors the
+  // clash-side applyFormatPreset but writes into flashForm. 'custom' is a
+  // sentinel that leaves the manual values alone so the admin can dial it in.
+  function applyFlashFormatPreset(key) {
+    if (key === 'custom') {
+      setFlashForm(function(f) { return Object.assign({}, f, { formatPreset: 'custom' }) })
+      return
+    }
+    var f = TOURNAMENT_FORMATS[key]
+    if (!f) return
+    setFlashForm(function(prev) {
+      return Object.assign({}, prev, {
+        formatPreset: key,
+        gameCount: String(f.games),
+        maxPlayers: String(f.maxPlayers),
+        seedingMethod: f.seeding || prev.seedingMethod,
+        cutLine: String(f.cutLine || 0),
+        cutAfterGame: String(f.cutAfterGame || 0)
+      })
+    })
+  }
 
   var _flashTournaments = useState([])
   var flashTournaments = _flashTournaments[0]
@@ -143,7 +165,7 @@ export default function TournamentTab() {
   var setShowArchived = _showArchived[1]
 
   useEffect(function() {
-    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed, archived_at').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
+    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed, archived_at, round_count, cut_line, cut_after_game, format').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
   }, [])
@@ -521,11 +543,17 @@ export default function TournamentTab() {
     var flashGames = parseInt(flashForm.gameCount) || 3
     var teamSize = parseInt(flashForm.teamSize) || 1
     var subsAllowed = parseInt(flashForm.subsAllowed) || 0
+    var cutLine = parseInt(flashForm.cutLine) || 0
+    var cutAfterGame = parseInt(flashForm.cutAfterGame) || 0
     if (flashMaxP < 1 || flashMaxP > 1024) { toast('Max players must be 1-1024', 'error'); return }
     if (flashGames < 1 || flashGames > 20) { toast('Game count must be 1-20', 'error'); return }
     if (teamSize < 1 || teamSize > 4) { toast('Team size must be 1-4', 'error'); return }
     if (subsAllowed < 0 || subsAllowed > 4) { toast('Subs must be 0-4', 'error'); return }
     if (teamSize === 4 && flashMaxP % 2 !== 0) { toast('4v4 needs an even player cap (2 teams per lobby).', 'error'); return }
+    if (cutLine < 0 || cutAfterGame < 0) { toast('Cut values cannot be negative', 'error'); return }
+    if ((cutLine > 0) !== (cutAfterGame > 0)) { toast('Set both Cut Line and Cut After, or leave both at 0', 'error'); return }
+    if (cutLine > 0 && cutAfterGame >= flashGames) { toast('Cut After Game must be less than Game Count', 'error'); return }
+    if (cutLine > 0 && cutLine >= flashMaxP) { toast('Cut Line must be less than Max Players', 'error'); return }
     var prizePool = flashForm.prizeRows.filter(function(r) { return r.prize.trim() }).map(function(r) { return { placement: parseInt(r.placement), prize: r.prize.trim() } })
     var startIso = parsedDate.toISOString()
     var dateOnly = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0')
@@ -541,13 +569,17 @@ export default function TournamentTab() {
       points_scale: 'standard',
       region: flashRegion,
       checkin_open_at: checkinOpenIso,
-      checkin_close_at: startIso
+      checkin_close_at: startIso,
+      format: flashForm.formatPreset || 'custom',
+      cut_line: cutLine,
+      cut_after_game: cutAfterGame
     }).select().single().then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       setFlashTournaments(function(ts) { return (ts || []).concat([res.data]) })
-      addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : ''))
+      var cutMsg = cutLine > 0 ? ' [cut to top ' + cutLine + ' after R' + cutAfterGame + ']' : ''
+      addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : '') + cutMsg)
       toast('Flash tournament created!', 'success')
-      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', prizeRows: [{ placement: '1', prize: '' }] })
+      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
@@ -1025,12 +1057,14 @@ export default function TournamentTab() {
             <Inp type="number" min="1" step="1" value={flashForm.gameCount} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { gameCount: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Format</label>
-            <Sel value={flashForm.formatPreset} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { formatPreset: v })) }}>
-              <option value="casual">Casual</option>
-              <option value="standard">Standard</option>
-              <option value="competitive">Competitive</option>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Format Preset</label>
+            <Sel value={flashForm.formatPreset} onChange={function(v) { applyFlashFormatPreset(String(v)) }}>
+              <option value="casual">Casual - 3 games, no cut</option>
+              <option value="standard">Standard - 5 games, no cut</option>
+              <option value="competitive">Competitive - 6 games, cut top 13 after R4</option>
+              <option value="custom">Custom - configure manually</option>
             </Sel>
+            <div className="text-[10px] text-on-surface/40 mt-1">Picking a preset fills game count, max players, seeding and cut settings. Switch to Custom to override any field.</div>
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Seeding</label>
@@ -1058,6 +1092,16 @@ export default function TournamentTab() {
               <option value="NA">NA</option>
             </Sel>
           </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut Line (top N advance)</label>
+            <Inp type="number" min="0" step="1" value={flashForm.cutLine} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { cutLine: typeof v === 'string' ? v : v.target.value, formatPreset: 'custom' })) }} placeholder="0 = no cut" />
+            <div className="text-[10px] text-on-surface/40 mt-1">Only the top N players (or teams) advance past the cut. 0 disables the cut.</div>
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut After Game</label>
+            <Inp type="number" min="0" step="1" value={flashForm.cutAfterGame} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { cutAfterGame: typeof v === 'string' ? v : v.target.value, formatPreset: 'custom' })) }} placeholder="0 = no cut" />
+            <div className="text-[10px] text-on-surface/40 mt-1">Round number after which the cut happens. Must be less than Game Count.</div>
+          </div>
           {flashForm.teamSize === '4' && (
             <div>
               <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Subs per Team</label>
@@ -1065,6 +1109,12 @@ export default function TournamentTab() {
             </div>
           )}
         </div>
+        {(parseInt(flashForm.cutLine) || 0) > 0 && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-primary/[0.06] border border-primary/20 text-[11px] text-primary">
+            <Icon name="content_cut" size={12} className="inline-block mr-1 -mt-0.5" />
+            Cut configured: top {flashForm.cutLine} {flashForm.teamSize === '4' ? 'teams' : 'players'} advance past Round {flashForm.cutAfterGame}.
+          </div>
+        )}
         {flashForm.teamSize === '4' && (
           <div className="mb-3 px-3 py-2 rounded-lg bg-tertiary/[0.06] border border-tertiary/20 text-[11px] text-tertiary">
             <Icon name="groups" size={12} className="inline-block mr-1 -mt-0.5" />
@@ -1116,7 +1166,11 @@ export default function TournamentTab() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-on-surface/40">{t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} - <span className="uppercase font-bold">{t.phase || 'draft'}</span></div>
+                    <div className="text-[11px] text-on-surface/40">
+                      {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} - <span className="uppercase font-bold">{t.phase || 'draft'}</span>
+                      {t.round_count ? <span> - {t.round_count}g</span> : null}
+                      {t.cut_line && t.cut_line > 0 ? <span className="text-primary"> - cut {t.cut_line} after R{t.cut_after_game}</span> : null}
+                    </div>
                   </div>
                   {t.phase === 'draft' && (
                     <Btn variant="ghost" size="sm" onClick={function() {
