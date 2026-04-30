@@ -642,9 +642,138 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
   )
 }
 
+// ── Live & Upcoming tab (consolidated: clashes top via WeeklyClashesPanel,
+//    then custom tournaments + featured/sponsored events in one feed) ─────────
+
+function LiveAndUpcomingTab(props) {
+  var navigate = props.navigate
+  var currentUser = props.currentUser
+  var players = props.players
+  var featuredEvents = props.featuredEvents || []
+  var onAuthClick = props.onAuthClick
+  var toast = props.toast
+
+  return (
+    <div>
+      <div className="mb-10">
+        <h2 className="font-display text-3xl font-bold text-on-surface mb-2">Tournaments & Featured Events</h2>
+        <p className="text-on-surface-variant text-sm font-body">
+          Custom tournaments, sponsored events, and community clashes. Free to enter, play to win.
+        </p>
+      </div>
+
+      {/* Custom tournaments section */}
+      <TournamentsTab
+        navigate={navigate}
+        currentUser={currentUser}
+        players={players}
+        onAuthClick={onAuthClick}
+        toast={toast}
+        hideHeader={true}
+      />
+
+      {/* Featured / sponsored events section, only if any are active */}
+      <FeaturedEventsGrid
+        featuredEvents={featuredEvents}
+        currentUser={currentUser}
+        navigate={navigate}
+        onAuthClick={onAuthClick}
+        toast={toast}
+      />
+
+      {/* Host CTA */}
+      <Panel elevation="highest" padding="none" className="mt-16 p-10 text-center">
+        <Icon name="sports_esports" size={40} className="text-primary block mx-auto mb-4" />
+        <h3 className="font-display text-3xl font-bold text-on-surface mb-3">Run Your Own Tournament</h3>
+        <p className="text-on-surface-variant text-sm leading-relaxed max-w-md mx-auto mb-8">
+          Get featured here. Create and manage TFT tournaments with our full host suite.
+        </p>
+        <div className="flex gap-4 justify-center flex-wrap">
+          <Btn
+            variant="primary"
+            size="lg"
+            onClick={function() { navigate(currentUser ? '/host/apply' : '/signup') }}
+          >
+            Apply to Host
+          </Btn>
+          <Btn
+            variant="secondary"
+            size="lg"
+            onClick={function() { navigate('/pricing') }}
+          >
+            View Host Plans
+          </Btn>
+        </div>
+      </Panel>
+    </div>
+  )
+}
+
+// Compact featured-events grid -- no hero, no filter chips. Used by the
+// consolidated Live & Upcoming feed.
+function FeaturedEventsGrid(props) {
+  var featuredEvents = props.featuredEvents || []
+  var currentUser = props.currentUser
+  var navigate = props.navigate
+  var onAuthClick = props.onAuthClick
+  var toast = props.toast
+
+  var active = featuredEvents.filter(function(e) { return e.status === 'live' || e.status === 'upcoming' })
+  active = active.slice().sort(function(a, b) {
+    var aDate = a.date ? new Date(a.date).getTime() : Infinity
+    var bDate = b.date ? new Date(b.date).getTime() : Infinity
+    return aDate - bDate
+  })
+  if (active.length === 0) return null
+
+  function handleRegister(ev) {
+    if (!currentUser) { if (onAuthClick) { onAuthClick('login') } return }
+    var evRegIds = ev.registeredIds || []
+    if (evRegIds.indexOf(currentUser.username) !== -1) {
+      if (toast) toast('You are already registered', 'info')
+      return
+    }
+    if (ev.registered >= ev.size) {
+      if (toast) toast('This event is full', 'error')
+      return
+    }
+    supabase.from('event_registrations').upsert({
+      event_id: ev.id,
+      player_username: currentUser.username,
+      player_id: currentUser.id
+    }, { onConflict: 'event_id,player_username' }).then(function(res) {
+      if (res.error) { if (toast) toast('Registration failed: ' + res.error.message, 'error'); return }
+      if (toast) toast('Registered for ' + ev.name, 'success')
+    }).catch(function() { if (toast) toast('Registration failed', 'error') })
+  }
+
+  return (
+    <div className="mt-14">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-display text-2xl font-bold text-on-surface">Featured & Sponsored</h3>
+        <span className="text-[11px] font-label uppercase tracking-widest text-on-surface-variant">{active.length + ' active'}</span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {active.map(function(ev) {
+          return (
+            <TournamentCard
+              key={ev.id}
+              ev={ev}
+              currentUser={currentUser}
+              onAuthClick={onAuthClick}
+              onRegister={handleRegister}
+              navigate={navigate}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Tournaments tab (flash tournaments from DB) ────────────────────────────────
 
-function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) {
+function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hideHeader }) {
   var [tournaments, setTournaments] = useState([])
   var [loading, setLoading] = useState(true)
   var [regCounts, setRegCounts] = useState({})
@@ -750,6 +879,19 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
   }
 
   if (tournaments.length === 0) {
+    if (hideHeader) {
+      return (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-display text-2xl font-bold text-on-surface">Custom Tournaments</h3>
+          </div>
+          <Panel padding="none" className="p-10 text-center">
+            <Icon name="bolt" size={32} className="text-on-surface-variant/20 block mx-auto mb-3" />
+            <div className="text-sm text-on-surface-variant">No active custom tournaments right now.</div>
+          </Panel>
+        </div>
+      )
+    }
     return (
       <Panel padding="none" className="p-16 text-center">
         <Icon name="bolt" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
@@ -763,11 +905,19 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
 
   return (
     <div>
-      <div className="mb-10">
-        <p className="text-on-surface-variant text-sm font-body">
-          Flash tournaments, competitive events, and community clashes. Free to enter, play to win.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="mb-10">
+          <p className="text-on-surface-variant text-sm font-body">
+            Flash tournaments, competitive events, and community clashes. Free to enter, play to win.
+          </p>
+        </div>
+      )}
+      {hideHeader && (
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-display text-2xl font-bold text-on-surface">Custom Tournaments</h3>
+          <span className="text-[11px] font-label uppercase tracking-widest text-on-surface-variant">{tournaments.length + ' total'}</span>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {tournaments.map(function(t) {
           var regCount = regCounts[t.id] || 0
@@ -1514,12 +1664,16 @@ export default function EventsScreen() {
   var navigate = useNavigate()
   var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast, subRoute, seasonConfig, tournamentState } = useApp()
 
-  var activeTab = subRoute || 'featured'
+  // Migrated from the old four-tab layout. Old subRoutes ('featured',
+  // 'tournaments') redirect to the unified feed so existing deep links keep
+  // working without showing a blank tab.
+  var rawTab = subRoute || 'all'
+  if (rawTab === 'featured' || rawTab === 'tournaments') rawTab = 'all'
+  var activeTab = rawTab
 
   var tabs = [
-    { id: 'featured', label: 'Featured Events', icon: 'star' },
+    { id: 'all', label: 'Live & Upcoming', icon: 'bolt' },
     { id: 'season', label: 'Season Calendar', icon: 'calendar_month' },
-    { id: 'tournaments', label: 'Tournaments', icon: 'bolt' },
     { id: 'archive', label: 'Archive', icon: 'archive' },
   ]
 
@@ -1556,11 +1710,11 @@ export default function EventsScreen() {
         </PillTabGroup>
 
         {/* Tab content */}
-        {activeTab === 'featured' && (
-          <FeaturedTab
+        {activeTab === 'all' && (
+          <LiveAndUpcomingTab
             featuredEvents={featuredEvents}
-            setFeaturedEvents={setFeaturedEvents}
             currentUser={currentUser}
+            players={players}
             onAuthClick={handleAuthClick}
             navigate={navigate}
             toast={toast}
@@ -1568,9 +1722,6 @@ export default function EventsScreen() {
         )}
         {activeTab === 'season' && (
           <SeasonTab seasonConfig={seasonConfig} tournamentState={tournamentState} navigate={navigate} />
-        )}
-        {activeTab === 'tournaments' && (
-          <TournamentsTab navigate={navigate} currentUser={currentUser} players={players} onAuthClick={handleAuthClick} toast={toast} />
         )}
         {activeTab === 'archive' && (
           <ArchiveTab
