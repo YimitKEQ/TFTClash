@@ -722,6 +722,20 @@ export default function HomeScreen() {
           </div>
         </section>
 
+        {/* Soft "first time?" CTA for guests — placed high so newcomers see it immediately */}
+        {!currentUser && (
+          <OnboardingHint
+            variant="guest"
+            icon="rocket_launch"
+            title="First time on TFT Clash?"
+            body="Free weekly tournaments, EU + NA brackets, full season leaderboard. Sign in with Discord to compete or just browse upcoming events as a spectator."
+            ctaLabel="Sign in"
+            onCta={function () { navigate('/login') }}
+            secondaryLabel="Browse events"
+            onSecondary={function () { navigate('/events') }}
+          />
+        )}
+
         {/* News (3 latest) — fresh announcements right under the brand pitch */}
         <NewsFeed limit={3} />
 
@@ -740,20 +754,6 @@ export default function HomeScreen() {
                 String(p.name).toLowerCase() === String(pastClashes[0].champion).toLowerCase()
             })}
             navigate={navigate}
-          />
-        )}
-
-        {/* Soft "first time?" CTA for guests, after they've seen the pitch */}
-        {!currentUser && (
-          <OnboardingHint
-            variant="guest"
-            icon="rocket_launch"
-            title="First time on TFT Clash?"
-            body="Free weekly tournaments, EU + NA brackets, full season leaderboard. Sign in with Discord to compete or just browse upcoming events as a spectator."
-            ctaLabel="Sign in"
-            onCta={function () { navigate('/login') }}
-            secondaryLabel="Browse events"
-            onSecondary={function () { navigate('/events') }}
           />
         )}
 

@@ -128,7 +128,7 @@ function PulseHeader({
   if (D > 0) countdownStr = D + 'd ' + countdownStr
 
   return (
-    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/20 mb-6 bg-surface-container"
+    <section className="relative overflow-hidden p-6 rounded-lg border border-secondary/20 mb-4 bg-surface-container"
     >
       {/* Top-right countdown */}
       <div className="absolute top-0 right-0 p-4 text-right">
@@ -597,7 +597,7 @@ function LobbyRosterCard() {
   }
 
   return (
-    <section className="lobby-reveal mb-6 rounded-lg border border-primary/15 bg-surface-container overflow-hidden">
+    <section className="lobby-reveal mb-4 rounded-lg border border-primary/15 bg-surface-container overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-outline-variant/10 bg-gradient-to-r from-primary/[0.04] to-transparent flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
@@ -832,7 +832,7 @@ function MyBracketPath() {
   }
 
   return (
-    <section className="mb-6 rounded-lg border border-outline-variant/15 bg-surface-container overflow-hidden">
+    <section className="mb-4 rounded-lg border border-outline-variant/15 bg-surface-container overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-outline-variant/10 bg-surface-container-low/50">
         <div className="flex items-center gap-2">
           <Icon name="route" size={16} className="text-secondary" />
@@ -1980,9 +1980,6 @@ export default function DashboardScreen() {
 
       <MyBracketPath />
 
-      {/* News (3 latest, hides when empty) */}
-      <NewsFeed limit={3} />
-
       {/* Discovery: upcoming flash tournament if there is one */}
       <FlashTournamentBanner
         tournament={upcomingTournament}
@@ -2107,7 +2104,7 @@ export default function DashboardScreen() {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR (1/3): Standings + Activity + Ad Space */}
+        {/* RIGHT SIDEBAR (1/3): Standings + News + Activity */}
         <div className="space-y-6">
           <StandingsMini
             top5={top5}
@@ -2115,15 +2112,8 @@ export default function DashboardScreen() {
             onViewPlayer={handleViewPlayer}
             onViewAll={function () { navigate('/standings') }}
           />
+          <NewsFeed limit={3} />
           <ActivityFeed items={activityFeed} hasMore={afHasMore} onLoadMore={handleLoadMoreActivity} loading={afLoading} />
-
-          {/* Ad Space */}
-          <div
-            className="rounded-lg border border-dashed border-outline-variant/20 p-6 flex flex-col items-center justify-center gap-2 min-h-[140px] bg-white/[0.01]"
-          >
-            <Icon name="ads_click" size={20} className="text-on-surface/20" />
-            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
-          </div>
         </div>
       </div>
 

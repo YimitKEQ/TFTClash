@@ -15,6 +15,7 @@ var SCREEN_TO_ROUTE = {
 };
 
 var DESKTOP_LINKS = [
+  { id: 'home',       label: 'Home' },
   { id: 'clash',      label: 'Clash' },
   { id: 'standings',  label: 'Standings' },
   { id: 'events',     label: 'Events' },
