@@ -702,6 +702,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
   function handleRegister(t) {
     if (!currentUser) { if (onAuthClick) onAuthClick('login'); return }
     if (!linkedPlayer) { if (toast) toast('Link your player profile before registering', 'error'); navigate('/account'); return }
+    if (linkedPlayer.banned) { if (toast) toast('Your account is banned from registering', 'error'); return }
     if (t.region && !canRegisterInRegion(linkedPlayer.region, t.region)) {
       var msg = regionMismatchMessage(linkedPlayer.region, t.region)
       if (toast) toast(msg || 'Region mismatch. Check your account region.', 'error')

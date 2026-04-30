@@ -136,7 +136,7 @@ function OnboardingFlow(props) {
           </div>
           <div className="border-t border-white/[.08] pt-3">
             <div className="text-[11px] text-on-surface-variant mb-1">
-              {"Next Clash: " + (nextClash || "Saturday")}
+              {"Next Clash: " + (nextClash || "This week")}
             </div>
             <div className="text-[10px] text-on-surface-variant">
               Status: Not yet registered

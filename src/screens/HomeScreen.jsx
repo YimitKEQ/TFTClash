@@ -106,13 +106,13 @@ function RegionCommandCard(props) {
       ctaDisabled = true
     } else if (phase === 'live') {
       ctaLabel = 'Open Dashboard'
-      ctaHandler = onNavigateDashboard
+      ctaHandler = function() { onNavigateDashboard && onNavigateDashboard(tournament) }
     } else if (phase === 'checkin') {
       ctaLabel = 'Check In Now'
-      ctaHandler = onNavigateDashboard
+      ctaHandler = function() { onNavigateDashboard && onNavigateDashboard(tournament) }
     } else if (phase === 'registration') {
       ctaLabel = 'Register'
-      ctaHandler = onNavigateDashboard
+      ctaHandler = function() { onNavigateDashboard && onNavigateDashboard(tournament) }
     } else {
       ctaLabel = 'View Details'
       ctaHandler = function() { onViewDetail && onViewDetail(tournament) }
@@ -570,8 +570,19 @@ export default function HomeScreen() {
     setAuthScreen && setAuthScreen('signup')
   }
 
-  function handleNavigateDashboard() {
-    navigate('/')
+  function handleNavigateDashboard(t) {
+    var phase = t && t.phase ? String(t.phase).toLowerCase() : ''
+    var region = t && t.region ? String(t.region).toUpperCase() : 'EU'
+    if (phase === 'live' || phase === 'inprogress' || phase === 'in_progress') {
+      navigate('/clash')
+      return
+    }
+    if (phase === 'check_in' || phase === 'checkin' || phase === 'registration' || phase === 'register') {
+      navigate('/events#weekly-' + region.toUpperCase())
+      return
+    }
+    if (t && t.id) { handleViewTournament(t); return }
+    navigate('/events')
   }
 
   function handleViewTournament(t) {

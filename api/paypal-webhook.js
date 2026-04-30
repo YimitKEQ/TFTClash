@@ -211,6 +211,24 @@ export default async function handler(req, res) {
         var billingInfo = resource.billing_info || {};
         var nextBilling = billingInfo.next_billing_time || null;
 
+        // Out-of-order guard: don't overwrite a more-recent cancelled/suspended
+        // record for the same user. We compare current_period_start dates: if
+        // the existing row's start is later than this event's, we ignore it.
+        var existingRes = await supabase.from('user_subscriptions')
+          .select('current_period_start, status, provider_subscription_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (!existingRes.error && existingRes.data) {
+          var existing = existingRes.data;
+          var existingStart = existing.current_period_start ? new Date(existing.current_period_start).getTime() : 0;
+          var eventStart = new Date(startTime).getTime();
+          if (existingStart > eventStart && existing.provider_subscription_id !== subscriptionId) {
+            // A newer subscription is already on file - don't downgrade it.
+            console.warn('PayPal webhook: skipping ACTIVATED for stale subscription', subscriptionId);
+            break;
+          }
+        }
+
         var activateRes = await supabase.from('user_subscriptions').upsert({
           user_id: userId,
           tier: tier || 'pro',
@@ -227,20 +245,28 @@ export default async function handler(req, res) {
 
       case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
-        var cancelRes = await supabase.from('user_subscriptions')
+        // Out-of-order delivery guard: only flip to cancelled if this event's
+        // subscription matches what we have on file. Without this, a delayed
+        // CANCELLED for an old subscription could clobber a freshly-ACTIVATED
+        // one (same user_id, different provider_subscription_id).
+        var cancelQuery = supabase.from('user_subscriptions')
           .update({
             status: 'cancelled',
             cancel_at_period_end: true,
           })
           .eq('user_id', userId);
+        if (subscriptionId) cancelQuery = cancelQuery.eq('provider_subscription_id', subscriptionId);
+        var cancelRes = await cancelQuery;
         if (cancelRes.error) throw new Error('CANCELLED update failed: ' + cancelRes.error.message);
         break;
       }
 
       case 'BILLING.SUBSCRIPTION.SUSPENDED': {
-        var suspendRes = await supabase.from('user_subscriptions')
+        var suspendQuery = supabase.from('user_subscriptions')
           .update({ status: 'suspended' })
           .eq('user_id', userId);
+        if (subscriptionId) suspendQuery = suspendQuery.eq('provider_subscription_id', subscriptionId);
+        var suspendRes = await suspendQuery;
         if (suspendRes.error) throw new Error('SUSPENDED update failed: ' + suspendRes.error.message);
         break;
       }
@@ -259,9 +285,13 @@ export default async function handler(req, res) {
       }
 
       case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED': {
-        var failRes = await supabase.from('user_subscriptions')
+        // Same out-of-order guard: a payment-failed event for an old sub
+        // should not flip a fresh active sub on the same user_id to past_due.
+        var failQuery = supabase.from('user_subscriptions')
           .update({ status: 'past_due' })
           .eq('user_id', userId);
+        if (subscriptionId) failQuery = failQuery.eq('provider_subscription_id', subscriptionId);
+        var failRes = await failQuery;
         if (failRes.error) throw new Error('PAYMENT.FAILED update failed: ' + failRes.error.message);
         break;
       }

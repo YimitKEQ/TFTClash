@@ -12,7 +12,7 @@ import PredictionGame from '../components/shared/PredictionGame'
 import AiMatchRecap from '../components/shared/AiMatchRecap'
 import SocialShareBar from '../components/shared/SocialShareBar'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
-import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
+import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
 
@@ -172,6 +172,7 @@ export default function TournamentDetailScreen() {
     if (!dbTournamentId) { toast('Tournament unavailable', 'error'); return; }
     if (liveReg.busy) return
     if (!linkedPlayer) { toast('Link your player profile before registering', 'error'); navigate('/account'); return; }
+    if (!isRegistered && linkedPlayer.banned) { toast('Your account is banned from registering', 'error'); return; }
     if (!isRegistered && event.region && !canRegisterInRegion(linkedPlayer.region, event.region)) {
       var regMsg = regionMismatchMessage(linkedPlayer.region, event.region)
       toast(regMsg || 'Region mismatch. Check your account region.', 'error')
@@ -450,6 +451,40 @@ export default function TournamentDetailScreen() {
             <div className="h-full rounded-full bg-primary transition-all duration-500" style={{width: Math.min(100, regPercent) + '%'}} />
           </div>
         </div>
+
+        {/* What's next - shown to registered players on upcoming tournaments */}
+        {!isCompleted && currentUser && isRegistered && (
+          <div className="bg-success/5 border border-success/25 rounded p-5 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="check_circle" size={16} className="text-success" />
+              <span className="font-label text-[11px] font-bold text-success tracking-[.18em] uppercase">You're In</span>
+            </div>
+            <div className="font-display text-on-surface text-lg font-bold mb-3">What happens next</div>
+            <ol className="space-y-2 text-sm text-on-surface-variant">
+              <li className="flex items-start gap-3">
+                <span className="font-mono text-xs font-bold text-success bg-success/10 border border-success/30 rounded w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <span><span className="text-on-surface font-semibold">Check in</span> opens shortly before start time. Watch for the alert in the top strip and on the homepage.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="font-mono text-xs font-bold text-success bg-success/10 border border-success/30 rounded w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">2</span>
+                <span><span className="text-on-surface font-semibold">Lobbies and bracket</span> appear in the live dashboard once check-in closes. You'll be assigned automatically.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="font-mono text-xs font-bold text-success bg-success/10 border border-success/30 rounded w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">3</span>
+                <span><span className="text-on-surface font-semibold">Play your games</span> on the {event.region ? normalizeRegion(event.region) : ''} server using the Riot ID linked to your account. Admins post results after each round.</span>
+              </li>
+              {prizes.length > 0 && (
+                <li className="flex items-start gap-3">
+                  <span className="font-mono text-xs font-bold text-success bg-success/10 border border-success/30 rounded w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">4</span>
+                  <span><span className="text-on-surface font-semibold">Claim your prize</span> from your account page if you finish in the money. We'll notify you when claims open.</span>
+                </li>
+              )}
+            </ol>
+            <div className="mt-4 pt-3 border-t border-success/15 text-[11px] font-label text-on-surface-variant/60 uppercase tracking-wider">
+              Need to drop? Use the Withdraw button above before check-in opens.
+            </div>
+          </div>
+        )}
 
         {/* Champion banner - clash-style for completed tournaments */}
         {isCompleted && champName && (

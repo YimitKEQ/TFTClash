@@ -408,16 +408,8 @@ function BracketScreen(){
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
           if(res.error){toast("Failed to save game results - please retry","error");rollbackLock();return;}
-          // Use precomputed snapshot — same numbers as local state, no double-count.
-          Object.keys(snapshot).forEach(function(pid){
-            var u=snapshot[pid];
-            supabase.from('players').update({
-              season_pts:u.newPts,wins:u.newWins,top4:u.newTop4,games:u.newGames,
-              avg_placement:u.newAvg
-            }).eq('id',pid).then(function(pr){
-              if(pr&&pr.error)console.warn('Player stat update failed:',pr.error.message);
-            }).catch(function(e){console.warn('Player stat update error:',e);});
-          });
+          // Aggregate stats are owned by the refresh_player_stats trigger on game_results.
+          // Client-side players.update was duplicating the trigger's work and racing with it.
         }).catch(function(){ toast('Failed to save game results','error'); rollbackLock(); });
       }
     }
@@ -527,16 +519,8 @@ function BracketScreen(){
         .eq('lobby_number',li+1)
         .eq('round_number',round)
         .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
-      if(savedPlacements){
-        Object.keys(revertSnapshot).forEach(function(pid){
-          var u=revertSnapshot[pid];
-          supabase.from('players').update({
-            season_pts:u.newPts,wins:u.newWins,top4:u.newTop4,games:u.newGames,
-            avg_placement:u.newAvg
-          }).eq('id',pid).then(function(pr){
-          }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
-        });
-      }
+      // Stats revert is handled by refresh_player_stats trigger when game_results rows
+      // are deleted above.
     }
     toast("Lobby "+(li+1)+" unlocked - results reverted","success");
   }
@@ -641,9 +625,10 @@ function BracketScreen(){
           });
           allPlayers.forEach(function(p){
             if(p.id&&playerTotals[p.id]){
+              // Aggregate stats (season_pts, wins, top4, games, avg_placement) are owned
+              // by the refresh_player_stats trigger. Only the denormalized last_clash_rank
+              // is written here.
               supabase.from('players').update({
-                season_pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,
-                avg_placement:parseFloat(parseFloat(p.avg||0).toFixed(2)),
                 last_clash_rank:sortedByPts.findIndex(function(q){return q.id===p.id;})+1
               }).eq('id',p.id).then(function(pr){
               }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });

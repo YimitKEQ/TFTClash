@@ -117,7 +117,7 @@ function ClashLiveDashboard() {
           { icon: 'schedule', label: 'Round', value: round + ' / ' + totalGames, sub: round < totalGames ? ((totalGames - round) + ' to go') : 'final round' },
           { icon: 'groups', label: 'Players', value: String(checkedIn.length), sub: 'checked in' },
           { icon: 'lock', label: 'Lobbies', value: lockedLobbies.length + ' / ' + totalLobbies, sub: 'locked this round' },
-          { icon: 'content_cut', label: 'Cut Line', value: cutLine > 0 ? (cutLine + ' pts') : '—', sub: cutLine > 0 ? ('after R' + cutAfterGame) : 'no cut configured', accent: cutLine > 0 }
+          { icon: 'content_cut', label: 'Cut Line', value: cutLine > 0 ? (cutLine + ' pts') : 'None', sub: cutLine > 0 ? ('after R' + cutAfterGame) : 'no cut configured', accent: cutLine > 0 }
         ]}
         myStatus={myStatus ? Object.assign({}, myStatus, { onJump: goBracket }) : null}
         standings={standings}

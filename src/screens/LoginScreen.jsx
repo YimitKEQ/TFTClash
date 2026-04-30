@@ -10,9 +10,16 @@ export default function LoginScreen() {
   var setAuthScreen = ctx.setAuthScreen
 
   async function handleDiscordLogin() {
+    var path = '/'
+    try {
+      var here = (window.location.pathname || '/') + (window.location.search || '')
+      if (here && here.indexOf('/login') !== 0 && here.indexOf('/signup') !== 0 && here.indexOf('/auth') !== 0) {
+        path = here
+      }
+    } catch (e) { path = '/' }
     var res = await supabase.auth.signInWithOAuth({
       provider: 'discord',
-      options: { redirectTo: CANONICAL_ORIGIN }
+      options: { redirectTo: CANONICAL_ORIGIN + path }
     })
     if (res.error) { toast(res.error.message, 'error') }
   }

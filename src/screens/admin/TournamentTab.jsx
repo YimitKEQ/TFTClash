@@ -284,6 +284,27 @@ export default function TournamentTab() {
     toast('Phase: ' + PHASE_LABELS[phase], 'success')
   }
 
+  function markComplete() {
+    if (currentPhase !== 'inprogress') { toast('Must be in In-Progress phase first', 'error'); return }
+    var tId = ts.activeTournamentId || ts.dbTournamentId
+    if (!tId) {
+      if (!window.confirm('Mark the tournament as complete?')) return
+      setPhase('complete')
+      return
+    }
+    if (!window.confirm('Mark the tournament as complete? You will be asked next whether to generate prize claims.')) return
+    setPhase('complete')
+    supabase.from('tournaments').select('id, name, prize_pool_json').eq('id', tId).single().then(function(r) {
+      if (r.error || !r.data) return
+      var hasPrizes = Array.isArray(r.data.prize_pool_json) && r.data.prize_pool_json.length > 0
+      if (!hasPrizes) {
+        toast('No prizes configured - skipping claim generation', 'info')
+        return
+      }
+      finalizePrizeClaims(r.data)
+    }).catch(function() {})
+  }
+
   function openCheckin() {
     if (currentPhase !== 'registration') { toast('Must be in Registration phase first', 'error'); return }
     if (!window.confirm('Open check-in? Players will be notified to confirm attendance.')) return
@@ -851,7 +872,7 @@ export default function TournamentTab() {
         <div className="flex flex-wrap gap-2">
           <Btn variant="primary" size="sm" onClick={openCheckin} disabled={currentPhase !== 'registration'}>Open Check-in</Btn>
           <Btn variant="primary" size="sm" onClick={startTournament} disabled={currentPhase !== 'checkin'}>Start Tournament</Btn>
-          <Btn variant="ghost" size="sm" onClick={function() { setPhase('complete') }} disabled={currentPhase !== 'inprogress'}>Mark Complete</Btn>
+          <Btn variant="ghost" size="sm" onClick={markComplete} disabled={currentPhase !== 'inprogress'}>Mark Complete</Btn>
           <Btn variant="secondary" size="sm" onClick={resetToRegistration}>Reset Phase</Btn>
         </div>
       </Panel>

@@ -44,6 +44,10 @@ export default function OpsTournaments(props) {
   var editTournament = _editTournament[0]
   var setEditTournament = _editTournament[1]
 
+  var _addPlayer = useState('')
+  var addPlayerName = _addPlayer[0]
+  var setAddPlayerName = _addPlayer[1]
+
   var _createForm = useState({ name: '', date: '', maxPlayers: '24', roundCount: '3', type: 'season_clash', seedingMethod: 'rank-based' })
   var createForm = _createForm[0]
   var setCreateForm = _createForm[1]
@@ -56,19 +60,42 @@ export default function OpsTournaments(props) {
   var regLoading = _regLoading[0]
   var setRegLoading = _regLoading[1]
 
-  // Weekly clash phase control
-  var ts = tournamentState || {}
+  // Weekly clash phase control - region toggle so NA isn't silently routed to EU.
+  var _region = useState('EU')
+  var region = _region[0]
+  var setRegion = _region[1]
+
+  var ts = (region === 'NA' ? (tournamentStateNa || {}) : (tournamentState || {}))
   var currentPhase = ts.phase || 'idle'
   var currentPhaseIdx = PHASE_STEPS.indexOf(currentPhase)
 
   function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
   function setWeeklyPhase(phase) {
-    setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
-    supabase.from('site_settings').upsert({ key: 'tournament_state', value: JSON.stringify(Object.assign({}, ts, { phase: phase })) }, { onConflict: 'key' })
-      .then(function() {}).catch(function() {})
-    addAudit('ACTION', 'Weekly clash phase set to: ' + phase)
-    toast('Phase: ' + (PHASE_LABELS[phase] || phase), 'success')
+    var siteKey = region === 'NA' ? 'tournament_state_na' : 'tournament_state'
+    var setter = region === 'NA' ? setTournamentStateNa : setTournamentState
+    var nextValue = Object.assign({}, ts, { phase: phase })
+    if (setter) setter(function(s) { return Object.assign({}, s, { phase: phase }) })
+
+    // Capacity trigger and player views read tournaments.phase directly. Keep
+    // both site_settings and the tournaments row in sync when we know which
+    // tournament is the active weekly clash.
+    var tId = ts && (ts.activeTournamentId || ts.dbTournamentId)
+    var siteWrite = supabase.from('site_settings').upsert({ key: siteKey, value: JSON.stringify(nextValue) }, { onConflict: 'key' })
+    var tournamentWrite = tId
+      ? supabase.from('tournaments').update({ phase: toDbPhase(phase) }).eq('id', tId)
+      : Promise.resolve({ error: null })
+
+    Promise.all([siteWrite, tournamentWrite])
+      .then(function(results) {
+        var siteRes = results[0]
+        var tournamentRes = results[1]
+        if (siteRes && siteRes.error) { toast('Phase save failed: ' + siteRes.error.message, 'error'); return }
+        if (tournamentRes && tournamentRes.error) { toast('Tournament phase save failed: ' + tournamentRes.error.message, 'error'); return }
+        addAudit('ACTION', region + ' weekly phase set to: ' + phase)
+        toast(region + ' phase: ' + (PHASE_LABELS[phase] || phase), 'success')
+      })
+      .catch(function(e) { console.error('[OpsTournaments] setWeeklyPhase failed:', e); toast('Phase save failed', 'error') })
   }
 
   function createTournament() {
@@ -144,6 +171,27 @@ export default function OpsTournaments(props) {
       setRegistrations(function(rs) { return rs.filter(function(r) { return r.id !== regId }) })
       toast('Registration removed', 'success')
     }).catch(function() { toast('Remove failed', 'error') })
+  }
+
+  function forceAddPlayer(tId, username) {
+    var name = (username || '').trim()
+    if (!name) { toast('Enter a username', 'error'); return }
+    supabase.from('players').select('id, username, banned').ilike('username', name).limit(1).then(function(pRes) {
+      if (pRes.error) { toast('Lookup failed: ' + pRes.error.message, 'error'); return }
+      var found = (pRes.data || [])[0]
+      if (!found) { toast('No player matched "' + name + '"', 'error'); return }
+      if (found.banned) { toast(found.username + ' is banned', 'error'); return }
+      supabase.from('registrations').upsert({
+        tournament_id: tId,
+        player_id: found.id,
+        status: 'registered'
+      }, { onConflict: 'tournament_id,player_id' }).then(function(rRes) {
+        if (rRes.error) { toast('Add failed: ' + rRes.error.message, 'error'); return }
+        addAudit('ACTION', 'Force-added ' + found.username + ' to tournament #' + tId)
+        toast('Added ' + found.username, 'success')
+        loadRegistrations(tId)
+      }).catch(function() { toast('Add failed', 'error') })
+    }).catch(function() { toast('Lookup failed', 'error') })
   }
 
   function saveTournamentEdit() {
@@ -223,6 +271,15 @@ export default function OpsTournaments(props) {
             </div>
             <Btn v="dark" s="sm" onClick={function() { loadRegistrations(editTournament.id) }}>
               <Icon name="refresh" size={14} /> Load
+            </Btn>
+          </div>
+          <div className="px-5 py-3 border-b border-outline-variant/10 flex items-center gap-2">
+            <Inp value={addPlayerName} onChange={function(v) { setAddPlayerName(typeof v === 'string' ? v : v.target.value) }} placeholder="Add player by username..." />
+            <Btn v="primary" s="sm" onClick={function() {
+              forceAddPlayer(editTournament.id, addPlayerName)
+              setAddPlayerName('')
+            }}>
+              <Icon name="person_add" size={14} /> Add
             </Btn>
           </div>
           {regLoading ? (
@@ -314,14 +371,27 @@ export default function OpsTournaments(props) {
     <div className="space-y-5">
       {/* Weekly Clash Phase Control */}
       <Panel>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Icon name="calendar_month" size={16} className="text-primary" />
             <span className="font-bold text-sm text-on-surface">Weekly Clash Phase Control</span>
           </div>
-          <span className={'px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded ' + (PHASE_COLORS[currentPhase] || 'bg-on-surface/10 text-on-surface/40')}>
-            {PHASE_LABELS[currentPhase] || currentPhase || 'IDLE'}
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="flex border border-outline-variant/20 rounded overflow-hidden">
+              {['EU', 'NA'].map(function(r) {
+                var active = region === r
+                return (
+                  <button key={r} type="button" onClick={function() { setRegion(r) }}
+                    className={'px-3 py-1 text-[11px] font-bold uppercase tracking-wider ' + (active ? 'bg-primary/10 text-primary' : 'text-on-surface/40 hover:bg-white/5')}>
+                    {r}
+                  </button>
+                )
+              })}
+            </div>
+            <span className={'px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded ' + (PHASE_COLORS[currentPhase] || 'bg-on-surface/10 text-on-surface/40')}>
+              {PHASE_LABELS[currentPhase] || currentPhase || 'IDLE'}
+            </span>
+          </div>
         </div>
         <div className="mb-4">
           <div className="flex items-center gap-0">

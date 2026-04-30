@@ -223,7 +223,11 @@ export default function FlashTournamentScreen(props) {
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
-    if (!myPlayer || (!myPlayer.riotId && !myPlayer.riot_id_eu)) {
+    if (myPlayer && myPlayer.banned) {
+      toast('Your account is banned from registering', 'error');
+      return;
+    }
+    if (!myPlayer || (!myPlayer.riotId && !myPlayer.riot_id_eu && !myPlayer.riot_id_na)) {
       toast('Set your Riot ID in your profile before registering', 'error');
       return;
     }
@@ -577,7 +581,12 @@ export default function FlashTournamentScreen(props) {
   }
 
   function finalizeTournament() {
+    if (tournament && tournament.phase === 'complete') {
+      toast('Tournament already finalized', 'info');
+      return;
+    }
     if (!confirm('Finalize this tournament? This cannot be undone.')) return;
+    var isSeasonClash = tournament && tournament.type === 'season_clash';
     supabase.from('tournaments').update({phase: 'complete', completed_at: new Date().toISOString()})
       .eq('id', tournamentId).then(function(res) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
@@ -614,23 +623,10 @@ export default function FlashTournamentScreen(props) {
             if (tRows.length > 0) {
               supabase.from('tournament_results').upsert(tRows, { onConflict: 'tournament_id,player_id' }).then(function() {}).catch(function() {});
             }
-            Object.keys(playerAgg).forEach(function(pid) {
-              var a = playerAgg[pid];
-              supabase.from('players').select('season_pts,wins,top4,games,avg_placement').eq('id', pid).single()
-                .then(function(pRes) {
-                  if (pRes.error || !pRes.data) return;
-                  var cur = pRes.data;
-                  var newGames = (cur.games || 0) + a.games;
-                  var newAvg = newGames > 0 ? (((parseFloat(cur.avg_placement) || 0) * (cur.games || 0) + a.placeSum) / newGames) : 0;
-                  supabase.from('players').update({
-                    season_pts: (cur.season_pts || 0) + a.pts,
-                    wins: (cur.wins || 0) + a.wins,
-                    top4: (cur.top4 || 0) + a.top4,
-                    games: newGames,
-                    avg_placement: parseFloat(newAvg.toFixed(2))
-                  }).eq('id', pid).then(function() {}).catch(function() {});
-                }).catch(function() {});
-            });
+            // Custom/flash tournaments NEVER write to players season totals.
+            // Only season_clash type contributes to the season leaderboard; the DB trigger
+            // refresh_player_stats on game_results already handles those aggregates.
+            if (!isSeasonClash) return;
           }).catch(function() {});
       }).catch(function() { toast('Failed to finalize tournament', 'error'); });
   }
@@ -1164,7 +1160,7 @@ export default function FlashTournamentScreen(props) {
               { icon: 'schedule', label: 'Round', value: currentGameNumber + ' / ' + totalGames, sub: currentGameNumber < totalGames ? ((totalGames - currentGameNumber) + ' to go') : 'final round' },
               { icon: 'groups', label: 'Players', value: String(checkedInCount), sub: 'checked in' },
               { icon: 'lock', label: 'Lobbies', value: liveLockedThisRound + ' / ' + liveLobbiesThisRound, sub: 'locked this round' },
-              { icon: 'emoji_events', label: 'Prize Pool', value: prizes.length > 0 ? (prizes.length + ' tiers') : '—', sub: prizes.length > 0 ? 'see standings' : 'no prizes set' }
+              { icon: 'emoji_events', label: 'Prize Pool', value: prizes.length > 0 ? (prizes.length + ' tiers') : 'None', sub: prizes.length > 0 ? 'see standings' : 'no prizes set' }
             ]}
             myStatus={liveMyStatus}
             standings={liveStandings}

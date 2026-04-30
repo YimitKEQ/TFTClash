@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { PTS } from '../../lib/constants.js'
@@ -34,7 +34,7 @@ export default function ResultsTab() {
     setAuditLog(function(l) { return [entry].concat(l.slice(0, 199)) })
     if (supabase.from && currentUser) {
       supabase.from('audit_log').insert({
-        action: type, actor_id: currentUser.id || null,
+        action: type, actor_id: currentUser.auth_user_id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
       }).then(function(r) { }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
@@ -52,6 +52,33 @@ export default function ResultsTab() {
   var lobbyPlayers = checkedIn.slice((lobby - 1) * lobbySize, lobby * lobbySize)
   var lobbyKey = 'lobby' + lobby
   var isPublished = published.indexOf(lobbyKey) !== -1
+
+  // Load existing game_results for the active lobby so a per-row correction
+  // doesn't require re-entering all 8 placements. Also marks lobby as published
+  // when results already exist (so "Override" CTA shows correctly across reloads).
+  useEffect(function() {
+    var tId = ts.activeTournamentId || null
+    if (!tId || !lobbyPlayers || lobbyPlayers.length === 0) return
+    var pids = lobbyPlayers.map(function(p) { return p.id })
+    supabase.from('game_results')
+      .select('player_id, placement, game_number')
+      .eq('tournament_id', tId)
+      .eq('game_number', lobby)
+      .in('player_id', pids)
+      .then(function(r) {
+        if (r.error || !r.data || r.data.length === 0) return
+        setPlacements(function(prev) {
+          var next = Object.assign({}, prev)
+          r.data.forEach(function(row) {
+            next[lobbyKey + '_' + row.player_id] = String(row.placement)
+          })
+          return next
+        })
+        setPublished(function(pub) {
+          return pub.indexOf(lobbyKey) === -1 ? pub.concat([lobbyKey]) : pub
+        })
+      }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e) })
+  }, [lobby, ts.activeTournamentId, lobbyPlayers.length])
 
   function setPlace(playerId, place) {
     var key = lobbyKey + '_' + playerId
@@ -91,30 +118,31 @@ export default function ResultsTab() {
       return { player_id: p.id, placement: place, points: PTS[place] || 0, game_number: lobby, round_number: 1, tournament_id: tId }
     })
 
-    // On override: delete old results first to prevent double-counting in DB and local state
-    var deleteStep = isPublished
-      ? supabase.from('game_results').delete().eq('game_number', lobby).eq('tournament_id', tId)
-      : Promise.resolve({ error: null })
+    function reloadFromDb() {
+      supabase.from('players').select('id, season_pts, wins, top4, games, avg_placement').then(function(freshRes) {
+        if (freshRes.error || !freshRes.data) return
+        setPlayers(function(ps) {
+          return ps.map(function(p) {
+            var fresh = freshRes.data.find(function(f) { return f.id === p.id })
+            if (!fresh) return p
+            return Object.assign({}, p, { pts: fresh.season_pts || 0, wins: fresh.wins || 0, top4: fresh.top4 || 0, games: fresh.games || 0 })
+          })
+        })
+      }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e) })
+    }
 
-    deleteStep.then(function(delRes) {
-      if (delRes.error) { toast('Failed to clear existing results: ' + delRes.error.message, 'error'); return }
-      supabase.from('game_results').insert(rows).then(function(r) {
-        if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); return }
+    // Atomic upsert on (tournament_id, game_number, player_id). The previous
+    // delete-then-insert pair could orphan a lobby if insert failed after delete
+    // succeeded (refresh_player_stats trigger then recalculates with a hole).
+    supabase.from('game_results')
+      .upsert(rows, { onConflict: 'tournament_id,game_number,player_id' })
+      .then(function(r) {
+        if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); setPublishing(false); return }
         if (isPublished) {
-          // Override: reload stats from DB so we don't double-count (refresh_player_stats trigger recalculates)
-          supabase.from('players').select('id, season_pts, wins, top4, games, avg_placement').then(function(freshRes) {
-            if (!freshRes.error && freshRes.data) {
-              setPlayers(function(ps) {
-                return ps.map(function(p) {
-                  var fresh = freshRes.data.find(function(f) { return f.id === p.id })
-                  if (!fresh) return p
-                  return Object.assign({}, p, { pts: fresh.season_pts || 0, wins: fresh.wins || 0, top4: fresh.top4 || 0, games: fresh.games || 0 })
-                })
-              })
-            }
-          }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
+          // Override path: trigger recalculated, just reload from DB.
+          reloadFromDb()
         } else {
-          // Fresh publish: update local state immediately for UI, DB trigger handles authoritative stats
+          // Fresh publish: optimistic local update, then reconcile with DB.
           setPlayers(function(ps) {
             return ps.map(function(p) {
               var row = rows.find(function(rw) { return rw.player_id === p.id })
@@ -127,27 +155,14 @@ export default function ResultsTab() {
               })
             })
           })
-          // DB trigger refresh_player_stats handles authoritative stat update - reload after short delay
-          setTimeout(function() {
-            supabase.from('players').select('id, season_pts, wins, top4, games, avg_placement').then(function(freshRes) {
-              if (!freshRes.error && freshRes.data) {
-                setPlayers(function(ps) {
-                  return ps.map(function(p) {
-                    var fresh = freshRes.data.find(function(f) { return f.id === p.id })
-                    if (!fresh) return p
-                    return Object.assign({}, p, { pts: fresh.season_pts || 0, wins: fresh.wins || 0, top4: fresh.top4 || 0, games: fresh.games || 0 })
-                  })
-                })
-              }
-            }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
-          }, 1500)
+          setTimeout(reloadFromDb, 1500)
         }
-        setPublished(function(pub) { return pub.concat([lobbyKey]) })
+        setPublished(function(pub) { return pub.indexOf(lobbyKey) === -1 ? pub.concat([lobbyKey]) : pub })
         addAudit('ACTION', 'Results ' + (isPublished ? 'overridden' : 'published') + ': Lobby ' + lobby + ', ' + rows.length + ' players')
         toast('Results ' + (isPublished ? 'updated' : 'published') + ' for Lobby ' + lobby + '!', 'success')
         setPublishing(false)
-      }).catch(function() { toast('Publish failed', 'error'); setPublishing(false) })
-    }).catch(function() { toast('Operation failed', 'error'); setPublishing(false) })
+      })
+      .catch(function() { toast('Publish failed', 'error'); setPublishing(false) })
   }
 
   if (checkedIn.length === 0) {

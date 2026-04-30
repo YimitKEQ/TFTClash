@@ -69,13 +69,14 @@ export default function TournamentStatusStrip() {
   var ctaHandler = null
   var ctaTone = 'text-primary hover:text-on-surface'
 
+  var regionAnchor = '/events#weekly-' + region.toUpperCase()
   if (phaseKey === 'live') {
     statusLabel = 'LIVE NOW'
     tone = 'text-tertiary'
     dot = 'bg-tertiary animate-pulse'
     ctaLabel = currentUser ? 'Open Dashboard' : 'Sign Up'
     ctaHandler = function() {
-      if (currentUser) navigate('/')
+      if (currentUser) navigate('/clash')
       else if (setAuthScreen) setAuthScreen('signup')
     }
   } else if (phaseKey === 'checkin') {
@@ -84,17 +85,17 @@ export default function TournamentStatusStrip() {
     dot = 'bg-primary animate-pulse'
     if (!currentUser) { ctaLabel = 'Sign In'; ctaHandler = function() { setAuthScreen && setAuthScreen('login') } }
     else if (regionMismatch) { ctaLabel = 'Locked to ' + normalizeRegion(userRegion); ctaHandler = function() { navigate('/account') } }
-    else if (isCheckedIn) { ctaLabel = "You're In"; ctaHandler = function() { navigate('/') } }
-    else if (isRegistered) { ctaLabel = 'Check In'; ctaHandler = function() { navigate('/') } }
-    else { ctaLabel = 'Register'; ctaHandler = function() { navigate('/') } }
+    else if (isCheckedIn) { ctaLabel = "You're In"; ctaHandler = function() { navigate(regionAnchor) } }
+    else if (isRegistered) { ctaLabel = 'Check In'; ctaHandler = function() { navigate(regionAnchor) } }
+    else { ctaLabel = 'Register'; ctaHandler = function() { navigate(regionAnchor) } }
   } else if (phaseKey === 'registration') {
     statusLabel = 'REGISTRATION OPEN'
     tone = 'text-primary'
     dot = 'bg-primary'
     if (!currentUser) { ctaLabel = 'Sign Up'; ctaHandler = function() { setAuthScreen && setAuthScreen('signup') } }
     else if (regionMismatch) { ctaLabel = 'Locked to ' + normalizeRegion(userRegion); ctaHandler = function() { navigate('/account') } }
-    else if (isRegistered) { ctaLabel = "You're In"; ctaHandler = function() { navigate('/') } }
-    else { ctaLabel = 'Register'; ctaHandler = function() { navigate('/') } }
+    else if (isRegistered) { ctaLabel = "You're In"; ctaHandler = function() { navigate(regionAnchor) } }
+    else { ctaLabel = 'Register'; ctaHandler = function() { navigate(regionAnchor) } }
   }
 
   var showCountdown = countdown.hasCountdown && phaseKey !== 'live'

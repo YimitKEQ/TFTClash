@@ -183,7 +183,7 @@ export default function TeamPlanner(props) {
                   >Clear</button>
                 </span>
               ) : (
-                <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#504535' }}>None — pick a unit below</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#504535' }}>None - pick a unit below</span>
               )}
             </div>
             <div className="flex-1"/>
@@ -321,7 +321,7 @@ export default function TeamPlanner(props) {
             <p className="font-label uppercase tracking-widest text-xs mb-3" style={{ color: '#FFC66B' }}>Active Synergies</p>
             {activeTraits.length === 0 ? (
               <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#504535' }}>
-                — place units to activate traits —
+                place units to activate traits
               </p>
             ) : (
               <ul className="space-y-2">
