@@ -13,7 +13,6 @@ import OnboardingHint from '../components/shared/OnboardingHint'
 import LiveNowPanel from '../components/shared/LiveNowPanel'
 import NewsFeed from '../components/shared/NewsFeed'
 import PinnedTournamentsBar from '../components/shared/PinnedTournamentsBar'
-import NextEventCard from '../components/shared/NextEventCard'
 import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
 import { supabase } from '../lib/supabase'
 import { getDonateUrl } from '../lib/paypal'
@@ -634,54 +633,6 @@ export default function HomeScreen() {
 
       <div className="space-y-8 sm:space-y-12">
 
-        {!currentUser && (
-          <OnboardingHint
-            variant="guest"
-            icon="rocket_launch"
-            title="First time on TFT Clash?"
-            body="Free weekly tournaments, EU + NA brackets, full season leaderboard. Sign in with Discord to compete or just browse upcoming events as a spectator."
-            ctaLabel="Sign in"
-            onCta={function () { navigate('/login') }}
-            secondaryLabel="Browse events"
-            onSecondary={function () { navigate('/events') }}
-          />
-        )}
-
-        {currentUser && !hasLinkedPlayer && (
-          <OnboardingHint
-            variant="linked-player"
-            icon="link"
-            title="Link your Riot ID to start scoring"
-            body="Add your Riot ID in account settings so your clash placements show up on the leaderboard and your stats start counting."
-            ctaLabel="Open account"
-            onCta={function () { navigate('/account') }}
-          />
-        )}
-
-        <PinnedTournamentsBar compact={true} />
-
-        {linkedPlayer && <NextEventCard linkedPlayer={linkedPlayer} />}
-
-        <NewsFeed limit={3} />
-
-        <LiveNowPanel limit={4} />
-
-        {pastClashes && pastClashes.length > 0 && (
-          <LatestChampionStrip
-            clash={pastClashes[0]}
-            champPlayer={players.find(function (p) {
-              // Player names are unique on the platform (enforced server-side at
-              // signup), so case-insensitive name match is reliable. If two rows
-              // ever share a name only the stats line could show the wrong pts —
-              // the navigation target uses the clash record so click-through
-              // still resolves correctly.
-              return p && p.name && pastClashes[0].champion && !p.banned &&
-                String(p.name).toLowerCase() === String(pastClashes[0].champion).toLowerCase()
-            })}
-            navigate={navigate}
-          />
-        )}
-
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
         <section className="relative text-center space-y-6 sm:space-y-8 py-8 sm:py-12">
           {/* Tactical grid backdrop (decorative) */}
@@ -771,6 +722,41 @@ export default function HomeScreen() {
           </div>
         </section>
 
+        {/* News (3 latest) — fresh announcements right under the brand pitch */}
+        <NewsFeed limit={3} />
+
+        {/* Anything live right now */}
+        <LiveNowPanel limit={4} />
+
+        {/* Pinned partner / featured tournaments */}
+        <PinnedTournamentsBar compact={true} />
+
+        {/* Last clash champion — keeps the season feeling alive */}
+        {pastClashes && pastClashes.length > 0 && (
+          <LatestChampionStrip
+            clash={pastClashes[0]}
+            champPlayer={players.find(function (p) {
+              return p && p.name && pastClashes[0].champion && !p.banned &&
+                String(p.name).toLowerCase() === String(pastClashes[0].champion).toLowerCase()
+            })}
+            navigate={navigate}
+          />
+        )}
+
+        {/* Soft "first time?" CTA for guests, after they've seen the pitch */}
+        {!currentUser && (
+          <OnboardingHint
+            variant="guest"
+            icon="rocket_launch"
+            title="First time on TFT Clash?"
+            body="Free weekly tournaments, EU + NA brackets, full season leaderboard. Sign in with Discord to compete or just browse upcoming events as a spectator."
+            ctaLabel="Sign in"
+            onCta={function () { navigate('/login') }}
+            secondaryLabel="Browse events"
+            onSecondary={function () { navigate('/events') }}
+          />
+        )}
+
         {/* ── How It Works ──────────────────────────────────────────────────── */}
         {!currentUser && (
           <section className="space-y-6">
@@ -816,29 +802,6 @@ export default function HomeScreen() {
             );
           })}
         </div>
-
-        {/* ── Logged-in quick actions ───────────────────────────────────────── */}
-        {currentUser && (
-          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Dashboard', icon: 'dashboard', path: '/' },
-              { label: 'My Stats', icon: 'bar_chart', path: '/player/' + (currentUser.username || '') },
-              { label: 'Standings', icon: 'leaderboard', path: '/standings' },
-              { label: 'Events', icon: 'event', path: '/events' },
-            ].map(function(item) {
-              return (
-                <button
-                  key={item.label}
-                  onClick={function() { navigate(item.path); }}
-                  className="flex flex-col items-center gap-2 p-4 bg-surface-container-low rounded-lg border border-outline-variant/10 hover:bg-surface-container hover:border-primary/20 transition-all cursor-pointer group"
-                >
-                  <Icon name={item.icon} size={22} className="text-primary group-hover:scale-110 transition-transform" />
-                  <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{item.label}</span>
-                </button>
-              );
-            })}
-          </section>
-        )}
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
         <SeasonStatsBar

@@ -193,7 +193,7 @@ function PulseHeader({
 
         {/* Name + season label */}
         <div>
-          <h1 className="font-editorial text-2xl sm:text-4xl text-on-surface leading-none">{playerName}</h1>
+          <h1 className="font-display text-3xl sm:text-5xl uppercase tracking-tight text-on-surface leading-none">{playerName}</h1>
           <p className="font-label text-xs uppercase tracking-[0.2em] text-secondary mt-2">
             {linkedPlayer
               ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + (totalPlayers > 0 ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : myRankIdx) + '%')
@@ -1927,36 +1927,8 @@ export default function DashboardScreen() {
 
   return (
     <PageLayout maxWidth="max-w-[1200px]">
-      <div className="mb-8">
-        <SponsorShowcase placement="dashboard" variant="featured" />
-      </div>
 
-      <OnboardingChecklist steps={onboardingSteps} />
-
-      <NewsFeed limit={3} />
-
-      <div id="dashboard-clash-card">
-        <ClashCard />
-      </div>
-
-      {/* Next event the player is registered for (custom tournaments only -
-          ClashCard above already covers season clash). Removes the "where do
-          I find my tournament?" friction once a player has signed up. */}
-      <NextEventCard linkedPlayer={linkedPlayer} excludeSeasonClash={true} />
-
-      {/* Lobby roster - live phase only, the moat experience */}
-      <LobbyRosterCard />
-
-      {/* Player path - cross-round timeline in current tournament */}
-      <MyBracketPath />
-
-      {/* Announcements */}
-      {announcement && <AnnouncementStrip text={announcement} />}
-      {hostAnnouncements && hostAnnouncements.length > 0 && (
-        <AnnouncementStrip text={hostAnnouncements[0].msg} variant="host" />
-      )}
-
-      {/* Pulse Header - player identity + countdown */}
+      {/* ── Identity & countdown — the "you and what's next" strip ───────── */}
       <PulseHeader
         linkedPlayer={linkedPlayer}
         currentUser={currentUser}
@@ -1988,7 +1960,37 @@ export default function DashboardScreen() {
         pointsTrend={pointsTrend}
       />
 
-      {/* Season Stats Row */}
+      {/* Onboarding (auto-hides when complete) */}
+      <OnboardingChecklist steps={onboardingSteps} />
+
+      {/* Announcements (urgent admin / host messages) */}
+      {announcement && <AnnouncementStrip text={announcement} />}
+      {hostAnnouncements && hostAnnouncements.length > 0 && (
+        <AnnouncementStrip text={hostAnnouncements[0].msg} variant="host" />
+      )}
+
+      {/* ── Tonight: clash + your registered events + live state ────────── */}
+      <div id="dashboard-clash-card">
+        <ClashCard />
+      </div>
+
+      <NextEventCard linkedPlayer={linkedPlayer} excludeSeasonClash={true} />
+
+      <LobbyRosterCard />
+
+      <MyBracketPath />
+
+      {/* News (3 latest, hides when empty) */}
+      <NewsFeed limit={3} />
+
+      {/* Discovery: upcoming flash tournament if there is one */}
+      <FlashTournamentBanner
+        tournament={upcomingTournament}
+        isRegistered={upcomingRegistered}
+        onView={function () { navigate('/tournament/' + upcomingTournament.id) }}
+      />
+
+      {/* ── Your season at a glance ─────────────────────────────────────── */}
       {linkedPlayer && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <Panel padding="tight" className="flex items-center gap-3 hover:bg-surface-container transition-colors">
@@ -2031,13 +2033,6 @@ export default function DashboardScreen() {
           </Panel>
         </div>
       )}
-
-      {/* Flash tournament banner */}
-      <FlashTournamentBanner
-        tournament={upcomingTournament}
-        isRegistered={upcomingRegistered}
-        onView={function () { navigate('/tournament/' + upcomingTournament.id) }}
-      />
 
       {/* Three-column layout: main left, sidebar right */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -2130,6 +2125,11 @@ export default function DashboardScreen() {
             <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
           </div>
         </div>
+      </div>
+
+      {/* Sponsor strip — below the fold, lighter footprint than featured banner */}
+      <div className="mt-8">
+        <SponsorShowcase placement="dashboard" variant="strip" />
       </div>
 
       {/* Ticker */}
