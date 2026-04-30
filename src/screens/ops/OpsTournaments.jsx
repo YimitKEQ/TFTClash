@@ -60,6 +60,15 @@ export default function OpsTournaments(props) {
   var regLoading = _regLoading[0]
   var setRegLoading = _regLoading[1]
 
+  var _showArchived = useState(false)
+  var showArchived = _showArchived[0]
+  var setShowArchived = _showArchived[1]
+
+  // Broadcast composer modal. `target` is the tournament row we're sending to.
+  var _broadcast = useState({ target: null, message: '', sending: false })
+  var broadcast = _broadcast[0]
+  var setBroadcast = _broadcast[1]
+
   // Weekly clash phase control - region toggle so NA isn't silently routed to EU.
   var _region = useState('EU')
   var region = _region[0]
@@ -68,6 +77,9 @@ export default function OpsTournaments(props) {
   var ts = (region === 'NA' ? (tournamentStateNa || {}) : (tournamentState || {}))
   var currentPhase = ts.phase || 'idle'
   var currentPhaseIdx = PHASE_STEPS.indexOf(currentPhase)
+
+  var visibleTournaments = (tournaments || []).filter(function(t) { return showArchived || !t.archived_at })
+  var archivedCount = (tournaments || []).filter(function(t) { return !!t.archived_at }).length
 
   function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
@@ -131,6 +143,76 @@ export default function OpsTournaments(props) {
       toast('Phase: ' + (PHASE_LABELS[nextPhase] || nextPhase), 'success')
       if (onRefresh) onRefresh()
     }).catch(function() { toast('Phase advance failed', 'error') })
+  }
+
+  function archiveTournament(t) {
+    if (!t || !t.id) return
+    var stillLive = t.phase !== 'complete' && t.phase !== 'cancelled'
+    var msg = stillLive
+      ? 'Archive ' + t.name + '?\n\nForces phase to complete and stamps archived_at so it falls out of upcoming/live feeds. Registrations and results are preserved.'
+      : 'Archive ' + t.name + '?\n\nMarks archived_at so it is hidden from upcoming/live feeds. Registrations and results are preserved.'
+    if (!window.confirm(msg)) return
+    var nowIso = new Date().toISOString()
+    var patch = stillLive ? { phase: 'complete', archived_at: nowIso } : { archived_at: nowIso }
+    supabase.from('tournaments').update(patch).eq('id', t.id).then(function(res) {
+      if (res.error) { toast('Archive failed: ' + res.error.message, 'error'); return }
+      if (tournamentState && tournamentState.dbTournamentId === t.id && setTournamentState) {
+        setTournamentState(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+      }
+      if (tournamentStateNa && tournamentStateNa.dbTournamentId === t.id && setTournamentStateNa) {
+        setTournamentStateNa(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+      }
+      addAudit('ACTION', (stillLive ? 'Tournament archived (force complete): ' : 'Tournament archived: ') + t.name)
+      toast('Archived', 'success')
+      if (onRefresh) onRefresh()
+    }).catch(function() { toast('Archive failed', 'error') })
+  }
+
+  function unarchiveTournament(t) {
+    if (!t || !t.id) return
+    if (!window.confirm('Restore ' + t.name + ' from archive?\n\nThis clears archived_at. Phase is left at "complete" - move it back manually if you want it live again.')) return
+    supabase.from('tournaments').update({ archived_at: null }).eq('id', t.id).then(function(res) {
+      if (res.error) { toast('Unarchive failed: ' + res.error.message, 'error'); return }
+      addAudit('ACTION', 'Tournament unarchived: ' + t.name)
+      toast('Restored', 'success')
+      if (onRefresh) onRefresh()
+    }).catch(function() { toast('Unarchive failed', 'error') })
+  }
+
+  function openBroadcast(t) {
+    setBroadcast({ target: t, message: '', sending: false })
+  }
+
+  function closeBroadcast() {
+    setBroadcast({ target: null, message: '', sending: false })
+  }
+
+  function sendBroadcast() {
+    if (!broadcast.target) return
+    var msg = String(broadcast.message || '').replace(/[<>]/g, '').slice(0, 200).trim()
+    if (!msg) { toast('Message is empty', 'error'); return }
+    setBroadcast(Object.assign({}, broadcast, { sending: true }))
+    var t = broadcast.target
+    var title = (t.name || 'Tournament') + ' - Announcement'
+    supabase.rpc('notify_tournament_players', {
+      p_tournament_id: t.id,
+      p_title: title,
+      p_body: msg,
+      p_icon: 'bell',
+      p_statuses: ['checked_in', 'registered']
+    }).then(function(res) {
+      if (res && res.error) {
+        toast('Broadcast failed: ' + res.error.message, 'error')
+        setBroadcast(Object.assign({}, broadcast, { sending: false }))
+        return
+      }
+      addAudit('ACTION', 'Broadcast sent to ' + t.name + ': ' + msg)
+      toast('Announcement sent to registered + checked-in players', 'success')
+      setBroadcast({ target: null, message: '', sending: false })
+    }).catch(function() {
+      toast('Broadcast failed', 'error')
+      setBroadcast(Object.assign({}, broadcast, { sending: false }))
+    })
   }
 
   function deleteTournament(tId, name) {
@@ -425,33 +507,56 @@ export default function OpsTournaments(props) {
 
       {/* Tournament List */}
       <Panel className="!p-0 overflow-hidden">
-        <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Icon name="emoji_events" size={18} className="text-primary" />
             <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
-              All Tournaments ({tournaments.length})
+              All Tournaments ({visibleTournaments.length}{archivedCount > 0 ? ' / ' + tournaments.length : ''})
             </span>
           </div>
-          <Btn v="primary" s="sm" onClick={function() { setView('create') }}>
-            <Icon name="add" size={14} /> New Tournament
-          </Btn>
+          <div className="flex items-center gap-2">
+            {archivedCount > 0 && (
+              <button type="button" onClick={function() { setShowArchived(!showArchived) }} className={'inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-label font-bold uppercase tracking-widest rounded border transition-colors ' + (showArchived ? 'border-on-surface/30 text-on-surface bg-on-surface/5' : 'border-outline-variant/20 text-on-surface/50 hover:text-on-surface hover:border-outline-variant/40')}>
+                <Icon name={showArchived ? 'visibility_off' : 'visibility'} size={12} />
+                {showArchived ? 'Hide archived' : 'Show archived (' + archivedCount + ')'}
+              </button>
+            )}
+            <Btn v="primary" s="sm" onClick={function() { setView('create') }}>
+              <Icon name="add" size={14} /> New Tournament
+            </Btn>
+          </div>
         </div>
-        {tournaments.length === 0 ? (
+        {visibleTournaments.length === 0 ? (
           <div className="py-12 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">
-            No tournaments yet. Create your first one!
+            {tournaments.length === 0 ? 'No tournaments yet. Create your first one!' : 'No tournaments match the current filter.'}
           </div>
         ) : (
           <div className="max-h-[500px] overflow-y-auto">
-            {tournaments.map(function(t) {
+            {visibleTournaments.map(function(t) {
               var appPhase = fromDbPhase(t.phase)
               var badge = PHASE_COLORS[appPhase] || 'bg-on-surface/10 text-on-surface/40'
               var regCount = regCounts[t.id] || 0
+              var hasCut = t.cut_line && t.cut_line > 0
+              var isArchived = !!t.archived_at
+              var canBroadcast = appPhase === 'registration' || appPhase === 'checkin' || appPhase === 'inprogress'
               return (
-                <div key={t.id} className="flex items-center gap-3 py-3 px-5 border-b border-outline-variant/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                <div key={t.id} className={'flex items-center gap-3 py-3 px-5 border-b border-outline-variant/5 last:border-0 transition-colors ' + (isArchived ? 'opacity-60 hover:bg-white/[0.01]' : 'hover:bg-white/[0.02]')}>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-on-surface truncate">{t.name || 'Unnamed'}</div>
+                    <div className="text-sm font-bold text-on-surface truncate flex items-center gap-1.5 flex-wrap">
+                      <span>{t.name || 'Unnamed'}</span>
+                      {isArchived && (
+                        <span className="text-[9px] font-label font-black uppercase tracking-widest text-on-surface/50 bg-on-surface/5 border border-outline-variant/20 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                          <Icon name="inventory_2" size={9} />Archived
+                        </span>
+                      )}
+                      {hasCut && (
+                        <span className="text-[9px] font-label font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/30 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                          <Icon name="content_cut" size={9} />cut {t.cut_line} after R{t.cut_after_game}
+                        </span>
+                      )}
+                    </div>
                     <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-wider mt-0.5">
-                      {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} {t.region ? '/ ' + t.region : ''} / {t.type || 'season_clash'}
+                      {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} {t.region ? '/ ' + t.region : ''} / {t.type || 'season_clash'}{t.round_count ? ' / ' + t.round_count + 'g' : ''}
                     </div>
                   </div>
                   <div className="font-mono text-xs text-on-surface/50">{regCount}/{t.max_players || '?'}</div>
@@ -459,9 +564,14 @@ export default function OpsTournaments(props) {
                     {PHASE_LABELS[appPhase] || (appPhase || 'draft').toUpperCase()}
                   </span>
                   <div className="flex items-center gap-1">
-                    {appPhase && appPhase !== 'complete' && (
+                    {appPhase && appPhase !== 'complete' && !isArchived && (
                       <Btn v="ghost" s="sm" onClick={function() { advancePhase(t.id, t.phase) }} title="Advance phase">
                         <Icon name="skip_next" size={14} className="text-tertiary" />
+                      </Btn>
+                    )}
+                    {canBroadcast && !isArchived && (
+                      <Btn v="ghost" s="sm" onClick={function() { openBroadcast(t) }} title="Broadcast announcement">
+                        <Icon name="campaign" size={14} className="text-secondary" />
                       </Btn>
                     )}
                     <Btn v="ghost" s="sm" onClick={function() { setEditTournament(Object.assign({}, t)); loadRegistrations(t.id) }} title="Edit">
@@ -470,6 +580,15 @@ export default function OpsTournaments(props) {
                     <Btn v="ghost" s="sm" onClick={function() { navigate('/tournament/' + t.id) }} title="View">
                       <Icon name="open_in_new" size={14} />
                     </Btn>
+                    {isArchived ? (
+                      <Btn v="ghost" s="sm" onClick={function() { unarchiveTournament(t) }} title="Restore from archive">
+                        <Icon name="unarchive" size={14} className="text-tertiary" />
+                      </Btn>
+                    ) : (
+                      <Btn v="ghost" s="sm" onClick={function() { archiveTournament(t) }} title="Archive (hide from feeds)">
+                        <Icon name="inventory_2" size={14} className="text-on-surface/60" />
+                      </Btn>
+                    )}
                     <Btn v="ghost" s="sm" onClick={function() { deleteTournament(t.id, t.name) }} title="Delete">
                       <Icon name="delete" size={14} className="text-error" />
                     </Btn>
@@ -480,6 +599,46 @@ export default function OpsTournaments(props) {
           </div>
         )}
       </Panel>
+
+      {broadcast.target && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={function(e) { if (e.target === e.currentTarget) closeBroadcast() }}>
+          <div className="bg-surface-container border border-outline-variant/30 rounded-xl shadow-2xl max-w-lg w-full p-5">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-secondary/20 border border-secondary/30 flex items-center justify-center flex-shrink-0">
+                  <Icon name="campaign" size={16} className="text-secondary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-display text-sm font-black uppercase tracking-tight text-on-surface truncate">Broadcast</div>
+                  <div className="text-[11px] text-on-surface/60 truncate">to {broadcast.target.name}</div>
+                </div>
+              </div>
+              <button type="button" onClick={closeBroadcast} className="w-8 h-8 rounded flex items-center justify-center text-on-surface/40 hover:text-on-surface hover:bg-surface-container-highest transition-colors">
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+            <div className="text-[11px] text-on-surface/50 mb-2">Sends a push notification to all registered + checked-in players for this tournament. Max 200 chars.</div>
+            <textarea
+              value={broadcast.message}
+              onChange={function(e) { setBroadcast(Object.assign({}, broadcast, { message: e.target.value })) }}
+              maxLength={200}
+              rows={4}
+              autoFocus
+              placeholder="e.g. Lobby 3, please move to the new server. Apologies for the delay!"
+              className="w-full bg-surface border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-secondary/60 resize-none"
+            />
+            <div className="flex items-center justify-between mt-3 gap-2">
+              <span className="text-[10px] font-mono text-on-surface/40">{broadcast.message.length}/200</span>
+              <div className="flex items-center gap-2">
+                <Btn v="dark" s="sm" onClick={closeBroadcast} disabled={broadcast.sending}>Cancel</Btn>
+                <Btn v="primary" s="sm" onClick={sendBroadcast} disabled={broadcast.sending || !broadcast.message.trim()}>
+                  {broadcast.sending ? 'Sending...' : 'Send Announcement'}
+                </Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
