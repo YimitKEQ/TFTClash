@@ -405,7 +405,7 @@ export default function HostDashboardScreen() {
           }).catch(function() {})
       }).catch(function() {})
     return function() { cancelled = true }
-  }, [hostTournaments && hostTournaments.map(function(t){ return t.dbId + ':' + t.status }).join(',')])
+  }, [(hostTournaments || []).map(function(t){ return t.dbId + ':' + t.status }).join(',')])
 
   var setTournamentState = ctx.setTournamentState
   var tournamentState = ctx.tournamentState || {}

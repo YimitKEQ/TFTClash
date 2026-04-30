@@ -196,7 +196,7 @@ export default function TournamentDetailScreen() {
         .eq('team_id', myCaptainTeam.id)
         .is('removed_at', null),
       supabase.from('registrations')
-        .select('id, status, lineup_player_ids')
+        .select('id, status, lineup_player_ids, team_id')
         .eq('tournament_id', dbTournamentId)
         .eq('team_id', myCaptainTeam.id)
         .maybeSingle()
@@ -235,6 +235,10 @@ export default function TournamentDetailScreen() {
 
   function submitTeamCheckIn() {
     if (!myCaptainTeam || !myTeamReg || checkInBusy) return;
+    if (myTeamReg.team_id && String(myTeamReg.team_id) !== String(myCaptainTeam.id)) {
+      toast('Registration mismatch - refresh and try again.', 'error');
+      return;
+    }
     if (lineupSel.length !== teamSize) {
       toast('Pick exactly ' + teamSize + ' starters before checking in.', 'error');
       return;
