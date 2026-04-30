@@ -9,6 +9,7 @@ import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
+import NextEventCard from '../components/shared/NextEventCard'
 import { DISCORD_URL, PTS } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
@@ -1933,6 +1934,11 @@ export default function DashboardScreen() {
       <div id="dashboard-clash-card">
         <ClashCard />
       </div>
+
+      {/* Next event the player is registered for (custom tournaments only -
+          ClashCard above already covers season clash). Removes the "where do
+          I find my tournament?" friction once a player has signed up. */}
+      <NextEventCard linkedPlayer={linkedPlayer} excludeSeasonClash={true} />
 
       {/* Lobby roster - live phase only, the moat experience */}
       <LobbyRosterCard />

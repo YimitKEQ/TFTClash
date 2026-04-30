@@ -12,6 +12,7 @@ import RegionBadge from '../components/shared/RegionBadge'
 import OnboardingHint from '../components/shared/OnboardingHint'
 import LiveNowPanel from '../components/shared/LiveNowPanel'
 import PinnedTournamentsBar from '../components/shared/PinnedTournamentsBar'
+import NextEventCard from '../components/shared/NextEventCard'
 import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
 import { supabase } from '../lib/supabase'
 import { getDonateUrl } from '../lib/paypal'
@@ -621,9 +622,10 @@ export default function HomeScreen() {
 
   var seasonLabel = sharedCountdown.clashName || seasonConfig.seasonName || 'TFT Clash'
 
-  var hasLinkedPlayer = !!(currentUser && currentUser.id && players.find(function (p) {
+  var linkedPlayer = (currentUser && currentUser.id) ? players.find(function (p) {
     return p.authUserId && String(p.authUserId) === String(currentUser.id)
-  }))
+  }) : null
+  var hasLinkedPlayer = !!linkedPlayer
 
   return (
     <PageLayout showSidebar={false} maxWidth="max-w-[880px]">
@@ -655,6 +657,9 @@ export default function HomeScreen() {
         )}
 
         <PinnedTournamentsBar compact={true} />
+
+        {linkedPlayer && <NextEventCard linkedPlayer={linkedPlayer} />}
+
         <LiveNowPanel limit={4} />
 
         {pastClashes && pastClashes.length > 0 && (
