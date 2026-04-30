@@ -748,14 +748,20 @@ export function AppProvider(props) {
       })
       .subscribe();
 
-    // Realtime on registrations
+    // Realtime on registrations.
+    // CRITICAL: only mutate season-clash state when the row's tournament_id
+    // matches the active season clash (ts.dbTournamentId). Custom/flash
+    // tournament registrations must never leak into season standings or
+    // check-in counts. See feedback_clash_vs_custom_isolation.
     var regCh=supabase.channel('registrations_realtime')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'registrations'},function(payload){
         var row=payload.new;
-        if(!row||!row.player_id)return;
+        if(!row||!row.player_id||!row.tournament_id)return;
         var pid=String(row.player_id);
+        var rTid=String(row.tournament_id);
         if(row.status==='checked_in'){
           setTournamentState(function(ts){
+            if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
             var ids=new Set((ts.checkedInIds||[]).map(String));
             ids.add(pid);
             return Object.assign({},ts,{checkedInIds:Array.from(ids)});
@@ -763,6 +769,7 @@ export function AppProvider(props) {
         }
         if(row.status==='registered'){
           setTournamentState(function(ts){
+            if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
             var ids=new Set((ts.registeredIds||[]).map(String));
             ids.add(pid);
             return Object.assign({},ts,{registeredIds:Array.from(ids)});
@@ -771,9 +778,11 @@ export function AppProvider(props) {
       })
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'registrations'},function(payload){
         var row=payload.new;
-        if(!row||!row.player_id)return;
+        if(!row||!row.player_id||!row.tournament_id)return;
         var pid=String(row.player_id);
+        var rTid=String(row.tournament_id);
         setTournamentState(function(ts){
+          if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
           var rids=new Set((ts.registeredIds||[]).map(String));
           var cids=new Set((ts.checkedInIds||[]).map(String));
           if(row.status==='checked_in'){
@@ -789,9 +798,11 @@ export function AppProvider(props) {
       })
       .on('postgres_changes',{event:'DELETE',schema:'public',table:'registrations'},function(payload){
         var old=payload.old;
-        if(!old||!old.player_id)return;
+        if(!old||!old.player_id||!old.tournament_id)return;
         var pid=String(old.player_id);
+        var rTid=String(old.tournament_id);
         setTournamentState(function(ts){
+          if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
           return Object.assign({},ts,{
             registeredIds:(ts.registeredIds||[]).filter(function(id){return String(id)!==pid;}),
             checkedInIds:(ts.checkedInIds||[]).filter(function(id){return String(id)!==pid;})
