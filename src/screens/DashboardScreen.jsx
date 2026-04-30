@@ -1563,6 +1563,7 @@ export default function DashboardScreen() {
     supabase.from('tournaments').select('*')
       .eq('type', 'flash_tournament')
       .in('phase', ['registration', 'check_in', 'upcoming'])
+      .is('archived_at', null)
       .order('date', { ascending: true })
       .limit(1)
       .then(function (res) {

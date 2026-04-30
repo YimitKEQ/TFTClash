@@ -794,6 +794,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hi
       .from('tournaments')
       .select('*')
       .eq('type', 'flash_tournament')
+      .is('archived_at', null)
       .order('date', { ascending: false })
       .then(function(res) {
         if (res.data) setTournaments(res.data)
@@ -1522,6 +1523,7 @@ function WeeklyClashesPanel(props) {
       .select('id,name,date,region,phase,type,is_finale,max_players,prize_pool_json')
       .eq('type', 'season_clash')
       .in('phase', ['registration', 'check_in', 'in_progress', 'draft'])
+      .is('archived_at', null)
       .order('date', { ascending: true })
       .limit(40)
       .then(function(res) {

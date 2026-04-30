@@ -537,6 +537,7 @@ export default function HomeScreen() {
     supabase.from('tournaments').select('id,name,date,region,phase,type,is_finale,started_at,registration_close_at,checkin_open_at,host_profile_id')
       .eq('type', 'season_clash')
       .in('phase', ['registration', 'check_in', 'in_progress', 'draft'])
+      .is('archived_at', null)
       .order('date', { ascending: true })
       .limit(40)
       .then(function(res) {

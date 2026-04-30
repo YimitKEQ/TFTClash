@@ -60,7 +60,7 @@ export default function PlatformStatsBar(props) {
       // Read the canonical prize pool from prize_pool_json (the flat
       // prize_pool column is legacy and was never populated by the rebuilt
       // admin flow).
-      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool,prize_pool_json').eq('type', 'season_clash').eq('phase', 'complete').limit(2000)
+      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool,prize_pool_json').eq('type', 'season_clash').eq('phase', 'complete').is('archived_at', null).limit(2000)
       var playersQ = supabase.from('players').select('id', { count: 'exact', head: true }).eq('banned', false)
 
       tournamentsQ

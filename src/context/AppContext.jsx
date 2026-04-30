@@ -280,7 +280,7 @@ export function AppProvider(props) {
         // the join-side filter is fragile across PostgREST versions and we
         // can't risk silent leakage on the season standings.
         var freshMapped=mapped;
-        supabase.from('tournaments').select('id').eq('type','season_clash').limit(2000).then(function(tIdRes){
+        supabase.from('tournaments').select('id').eq('type','season_clash').is('archived_at',null).limit(2000).then(function(tIdRes){
           var seasonIds=(tIdRes&&tIdRes.data?tIdRes.data:[]).map(function(t){return t.id;});
           if(!seasonIds.length){return;}
           supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
@@ -1021,7 +1021,7 @@ export function AppProvider(props) {
   var playersLoadedCount=players.length;
   useEffect(function(){
     if(!supabase.from||!playersLoadedCount)return;
-    supabase.from('tournaments').select('id,name,date').eq('phase','complete').eq('type','season_clash').order('date',{ascending:false}).limit(50)
+    supabase.from('tournaments').select('id,name,date').eq('phase','complete').eq('type','season_clash').is('archived_at',null).order('date',{ascending:false}).limit(50)
       .then(function(res){
         if(res.error){return;}
         if(!res.data||!res.data.length){setPastClashes([]);return;}

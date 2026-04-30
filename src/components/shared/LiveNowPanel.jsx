@@ -115,7 +115,7 @@ export default function LiveNowPanel(props) {
     // Only surface official Clash events here. Custom/flash tournaments have
     // their own surfaces (/tournament, /flash, /events) and must never sit
     // under a "LIVE NOW" badge that promises the official clash broadcast.
-    supabase.from('tournaments').select('id,name,phase,date,region,max_players,type').eq('type', 'season_clash').in('phase', ACTIVE_PHASES).order('date', { ascending: true }).limit(20)
+    supabase.from('tournaments').select('id,name,phase,date,region,max_players,type').eq('type', 'season_clash').in('phase', ACTIVE_PHASES).is('archived_at', null).order('date', { ascending: true }).limit(20)
       .then(function (res) {
         if (cancelled) return
         setLoading(false)

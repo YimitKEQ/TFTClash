@@ -310,6 +310,7 @@ export default function TournamentsListScreen() {
       .from('tournaments')
       .select('*')
       .eq('type', 'flash_tournament')
+      .is('archived_at', null)
       .order('date', {ascending: false})
       .then(function(res) {
         if (res.data) setTournaments(res.data);
