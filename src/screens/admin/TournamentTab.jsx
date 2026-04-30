@@ -131,7 +131,7 @@ export default function TournamentTab() {
   var newEvent = _newEvent[0]
   var setNewEvent = _newEvent[1]
 
-  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', prizeRows: [{ placement: '1', prize: '' }] })
+  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
 
@@ -527,6 +527,7 @@ export default function TournamentTab() {
     var startIso = parsedDate.toISOString()
     var dateOnly = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0')
     var checkinOpenIso = new Date(parsedDate.getTime() - 15 * 60 * 1000).toISOString()
+    var flashRegion = (flashForm.region === 'NA' || flashForm.region === 'EU') ? flashForm.region : 'EU'
     supabase.from('tournaments').insert({
       name: trimmedName, date: dateOnly, phase: 'draft', type: 'flash_tournament',
       max_players: flashMaxP, round_count: flashGames,
@@ -535,6 +536,7 @@ export default function TournamentTab() {
       team_size: teamSize,
       subs_allowed: subsAllowed,
       points_scale: 'standard',
+      region: flashRegion,
       checkin_open_at: checkinOpenIso,
       checkin_close_at: startIso
     }).select().single().then(function(res) {
@@ -542,7 +544,7 @@ export default function TournamentTab() {
       setFlashTournaments(function(ts) { return (ts || []).concat([res.data]) })
       addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : ''))
       toast('Flash tournament created!', 'success')
-      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', prizeRows: [{ placement: '1', prize: '' }] })
+      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', prizeRows: [{ placement: '1', prize: '' }] })
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
@@ -1040,6 +1042,13 @@ export default function TournamentTab() {
             }}>
               <option value="1">Solo (1v1)</option>
               <option value="4">4v4 Squads</option>
+            </Sel>
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Region</label>
+            <Sel value={flashForm.region} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { region: String(v) })) }}>
+              <option value="EU">EU</option>
+              <option value="NA">NA</option>
             </Sel>
           </div>
           {flashForm.teamSize === '4' && (
