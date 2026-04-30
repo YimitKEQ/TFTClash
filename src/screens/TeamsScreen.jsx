@@ -11,6 +11,7 @@
  *   5. Has team (member) -> roster + leave-team button.
  */
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import PageLayout from '../components/layout/PageLayout';
 import { Panel, Btn, Inp, Icon, Tag } from '../components/ui';
@@ -298,6 +299,7 @@ function InvitePicker(props) {
 
 function TeamDirectory(props) {
   var teams = props.teams || [];
+  var navigate = useNavigate();
   if (!teams.length) return null;
   return (
     <Panel padding="default" className="space-y-3">
@@ -308,14 +310,19 @@ function TeamDirectory(props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {teams.map(function(t) {
           return (
-            <div key={t.id} className="bg-surface-container-low/40 border border-outline-variant/10 rounded-lg p-4">
+            <button
+              key={t.id}
+              type="button"
+              onClick={function(){ navigate('/team/' + t.id); }}
+              className="text-left bg-surface-container-low/40 border border-outline-variant/10 rounded-lg p-4 hover:bg-surface-container-low/70 hover:border-primary/30 transition focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="font-bold text-on-surface">{t.name}</div>
                 {t.tag ? <Tag variant="secondary">{t.tag}</Tag> : null}
                 <Tag variant="ghost">{t.region}</Tag>
               </div>
               {t.bio ? <div className="text-xs text-on-surface/60">{t.bio}</div> : null}
-            </div>
+            </button>
           );
         })}
       </div>

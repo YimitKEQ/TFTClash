@@ -86,6 +86,7 @@ var HofScreenNew = lazyWithRetry(function(){ return import('./screens/HofScreen'
 var GearScreenNew = lazyWithRetry(function(){ return import('./screens/GearScreen'); });
 var SquadsSimScreen = lazyWithRetry(function(){ return import('./screens/sim/SquadsSimScreen'); });
 var TeamsScreen = lazyWithRetry(function(){ return import('./screens/TeamsScreen'); });
+var TeamProfileScreen = lazyWithRetry(function(){ return import('./screens/TeamProfileScreen'); });
 import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
@@ -273,6 +274,7 @@ function TFTClash(){
     if(segs[0]==="results"&&segs[1]){navSourceRef.current="router";setScreen("results");setSubRoute(segs[1]);return;}
     if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";setScreen("flash-"+segs[1]);return;}
     if(segs[0]==="tournament"&&segs[1]){navSourceRef.current="router";setScreen("tournament-"+segs[1]);return;}
+    if(segs[0]==="team"&&segs[1]){navSourceRef.current="router";setScreen("team-"+segs[1]);return;}
     if(segs[0]==="obs"&&segs[1]){navSourceRef.current="router";setScreen("obs-"+segs[1]);return;}
     if(segs[0]==="host"){
       if(segs[1]==="apply"){navSourceRef.current="router";setScreen("host-apply");return;}
@@ -766,6 +768,7 @@ function TFTClash(){
 
         {screen==="squads-sim"&&<SquadsSimScreen/>}
         {screen==="teams"&&<TeamsScreen/>}
+        {screen.indexOf("team-")===0&&<TeamProfileScreen/>}
 
 
         </ScreenBoundary>
