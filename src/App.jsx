@@ -84,6 +84,8 @@ var TournamentsListScreenNew = lazyWithRetry(function(){ return import('./screen
 var AdminScreenNew = lazyWithRetry(function(){ return import('./screens/AdminScreen'); });
 var HofScreenNew = lazyWithRetry(function(){ return import('./screens/HofScreen'); });
 var GearScreenNew = lazyWithRetry(function(){ return import('./screens/GearScreen'); });
+var SquadsSimScreen = lazyWithRetry(function(){ return import('./screens/sim/SquadsSimScreen'); });
+var TeamsScreen = lazyWithRetry(function(){ return import('./screens/TeamsScreen'); });
 import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
@@ -252,7 +254,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -761,6 +763,9 @@ function TFTClash(){
         {screen==="roadmap"&&<RoadmapScreenNew/>}
         {screen==="predictions"&&<PredictionsScreenNew/>}
         {screen==="links"&&<LinksScreenNew/>}
+
+        {screen==="squads-sim"&&<SquadsSimScreen/>}
+        {screen==="teams"&&<TeamsScreen/>}
 
 
         </ScreenBoundary>

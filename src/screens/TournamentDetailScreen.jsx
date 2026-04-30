@@ -70,6 +70,10 @@ export default function TournamentDetailScreen() {
   var liveReg = _liveReg[0]
   var setLiveReg = _liveReg[1]
 
+  var _myCaptainTeam = useState(null)
+  var myCaptainTeam = _myCaptainTeam[0]
+  var setMyCaptainTeam = _myCaptainTeam[1]
+
   var _pinned = useState(false)
   var pinned = _pinned[0]
   var setPinned = _pinned[1]
@@ -118,8 +122,40 @@ export default function TournamentDetailScreen() {
   var linkedPlayer = resolveLinkedPlayer(currentUser, players)
   var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null
 
+  var rawTeamSize = event && event.team_size != null ? parseInt(event.team_size, 10) : 1
+  var teamSize = Number.isFinite(rawTeamSize) && rawTeamSize > 0 ? rawTeamSize : 1
+  var isTeamEvent = teamSize > 1
+
+  useEffect(function() {
+    if (!linkedPlayerId || !supabase.from) { setMyCaptainTeam(null); return; }
+    supabase.from('teams')
+      .select('id, name, tag, captain_player_id, archived_at')
+      .eq('captain_player_id', linkedPlayerId)
+      .is('archived_at', null)
+      .maybeSingle()
+      .then(function(r) {
+        if (r.error || !r.data) { setMyCaptainTeam(null); return; }
+        setMyCaptainTeam(r.data)
+      })
+      .catch(function() { setMyCaptainTeam(null) })
+  }, [linkedPlayerId])
+
   function refreshLiveReg() {
     if (!dbTournamentId || !supabase.from) return
+    if (isTeamEvent) {
+      supabase.from('registrations').select('team_id,status', { count: 'exact' })
+        .eq('tournament_id', dbTournamentId)
+        .in('status', ['registered','checked_in'])
+        .not('team_id', 'is', null)
+        .then(function(res) {
+          if (res.error) return
+          var rows = res.data || []
+          var myTid = myCaptainTeam ? myCaptainTeam.id : null
+          var isReg = !!(myTid && rows.some(function(r) { return String(r.team_id) === String(myTid) }))
+          setLiveReg({loaded:true, isRegistered:isReg, count: rows.length, busy:false})
+        }).catch(function() {})
+      return
+    }
     supabase.from('registrations').select('player_id,status', { count: 'exact' })
       .eq('tournament_id', dbTournamentId)
       .in('status', ['registered','checked_in'])
@@ -130,7 +166,7 @@ export default function TournamentDetailScreen() {
       }).catch(function() {})
   }
 
-  useEffect(refreshLiveReg, [dbTournamentId, linkedPlayerId])
+  useEffect(refreshLiveReg, [dbTournamentId, linkedPlayerId, isTeamEvent, myCaptainTeam && myCaptainTeam.id])
 
   useEffect(function() {
     if (!dbTournamentId || !supabase.channel) return
@@ -161,10 +197,11 @@ export default function TournamentDetailScreen() {
   var isRegistered = liveReg.loaded ? liveReg.isRegistered : blobIsRegistered
   var liveCount = liveReg.loaded ? liveReg.count : (event.registered || 0)
   var size = event.size || event.max_players || 0
-  var isFull = size > 0 && liveCount >= size
+  var capacityUnits = isTeamEvent && size > 0 ? Math.floor(size / teamSize) : size
+  var isFull = capacityUnits > 0 && liveCount >= capacityUnits
   var isCompleted = event.status === 'complete' || event.phase === 'complete' || event.phase === 'completed'
   var canRegister = !isCompleted && !isFull && !isRegistered
-  var regPercent = size > 0 ? Math.round((liveCount / size) * 100) : 0
+  var regPercent = capacityUnits > 0 ? Math.round((liveCount / capacityUnits) * 100) : 0
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
@@ -179,6 +216,57 @@ export default function TournamentDetailScreen() {
       if (!linkedPlayer.region) navigate('/account')
       return
     }
+
+    if (isTeamEvent) {
+      if (!myCaptainTeam) {
+        toast('Only team captains can register a team for this event.', 'error')
+        navigate('/teams')
+        return
+      }
+      setLiveReg(function(s) { return Object.assign({}, s, {busy:true}) })
+      if (isRegistered) {
+        supabase.from('registrations').delete()
+          .eq('tournament_id', dbTournamentId)
+          .eq('team_id', myCaptainTeam.id)
+          .then(function(r) {
+            if (r && r.error) {
+              setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+              toast('Withdraw failed: ' + r.error.message, 'error')
+              return
+            }
+            toast('Withdrew ' + myCaptainTeam.name + ' from ' + event.name, 'info')
+            refreshLiveReg()
+          })
+          .catch(function() {
+            setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+            toast('Withdraw failed', 'error')
+          })
+        return
+      }
+      if (isFull) {
+        setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+        toast('Tournament is full', 'error'); return
+      }
+      supabase.from('registrations').upsert(
+        { tournament_id: dbTournamentId, player_id: linkedPlayer.id, team_id: myCaptainTeam.id, status: 'registered' },
+        { onConflict: 'tournament_id,team_id' }
+      )
+        .then(function(r) {
+          if (r && r.error) {
+            setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+            toast('Registration failed: ' + r.error.message, 'error')
+            return
+          }
+          toast(myCaptainTeam.name + ' registered for ' + event.name + '!', 'success')
+          refreshLiveReg()
+        })
+        .catch(function() {
+          setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+          toast('Registration failed', 'error')
+        })
+      return
+    }
+
     setLiveReg(function(s) { return Object.assign({}, s, {busy:true}) })
 
     if (isRegistered) {
@@ -411,14 +499,20 @@ export default function TournamentDetailScreen() {
 
         {/* Registration bar */}
         <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 mb-6">
+          {isTeamEvent && (
+            <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded bg-tertiary/[0.08] border border-tertiary/25 text-[11px] text-tertiary">
+              <Icon name="groups" size={14} />
+              <span>{teamSize}v{teamSize} squads event - only team captains can register their team. <button type="button" onClick={function(){ navigate('/teams') }} className="underline font-bold bg-transparent border-0 text-tertiary cursor-pointer p-0">Manage teams</button></span>
+            </div>
+          )}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-2xl font-bold text-on-surface">{liveCount}</span>
-                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + size}</span>
+                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + (isTeamEvent && size ? Math.floor(size / teamSize) : size)}</span>
               </div>
               <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
-                {"players registered (" + regPercent + "%)"}
+                {(isTeamEvent ? 'teams registered (' : 'players registered (') + regPercent + '%)'}
               </div>
             </div>
             <div className="flex gap-2 items-center">
@@ -427,12 +521,17 @@ export default function TournamentDetailScreen() {
                   onClick={handleRegister}
                   disabled={liveReg.busy}
                   className={"px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all border border-success/30 text-success bg-success/10 hover:bg-success/20 " + (liveReg.busy ? "opacity-50 cursor-not-allowed" : "")}>
-                  {liveReg.busy ? 'Updating...' : 'Registered - Withdraw'}
+                  {liveReg.busy ? 'Updating...' : (isTeamEvent ? (myCaptainTeam ? myCaptainTeam.name + ' - Withdraw' : 'Team registered - Withdraw') : 'Registered - Withdraw')}
                 </button>
               )}
-              {!isCompleted && currentUser && canRegister && (
+              {!isCompleted && currentUser && canRegister && isTeamEvent && !myCaptainTeam && (
+                <Btn variant="secondary" size="sm" onClick={function(){ navigate('/teams') }}>
+                  Captain a team to register
+                </Btn>
+              )}
+              {!isCompleted && currentUser && canRegister && (!isTeamEvent || myCaptainTeam) && (
                 <Btn variant="primary" size="sm" onClick={handleRegister} disabled={liveReg.busy}>
-                  {liveReg.busy ? 'Registering...' : 'Register Now'}
+                  {liveReg.busy ? 'Registering...' : (isTeamEvent ? 'Register ' + (myCaptainTeam ? myCaptainTeam.name : 'Team') : 'Register Now')}
                 </Btn>
               )}
               {!isCompleted && currentUser && isFull && !isRegistered && (

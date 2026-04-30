@@ -131,7 +131,7 @@ export default function TournamentTab() {
   var newEvent = _newEvent[0]
   var setNewEvent = _newEvent[1]
 
-  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', prizeRows: [{ placement: '1', prize: '' }] })
+  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
 
@@ -140,7 +140,7 @@ export default function TournamentTab() {
   var setFlashTournaments = _flashTournaments[1]
 
   useEffect(function() {
-    supabase.from('tournaments').select('id, name, date, phase, type').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
+    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
   }, [])
@@ -516,20 +516,28 @@ export default function TournamentTab() {
     if (parsedDate.getTime() < Date.now() - 60 * 1000) { toast('Date/time must be in the future', 'error'); return }
     var flashMaxP = parseInt(flashForm.maxPlayers) || 128
     var flashGames = parseInt(flashForm.gameCount) || 3
+    var teamSize = parseInt(flashForm.teamSize) || 1
+    var subsAllowed = parseInt(flashForm.subsAllowed) || 0
     if (flashMaxP < 1 || flashMaxP > 1024) { toast('Max players must be 1-1024', 'error'); return }
     if (flashGames < 1 || flashGames > 20) { toast('Game count must be 1-20', 'error'); return }
+    if (teamSize < 1 || teamSize > 4) { toast('Team size must be 1-4', 'error'); return }
+    if (subsAllowed < 0 || subsAllowed > 4) { toast('Subs must be 0-4', 'error'); return }
+    if (teamSize === 4 && flashMaxP % 2 !== 0) { toast('4v4 needs an even player cap (2 teams per lobby).', 'error'); return }
     var prizePool = flashForm.prizeRows.filter(function(r) { return r.prize.trim() }).map(function(r) { return { placement: parseInt(r.placement), prize: r.prize.trim() } })
     supabase.from('tournaments').insert({
       name: trimmedName, date: flashForm.date, phase: 'draft', type: 'flash_tournament',
       max_players: flashMaxP, round_count: flashGames,
       seeding_method: flashForm.seedingMethod || 'snake', prize_pool_json: prizePool.length > 0 ? prizePool : null,
-      lobby_host_method: 'random'
+      lobby_host_method: 'random',
+      team_size: teamSize,
+      subs_allowed: subsAllowed,
+      points_scale: 'standard'
     }).select().single().then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       setFlashTournaments(function(ts) { return (ts || []).concat([res.data]) })
-      addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim())
+      addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : ''))
       toast('Flash tournament created!', 'success')
-      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', prizeRows: [{ placement: '1', prize: '' }] })
+      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', prizeRows: [{ placement: '1', prize: '' }] })
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
@@ -1018,7 +1026,30 @@ export default function TournamentTab() {
               <option value="rank-based">Rank-Based</option>
             </Sel>
           </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Team Format</label>
+            <Sel value={flashForm.teamSize} onChange={function(v) {
+              var ts = String(v)
+              var subs = ts === '4' ? '2' : '0'
+              setFlashForm(Object.assign({}, flashForm, { teamSize: ts, subsAllowed: subs }))
+            }}>
+              <option value="1">Solo (1v1)</option>
+              <option value="4">4v4 Squads</option>
+            </Sel>
+          </div>
+          {flashForm.teamSize === '4' && (
+            <div>
+              <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Subs per Team</label>
+              <Inp type="number" min="0" max="4" step="1" value={flashForm.subsAllowed} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { subsAllowed: typeof v === 'string' ? v : v.target.value })) }} />
+            </div>
+          )}
         </div>
+        {flashForm.teamSize === '4' && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-tertiary/[0.06] border border-tertiary/20 text-[11px] text-tertiary">
+            <Icon name="groups" size={12} className="inline-block mr-1 -mt-0.5" />
+            4v4 mode: only team captains may register. Each 8-player lobby pairs two teams. Player cap counts individuals (set to a multiple of 8 for clean lobbies).
+          </div>
+        )}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] text-on-surface/60 font-bold uppercase tracking-wider">Prize Pool</label>
@@ -1045,7 +1076,12 @@ export default function TournamentTab() {
                 <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
                   <Icon name="bolt" size={14} className="text-on-surface/40 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-on-surface">{t.name}</div>
+                    <div className="text-sm font-semibold text-on-surface flex items-center gap-1.5 flex-wrap">
+                      <span>{t.name}</span>
+                      {t.team_size && t.team_size > 1 ? (
+                        <span className="text-[9px] font-label font-black uppercase tracking-widest text-tertiary bg-tertiary/15 border border-tertiary/30 px-1.5 py-0.5 rounded">{t.team_size}v{t.team_size}</span>
+                      ) : null}
+                    </div>
                     <div className="text-[11px] text-on-surface/40">{t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} - <span className="uppercase font-bold">{t.phase || 'draft'}</span></div>
                   </div>
                   {t.phase === 'draft' && (

@@ -11,11 +11,13 @@ import AuditTab from './admin/AuditTab'
 import HostsTab from './admin/HostsTab'
 import SponsorsTab from './admin/SponsorsTab'
 import LinksTab from './admin/LinksTab'
+import TeamsTab from './admin/TeamsTab'
 
 var TABS = [
   { id: 'overview',    label: 'Overview',    icon: 'dashboard' },
   { id: 'players',     label: 'Players',     icon: 'group' },
   { id: 'tournament',  label: 'Tournament',  icon: 'emoji_events' },
+  { id: 'teams',       label: '4v4 Teams',   icon: 'groups' },
   { id: 'results',     label: 'Results',     icon: 'leaderboard' },
   { id: 'hosts',       label: 'Hosts',       icon: 'verified_user' },
   { id: 'sponsors',    label: 'Sponsors',    icon: 'handshake' },
@@ -82,6 +84,7 @@ export default function AdminScreen() {
           {tab === 'overview'   && <OverviewTab setTab={setTab} />}
           {tab === 'players'    && <PlayersTab />}
           {tab === 'tournament' && <TournamentTab />}
+          {tab === 'teams'      && <TeamsTab />}
           {tab === 'results'    && <ResultsTab />}
           {tab === 'hosts'      && <HostsTab />}
           {tab === 'sponsors'   && <SponsorsTab />}

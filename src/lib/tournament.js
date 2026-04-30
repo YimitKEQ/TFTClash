@@ -69,6 +69,110 @@ export function buildLobbies(players, method, lobbySize) {
   return res;
 }
 
+// Build lobbies for a 4v4 (squads) tournament. Each lobby pairs 2 teams of
+// `teamSize` players (default 4 → 8 players per lobby).
+//
+// teams: array of { id, name, tag?, players: [{id, username, ...}], seed? }
+// teamSize: number of starters per team (typically 4)
+// seedingMethod: 'snake' | 'random' | 'rank-based' (snake is the default for
+// squads — strongest team plays the weakest in each lobby pairing)
+//
+// Returns: [{ teams: [teamA, teamB], players: [...flattened roster...] }, ...]
+export function buildTeamLobbies(teams, teamSize, seedingMethod) {
+  teamSize = teamSize || 4;
+  if (!teams || teams.length === 0) return [];
+  var pool = [].concat(teams);
+  if (seedingMethod === "random") {
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+    }
+  } else if (seedingMethod === "rank-based") {
+    pool.sort(function(a, b) { return (b.seed || 0) - (a.seed || 0); });
+  } else {
+    // snake / default — sort by seed descending so the pairing logic below
+    // matches strongest with weakest.
+    pool.sort(function(a, b) { return (b.seed || 0) - (a.seed || 0); });
+  }
+  var lobbies = [];
+  if (seedingMethod === "snake" || !seedingMethod || seedingMethod === undefined) {
+    // Pair top with bottom: lobby 0 = (1st, last), lobby 1 = (2nd, 2nd-last), ...
+    var lo = 0;
+    var hi = pool.length - 1;
+    while (lo < hi) {
+      var lobbyTeams = [pool[lo], pool[hi]];
+      lobbies.push({
+        teams: lobbyTeams,
+        players: flattenLobbyRoster(lobbyTeams, teamSize)
+      });
+      lo += 1; hi -= 1;
+    }
+    if (lo === hi) {
+      lobbies.push({
+        teams: [pool[lo]],
+        players: flattenLobbyRoster([pool[lo]], teamSize)
+      });
+    }
+  } else {
+    // random / rank-based: pair sequentially (0-1, 2-3, ...)
+    for (var k = 0; k < pool.length; k += 2) {
+      var pair = pool.slice(k, k + 2);
+      lobbies.push({
+        teams: pair,
+        players: flattenLobbyRoster(pair, teamSize)
+      });
+    }
+  }
+  return lobbies;
+}
+
+function flattenLobbyRoster(lobbyTeams, teamSize) {
+  var out = [];
+  (lobbyTeams || []).forEach(function(team) {
+    var roster = (team && team.players) || [];
+    var starters = roster.slice(0, teamSize);
+    starters.forEach(function(p) {
+      out.push(Object.assign({}, p, { team_id: team.id, team_name: team.name }));
+    });
+  });
+  return out;
+}
+
+// Sum-of-placement-points scoring for a single 4v4 lobby game result.
+// Each player has a placement (1-8). Team score = sum of `PTS[placement]` for
+// the team's players. Ties broken by:
+//   1. Highest individual placement (lower number wins)
+//   2. Number of top-4 finishers
+//   3. Number of top-2 finishers
+//   4. Latest single placement (used as tournament-level tiebreaker upstream)
+//
+// playerPlacements: [{player_id, team_id, placement}]
+// Returns: [{team_id, score, top4, top2, bestPlacement}]
+export function scoreTeamGame(playerPlacements) {
+  var byTeam = {};
+  (playerPlacements || []).forEach(function(p) {
+    var tid = p.team_id;
+    if (!tid) return;
+    if (!byTeam[tid]) {
+      byTeam[tid] = { team_id: tid, score: 0, top4: 0, top2: 0, bestPlacement: 9 };
+    }
+    var s = byTeam[tid];
+    var place = p.placement || 0;
+    s.score += (PTS[place] || 0);
+    if (place > 0 && place <= 4) s.top4 += 1;
+    if (place > 0 && place <= 2) s.top2 += 1;
+    if (place > 0 && place < s.bestPlacement) s.bestPlacement = place;
+  });
+  return Object.keys(byTeam).map(function(k) { return byTeam[k]; })
+    .sort(function(a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement;
+      if (b.top2 !== a.top2) return b.top2 - a.top2;
+      if (b.top4 !== a.top4) return b.top4 - a.top4;
+      return 0;
+    });
+}
+
 // Build lobbies for a flash tournament from checked-in players
 export function buildFlashLobbies(checkedInPlayers, seedingMethod) {
   var N = checkedInPlayers.length;
