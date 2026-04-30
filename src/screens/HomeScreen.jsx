@@ -11,6 +11,7 @@ import SponsorShowcase from '../components/shared/SponsorShowcase'
 import RegionBadge from '../components/shared/RegionBadge'
 import OnboardingHint from '../components/shared/OnboardingHint'
 import LiveNowPanel from '../components/shared/LiveNowPanel'
+import NewsFeed from '../components/shared/NewsFeed'
 import PinnedTournamentsBar from '../components/shared/PinnedTournamentsBar'
 import NextEventCard from '../components/shared/NextEventCard'
 import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
@@ -660,6 +661,8 @@ export default function HomeScreen() {
         <PinnedTournamentsBar compact={true} />
 
         {linkedPlayer && <NextEventCard linkedPlayer={linkedPlayer} />}
+
+        <NewsFeed limit={3} />
 
         <LiveNowPanel limit={4} />
 

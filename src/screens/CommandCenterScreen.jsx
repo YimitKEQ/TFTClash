@@ -12,6 +12,7 @@ import OpsComms from './ops/OpsComms'
 import OpsRevenue from './ops/OpsRevenue'
 import OpsFeed from './ops/OpsFeed'
 import OpsMaintenance from './ops/OpsMaintenance'
+import OpsNews from './ops/OpsNews'
 
 var REFRESH_MS = 30000
 
@@ -20,6 +21,7 @@ var TABS = [
   { id: 'tournaments', label: 'Tournaments',  icon: 'emoji_events' },
   { id: 'players',     label: 'Players',      icon: 'group' },
   { id: 'comms',       label: 'Comms',        icon: 'campaign' },
+  { id: 'news',        label: 'News',         icon: 'newspaper' },
   { id: 'revenue',     label: 'Revenue',      icon: 'payments' },
   { id: 'feed',        label: 'Live Feed',    icon: 'dynamic_feed' },
   { id: 'maintenance', label: 'Maintenance',  icon: 'build' },
@@ -267,6 +269,9 @@ export default function CommandCenterScreen() {
           )}
           {tab === 'comms' && (
             <OpsComms />
+          )}
+          {tab === 'news' && (
+            <OpsNews />
           )}
           {tab === 'revenue' && (
             <OpsRevenue />

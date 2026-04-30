@@ -10,6 +10,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import NextEventCard from '../components/shared/NextEventCard'
+import NewsFeed from '../components/shared/NewsFeed'
 import { DISCORD_URL, PTS } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
@@ -1931,6 +1932,8 @@ export default function DashboardScreen() {
       </div>
 
       <OnboardingChecklist steps={onboardingSteps} />
+
+      <NewsFeed limit={3} />
 
       <div id="dashboard-clash-card">
         <ClashCard />

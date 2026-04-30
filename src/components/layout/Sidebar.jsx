@@ -16,7 +16,7 @@ var SCREEN_TO_ROUTE = {
   ops: '/ops', rules: '/rules', faq: '/faq', stats: '/stats',
   bracket: '/bracket', profile: '/player', recap: '/season-recap',
   privacy: '/privacy', terms: '/terms', gear: '/gear', tournaments: '/tournaments',
-  teams: '/teams'
+  teams: '/teams', news: '/news'
 };
 
 function SectionHeading(props) {
@@ -125,6 +125,7 @@ export default function Sidebar() {
         <NavItem id="clash"  icon="swords"         label="Clash" badge={clashBadge} />
         <NavItem id="events" icon="calendar_month" label="Events" />
         <NavItem id="teams"  icon="groups"         label="4v4 Teams" />
+        <NavItem id="news"   icon="newspaper"      label="News" />
 
         <SectionHeading label="Stats" />
         <NavItem id="standings"   icon="bar_chart"             label="Standings" />

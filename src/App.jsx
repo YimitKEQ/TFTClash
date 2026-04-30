@@ -102,6 +102,7 @@ var Donut17ScreenNew = lazyWithRetry(function(){ return import('./donut17/Donut1
 var BrosephTechScreen = lazyWithRetry(function(){ return import('./screens/BrosephTechScreen'); });
 var TfttechScreen = lazyWithRetry(function(){ return import('./screens/TfttechScreen'); });
 var LinksScreenNew = lazyWithRetry(function(){ return import('./screens/LinksScreen'); });
+var NewsScreenNew = lazyWithRetry(function(){ return import('./screens/NewsScreen'); });
 var MarketplaceScreenNew = lazyWithRetry(function(){ return import('./screens/MarketplaceScreen'); });
 var RoadmapScreenNew = lazyWithRetry(function(){ return import('./screens/RoadmapScreen'); });
 var PredictionsScreenNew = lazyWithRetry(function(){ return import('./screens/PredictionsScreen'); });
@@ -254,7 +255,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -767,6 +768,7 @@ function TFTClash(){
 
         {screen==="squads-sim"&&<SquadsSimScreen/>}
         {screen==="teams"&&<TeamsScreen/>}
+        {screen==="news"&&<NewsScreenNew/>}
         {screen.indexOf("team-")===0&&<TeamProfileScreen/>}
 
 
