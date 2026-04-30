@@ -6,6 +6,21 @@ import { Panel, Icon } from '../components/ui'
 
 var CHANGELOG = [
   {
+    date: "2026-04-30",
+    items: [
+      { type: "feat",  text: "4v4 Squads tournaments: captain registration, lineup picker, paired-team lobbies." },
+      { type: "feat",  text: "Public team profile pages at /team/:id with history, members, stats." },
+      { type: "feat",  text: "Auto-create Discord category and per-lobby voice/text channels for custom tournaments." },
+      { type: "feat",  text: "/tournament/:id is now the universal view: rules, prize pool, share link, and admin controls in one surface." },
+      { type: "feat",  text: "/events consolidated to a single Live & Upcoming feed: clashes on top, custom tournaments + sponsored events below." },
+      { type: "feat",  text: "Region selector (EU/NA) on the custom tournament create form." },
+      { type: "feat",  text: "Admin broadcast announcements to a tournament's checked-in players in real time." },
+      { type: "fix",   text: "Custom tourney check-ins no longer leak into the season clash check-in count." },
+      { type: "fix",   text: "Self check-in RLS now allows the four real registration statuses (registered / checked_in / dropped / waitlisted)." },
+      { type: "fix",   text: "Custom tournament Discord embed shows the actual tournament instead of the generic clash card." }
+    ]
+  },
+  {
     date: "2026-04-25",
     items: [
       { type: "feat",  text: "Bracket auto-advance race guard. Top-of-game 0 transitions are now atomic." },
