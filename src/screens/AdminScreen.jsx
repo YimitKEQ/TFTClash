@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon, PillTab, PillTabGroup } from '../components/ui'
@@ -34,9 +34,39 @@ export default function AdminScreen() {
   var isAdmin = ctx.isAdmin
   var hostApps = ctx.hostApps
 
-  var _tab = useState('overview')
+  // Read initial tab from URL hash (e.g. /admin#payouts) so other screens
+  // can deep-link directly. Falls back to 'overview' for unknown hashes.
+  function tabFromHash() {
+    var h = (typeof window !== 'undefined' && window.location && window.location.hash) ? String(window.location.hash).replace(/^#/, '') : ''
+    var ok = TABS.some(function(t) { return t.id === h })
+    return ok ? h : 'overview'
+  }
+
+  var _tab = useState(tabFromHash)
   var tab = _tab[0]
   var setTab = _tab[1]
+
+  // Keep state in sync if the user changes the hash manually (back/forward,
+  // or a click on another deep-link while on /admin).
+  useEffect(function() {
+    function onHashChange() {
+      var next = tabFromHash()
+      setTab(next)
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('hashchange', onHashChange)
+      return function() { window.removeEventListener('hashchange', onHashChange) }
+    }
+    return undefined
+  }, [])
+
+  function selectTab(next) {
+    setTab(next)
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      // Use replaceState so the back button doesn't fill up with intra-admin tab clicks.
+      window.history.replaceState(null, '', '#' + next)
+    }
+  }
 
   if (!isAdmin) {
     return (
@@ -79,7 +109,7 @@ export default function AdminScreen() {
                 key={t.id}
                 icon={t.icon}
                 active={tab === t.id}
-                onClick={function() { setTab(t.id) }}
+                onClick={function() { selectTab(t.id) }}
               >
                 {t.label}
                 {badge && (
@@ -93,7 +123,7 @@ export default function AdminScreen() {
         </PillTabGroup>
 
         <div>
-          {tab === 'overview'   && <OverviewTab setTab={setTab} />}
+          {tab === 'overview'   && <OverviewTab setTab={selectTab} />}
           {tab === 'players'    && <PlayersTab />}
           {tab === 'tournament' && <TournamentTab />}
           {tab === 'teams'      && <TeamsTab />}

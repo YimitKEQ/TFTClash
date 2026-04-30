@@ -162,7 +162,13 @@ export default function OpsOverview(props) {
             <QuickAction icon="monetization_on" label="View Revenue" color="text-primary" onClick={function() { goTab('revenue') }} />
             <QuickAction icon="dynamic_feed" label="Activity Feed" color="text-on-surface/50" onClick={function() { goTab('feed') }} />
             <QuickAction icon="view_kanban" label="Open Bracket" color="text-secondary" onClick={function() { navigate('/bracket') }} />
-            <QuickAction icon="admin_panel_settings" label="Admin Panel" color="text-on-surface/50" onClick={function() { navigate('/admin') }} />
+          </div>
+          <div className="mt-4 pt-3 border-t border-outline-variant/10 space-y-2">
+            <div className="font-label text-[9px] font-bold uppercase tracking-widest text-on-surface/30 mb-1">Admin Shortcuts</div>
+            <QuickAction icon="payments" label="Prize Payouts" color="text-tertiary" onClick={function() { navigate('/admin#payouts') }} />
+            <QuickAction icon="emoji_events" label="Tournament Admin" color="text-primary" onClick={function() { navigate('/admin#tournament') }} />
+            <QuickAction icon="verified_user" label="Host Applications" color="text-secondary" onClick={function() { navigate('/admin#hosts') }} />
+            <QuickAction icon="admin_panel_settings" label="Full Admin Panel" color="text-on-surface/50" onClick={function() { navigate('/admin') }} />
           </div>
         </Panel>
 
