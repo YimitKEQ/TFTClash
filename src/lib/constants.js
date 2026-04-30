@@ -6,7 +6,7 @@ export var TFT_DEBUG = typeof window !== "undefined" && window.location.search.i
 export function dbg() { if (TFT_DEBUG) console.log.apply(console, arguments); }
 
 // ─── DISCORD ─────────────────────────────────────────────────────────────────
-export var DISCORD_URL = "https://discord.gg/3FNmxDBZHy";
+export var DISCORD_URL = "https://discord.gg/8nyHY66rBP";
 
 // ─── CURRENT TFT PATCH ────────────────────────────────────────────────────────
 // Bump when Riot drops a new patch. Used by <PatchBanner/> and meta-aware UI.
