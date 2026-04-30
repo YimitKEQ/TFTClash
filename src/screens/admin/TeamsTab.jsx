@@ -359,7 +359,7 @@ export default function TeamsTab() {
 
   function handleOpenTournament(tournamentId) {
     if (!tournamentId) return;
-    navigate('/flash/' + tournamentId);
+    navigate('/tournament/' + tournamentId);
   }
 
   var filtered = teams.filter(function(t) {

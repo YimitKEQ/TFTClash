@@ -799,7 +799,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
 
           var cardHref = isSimulation()
             ? '/bracket?sim=1&kind=custom'
-            : '/flash/' + t.id
+            : '/tournament/' + t.id
 
           return (
             <article

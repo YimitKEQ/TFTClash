@@ -94,7 +94,7 @@ function AlmostFullStrip(props) {
             <button
               key={t.id}
               type="button"
-              onClick={function () { navigate('/flash/' + row.t.id) }}
+              onClick={function () { navigate('/tournament/' + row.t.id) }}
               className="text-left rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-tertiary/40 transition-colors p-3 sm:p-4 group"
             >
               <div className="flex items-start justify-between gap-3 mb-2">
@@ -382,7 +382,7 @@ export default function TournamentsListScreen() {
               <FeaturedSpotlight
                 tournament={featured}
                 regCount={regCounts[featured.id] || 0}
-                onView={function() { navigate('/flash/' + featured.id); }}
+                onView={function() { navigate('/tournament/' + featured.id); }}
               />
             )}
             {!featured && tournaments.length > 0 && (
@@ -490,7 +490,7 @@ export default function TournamentsListScreen() {
                         tournament={t}
                         regCount={regCounts[t.id] || 0}
                         regionMismatch={mismatch}
-                        onClick={function() { navigate('/flash/' + t.id); }}
+                        onClick={function() { navigate('/tournament/' + t.id); }}
                       />
                     );
                   })}

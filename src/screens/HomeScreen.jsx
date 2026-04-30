@@ -587,7 +587,7 @@ export default function HomeScreen() {
 
   function handleViewTournament(t) {
     if (!t) return
-    if (t.type === 'flash_tournament') navigate('/flash/' + t.id)
+    if (t.type === 'flash_tournament') navigate('/tournament/' + t.id)
     else if (t.type === 'custom' || t.host_profile_id) navigate('/tournament/' + t.id)
     else {
       // season_clash (real or preview): deep-link to the Weekly Clash panel on /events.

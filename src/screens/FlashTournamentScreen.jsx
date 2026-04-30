@@ -1163,7 +1163,7 @@ export default function FlashTournamentScreen(props) {
           </div>
           <div className="flex gap-2 flex-wrap">
             <button onClick={function() {
-              var url = window.location.origin + '/flash/' + tournamentId;
+              var url = window.location.origin + '/tournament/' + tournamentId;
               navigator.clipboard.writeText(url).then(function() { toast('Tournament link copied!', 'success'); });
             }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-label font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
               <Icon name="content_copy" size={14} />

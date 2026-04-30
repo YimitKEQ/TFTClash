@@ -78,8 +78,7 @@ var TermsScreenNew = lazyWithRetry(function(){ return import('./screens/TermsScr
 var ScrimsScreenNew = lazyWithRetry(function(){ return import('./screens/ScrimsScreen'); });
 var HostApplyScreenNew = lazyWithRetry(function(){ return import('./screens/HostApplyScreen'); });
 var HostDashboardScreenNew = lazyWithRetry(function(){ return import('./screens/HostDashboardScreen'); });
-var FlashTournamentScreenNew = lazyWithRetry(function(){ return import('./screens/FlashTournamentScreen'); });
-var TournamentDetailScreenNew = lazyWithRetry(function(){ return import('./screens/TournamentDetailScreen'); });
+var TournamentRouterScreen = lazyWithRetry(function(){ return import('./screens/TournamentRouter'); });
 var TournamentsListScreenNew = lazyWithRetry(function(){ return import('./screens/TournamentsListScreen'); });
 var AdminScreenNew = lazyWithRetry(function(){ return import('./screens/AdminScreen'); });
 var HofScreenNew = lazyWithRetry(function(){ return import('./screens/HofScreen'); });
@@ -272,7 +271,7 @@ function TFTClash(){
     if(segs[0]==="player"&&segs[1]){navSourceRef.current="router";setScreen("profile");setSubRoute(segs[1]);return;}
     if(segs[0]==="bracket"&&segs[1]){navSourceRef.current="router";setScreen("bracket");setSubRoute(segs[1]);return;}
     if(segs[0]==="results"&&segs[1]){navSourceRef.current="router";setScreen("results");setSubRoute(segs[1]);return;}
-    if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";setScreen("flash-"+segs[1]);return;}
+    if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";navigate("/tournament/"+segs[1],{replace:true});return;}
     if(segs[0]==="tournament"&&segs[1]){navSourceRef.current="router";setScreen("tournament-"+segs[1]);return;}
     if(segs[0]==="team"&&segs[1]){navSourceRef.current="router";setScreen("team-"+segs[1]);return;}
     if(segs[0]==="obs"&&segs[1]){navSourceRef.current="router";setScreen("obs-"+segs[1]);return;}
@@ -426,7 +425,7 @@ function TFTClash(){
       var fullRoute=sr?route+"/"+sr:route;
       navigate(fullRoute);
     } else if(base.indexOf("flash-")===0){
-      navigate("/flash/"+base.replace("flash-",""));
+      navigate("/tournament/"+base.replace("flash-",""));
     } else if(base.indexOf("tournament-")===0){
       navigate("/tournament/"+base.replace("tournament-",""));
     } else {
@@ -459,7 +458,7 @@ function TFTClash(){
         var route=SCREEN_TO_ROUTE[hBase];
         if(route){navigate(hSub?route+"/"+hSub:route,{replace:true});}
         else if(hBase.indexOf("tournament-")===0){navigate("/tournament/"+hBase.replace("tournament-",""),{replace:true});}
-        else if(hBase.indexOf("flash-")===0){navigate("/flash/"+hBase.replace("flash-",""),{replace:true});}
+        else if(hBase.indexOf("flash-")===0){navigate("/tournament/"+hBase.replace("flash-",""),{replace:true});}
       }
     }
   },[]);
@@ -729,9 +728,9 @@ function TFTClash(){
 
         {screen==="recap"      &&<SeasonRecapScreenNew />}
 
-        {screen.indexOf("flash-")===0&&<FlashTournamentScreenNew tournamentId={screen.replace("flash-","")}/>}
+        {screen.indexOf("flash-")===0&&<TournamentRouterScreen/>}
 
-        {screen.indexOf("tournament-")===0&&<TournamentDetailScreenNew/>}
+        {screen.indexOf("tournament-")===0&&<TournamentRouterScreen/>}
 
         {screen==="host-apply" &&<HostApplyScreenNew/>}
 

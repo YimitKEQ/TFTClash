@@ -2026,7 +2026,7 @@ export default function DashboardScreen() {
       <FlashTournamentBanner
         tournament={upcomingTournament}
         isRegistered={upcomingRegistered}
-        onView={function () { navigate('/flash/' + upcomingTournament.id) }}
+        onView={function () { navigate('/tournament/' + upcomingTournament.id) }}
       />
 
       {/* Three-column layout: main left, sidebar right */}
