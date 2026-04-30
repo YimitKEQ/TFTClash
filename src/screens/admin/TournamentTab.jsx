@@ -524,14 +524,19 @@ export default function TournamentTab() {
     if (subsAllowed < 0 || subsAllowed > 4) { toast('Subs must be 0-4', 'error'); return }
     if (teamSize === 4 && flashMaxP % 2 !== 0) { toast('4v4 needs an even player cap (2 teams per lobby).', 'error'); return }
     var prizePool = flashForm.prizeRows.filter(function(r) { return r.prize.trim() }).map(function(r) { return { placement: parseInt(r.placement), prize: r.prize.trim() } })
+    var startIso = parsedDate.toISOString()
+    var dateOnly = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0')
+    var checkinOpenIso = new Date(parsedDate.getTime() - 15 * 60 * 1000).toISOString()
     supabase.from('tournaments').insert({
-      name: trimmedName, date: flashForm.date, phase: 'draft', type: 'flash_tournament',
+      name: trimmedName, date: dateOnly, phase: 'draft', type: 'flash_tournament',
       max_players: flashMaxP, round_count: flashGames,
       seeding_method: flashForm.seedingMethod || 'snake', prize_pool_json: prizePool.length > 0 ? prizePool : null,
       lobby_host_method: 'random',
       team_size: teamSize,
       subs_allowed: subsAllowed,
-      points_scale: 'standard'
+      points_scale: 'standard',
+      checkin_open_at: checkinOpenIso,
+      checkin_close_at: startIso
     }).select().single().then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       setFlashTournaments(function(ts) { return (ts || []).concat([res.data]) })
