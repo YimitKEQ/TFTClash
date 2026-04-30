@@ -350,6 +350,63 @@ export default function HostDashboardScreen() {
   var _regsLoading = useState(false)
   var setEventRegistrantsLoading = _regsLoading[1]
 
+  var _teamEventData = useState({})
+  var teamEventData = _teamEventData[0]
+  var setTeamEventData = _teamEventData[1]
+
+  useEffect(function() {
+    if (!supabase || !supabase.from) return
+    var liveDbIds = (hostTournaments || []).filter(function(t) {
+      return t && t.dbId && (t.status === 'live' || t.status === 'closed')
+    }).map(function(t) { return t.dbId })
+    if (liveDbIds.length === 0) { setTeamEventData({}); return }
+    var cancelled = false
+    supabase.from('tournaments').select('id, team_size').in('id', liveDbIds)
+      .then(function(tRes) {
+        if (cancelled || !tRes.data) return
+        var teamIds = tRes.data.filter(function(t) { return (t.team_size || 1) > 1 }).map(function(t) { return t.id })
+        if (teamIds.length === 0) { setTeamEventData({}); return }
+        supabase.from('registrations')
+          .select('id, tournament_id, team_id, lineup_player_ids, status, teams!registrations_team_id_fkey(id, name, tag)')
+          .in('tournament_id', teamIds)
+          .not('team_id', 'is', null)
+          .in('status', ['registered','checked_in'])
+          .then(function(rRes) {
+            if (cancelled || !rRes.data) return
+            var allPids = {}
+            rRes.data.forEach(function(r) { (r.lineup_player_ids || []).forEach(function(pid) { if (pid) allPids[pid] = true }) })
+            var pidList = Object.keys(allPids)
+            var fetchPlayers = pidList.length > 0
+              ? supabase.from('players').select('id, username, riot_id').in('id', pidList)
+              : Promise.resolve({ data: [] })
+            fetchPlayers.then(function(pRes) {
+              if (cancelled) return
+              var byPid = {}
+              ;((pRes && pRes.data) || []).forEach(function(p) { byPid[p.id] = p })
+              var byTournament = {}
+              tRes.data.forEach(function(t) {
+                if ((t.team_size || 1) > 1) byTournament[t.id] = { teamSize: t.team_size, teams: [] }
+              })
+              rRes.data.forEach(function(r) {
+                var bucket = byTournament[r.tournament_id]
+                if (!bucket) return
+                var lineup = (r.lineup_player_ids || []).map(function(pid) { return byPid[pid] || { id: pid, username: 'Player ' + pid } })
+                bucket.teams.push({
+                  reg_id: r.id,
+                  team_id: r.team_id,
+                  status: r.status,
+                  team_name: r.teams ? r.teams.name : 'Team',
+                  team_tag: r.teams ? r.teams.tag : null,
+                  lineup: lineup
+                })
+              })
+              setTeamEventData(byTournament)
+            }).catch(function() {})
+          }).catch(function() {})
+      }).catch(function() {})
+    return function() { cancelled = true }
+  }, [hostTournaments && hostTournaments.map(function(t){ return t.dbId + ':' + t.status }).join(',')])
+
   var setTournamentState = ctx.setTournamentState
   var tournamentState = ctx.tournamentState || {}
 
@@ -1414,20 +1471,125 @@ export default function HostDashboardScreen() {
               var regIds = matchingEvent ? (matchingEvent.registeredIds || []) : [];
               var roundCount = t.roundCount || 3;
               var currentRound = t.currentRound || 1;
+              var teamData = t.dbId ? teamEventData[t.dbId] : null;
+              var isTeamEvent = !!teamData;
+              var teamCount = isTeamEvent ? teamData.teams.length : 0;
               return (
                 <div key={t.id} className="bg-surface-container-low p-6 rounded-lg border border-tertiary/20">
                   <div className="flex items-center gap-3 mb-5">
                     <h3 className="font-editorial text-lg text-on-surface flex-1">{t.name}</h3>
+                    {isTeamEvent && (
+                      <span className="px-2 py-0.5 bg-tertiary/15 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">{teamData.teamSize}v{teamData.teamSize}</span>
+                    )}
                     <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">Round {currentRound}/{roundCount}</span>
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-tighter rounded">{regIds.length} players</span>
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-tighter rounded">
+                      {isTeamEvent ? (teamCount + ' team' + (teamCount === 1 ? '' : 's')) : (regIds.length + ' players')}
+                    </span>
                   </div>
-                  {regIds.length === 0 && (
+
+                  {isTeamEvent && teamCount === 0 && (
+                    <div className="text-center py-8">
+                      <Icon name="groups" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
+                      <p className="text-on-surface/50 text-sm">No teams checked in yet.</p>
+                    </div>
+                  )}
+
+                  {isTeamEvent && teamCount > 0 && (
+                    <div className="space-y-4">
+                      <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
+                      <div className="space-y-4">
+                        {teamData.teams.map(function(tm) {
+                          var lineup = tm.lineup || [];
+                          var notCheckedIn = tm.status !== 'checked_in';
+                          return (
+                            <div key={tm.team_id} className="rounded border border-outline-variant/15 overflow-hidden bg-surface-container/40">
+                              <div className="flex items-center gap-2 px-3 py-2 bg-surface-container-high border-b border-outline-variant/10">
+                                <Icon name="groups" size={14} className="text-tertiary" />
+                                <span className="font-bold text-sm text-on-surface flex-1 truncate">{tm.team_name}{tm.team_tag ? <span className="text-on-surface/40 font-mono text-xs ml-2">[{tm.team_tag}]</span> : null}</span>
+                                {notCheckedIn ? (
+                                  <span className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50">Not checked in</span>
+                                ) : (
+                                  <span className="text-[10px] font-label uppercase tracking-wider text-success">Checked in - {lineup.length} starters</span>
+                                )}
+                              </div>
+                              <div className="divide-y divide-outline-variant/5">
+                                {lineup.length === 0 ? (
+                                  <div className="px-3 py-3 text-xs text-on-surface/50">Lineup not submitted yet.</div>
+                                ) : lineup.map(function(p) {
+                                  return (
+                                    <div key={p.id} className="flex items-center gap-3 p-3">
+                                      <span className="text-sm font-mono text-on-surface flex-1 truncate">{p.username || 'Player'}</span>
+                                      {p.riot_id ? <span className="text-[11px] font-mono text-on-surface/50 truncate hidden sm:inline">{p.riot_id}</span> : null}
+                                      <Sel value="" onChange={function(val) {
+                                        if (!val) return;
+                                        var placement = parseInt(val);
+                                        var pts = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 }[placement] || 0;
+                                        if (!supabase.from || !t.dbId) {
+                                          toast(p.username + ' placed ' + placement + 'th (' + pts + 'pts)', 'success');
+                                          return;
+                                        }
+                                        supabase.from('game_results').insert({
+                                          tournament_id: t.dbId,
+                                          round_number: currentRound,
+                                          game_number: currentRound,
+                                          player_id: p.id,
+                                          placement: placement,
+                                          points: pts
+                                        }).then(function(res) {
+                                          if (res.error) toast('Failed to save: ' + res.error.message, 'error');
+                                          else toast(p.username + ' placed ' + placement + (placement === 1 ? 'st' : placement === 2 ? 'nd' : placement === 3 ? 'rd' : 'th') + ' (' + pts + 'pts)', 'success');
+                                        }).catch(function() { toast('Failed to save result', 'error'); });
+                                      }} className="w-28">
+                                        <option value="">Place</option>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8].map(function(pl) {
+                                          return <option key={pl} value={pl}>{pl}{pl === 1 ? 'st' : pl === 2 ? 'nd' : pl === 3 ? 'rd' : 'th'} ({({ 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 })[pl]}pts)</option>;
+                                        })}
+                                      </Sel>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <Btn
+                          variant="primary"
+                          size="sm"
+                          onClick={function() {
+                            if (currentRound < roundCount) {
+                              updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
+                              toast('Advanced to Round ' + (currentRound + 1), 'success');
+                            } else {
+                              var champ = prompt('Enter winning team name:');
+                              if (champ && champ.trim()) {
+                                updateTournamentAndFeatured(t.id, { status: 'complete', champion: champ.trim(), top4: [champ.trim()] });
+                                toast('Tournament completed! Winner: ' + champ.trim(), 'success');
+                              }
+                            }
+                          }}
+                        >
+                          {currentRound < roundCount ? 'Advance to Round ' + (currentRound + 1) : 'Finalize Tournament'}
+                        </Btn>
+                        <Btn
+                          variant="secondary"
+                          size="sm"
+                          onClick={function() { setScreen('tournament-host-' + t.id); }}
+                        >
+                          View Public Page
+                        </Btn>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isTeamEvent && regIds.length === 0 && (
                     <div className="text-center py-8">
                       <Icon name="person_add" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
                       <p className="text-on-surface/50 text-sm">No players registered yet.</p>
                     </div>
                   )}
-                  {regIds.length > 0 && (
+                  {!isTeamEvent && regIds.length > 0 && (
                     <div className="space-y-4">
                       <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
                       <div className="space-y-2">
