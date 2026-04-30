@@ -1270,13 +1270,38 @@ export default function HostDashboardScreen() {
                       aria-label="Delete tournament"
                       className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"
                       onClick={function() {
-                        if (confirm("Delete this tournament?")) {
+                        if (!confirm("Delete this tournament?\n\nIt will be archived from upcoming/live feeds. Registrations and results are preserved.")) return;
+                        var uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                        var dbId = (t.dbId && uuidRe.test(String(t.dbId))) ? t.dbId
+                          : (t.id && uuidRe.test(String(t.id))) ? t.id
+                          : null;
+                        function clearLocal() {
                           setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
                           if (setFeaturedEvents) {
-                            setFeaturedEvents(function(evts) { return evts.filter(function(ev) { return ev.hostTournamentId !== t.id; }); });
+                            setFeaturedEvents(function(evts) {
+                              return evts.filter(function(ev) {
+                                if (ev.hostTournamentId === t.id) return false;
+                                if (dbId && ev.dbTournamentId === dbId) return false;
+                                if (ev.id === ('host-' + t.id)) return false;
+                                return true;
+                              });
+                            });
                           }
-                          toast("Tournament deleted", "info");
                         }
+                        if (!supabase || !supabase.from || !dbId) {
+                          clearLocal();
+                          toast("Tournament removed", "info");
+                          return;
+                        }
+                        supabase.from('tournaments')
+                          .update({ phase: 'complete', archived_at: new Date().toISOString() })
+                          .eq('id', dbId)
+                          .then(function(r) {
+                            if (r.error) { toast("Delete failed: " + r.error.message, "error"); return; }
+                            clearLocal();
+                            toast("Tournament deleted", "info");
+                          })
+                          .catch(function(err) { toast("Delete failed: " + (err && err.message ? err.message : 'unknown'), "error"); });
                       }}
                     >
                       <Icon name="more_vert" size={18} aria-hidden="true" />
