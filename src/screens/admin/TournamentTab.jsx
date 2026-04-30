@@ -45,8 +45,6 @@ export default function TournamentTab() {
   var setAdminRegion = _adminRegion[1]
   var tournamentState = adminRegion === 'NA' ? tournamentStateNa : tournamentStateEu
   var setTournamentState = adminRegion === 'NA' ? setTournamentStateNa : setTournamentStateEu
-  var scheduledEvents = ctx.scheduledEvents
-  var setScheduledEvents = ctx.setScheduledEvents
   var setAuditLog = ctx.setAuditLog
   var currentUser = ctx.currentUser
   var toast = ctx.toast
@@ -127,10 +125,6 @@ export default function TournamentTab() {
     if (f.seeding) setSeedAlgo(f.seeding)
   }
 
-  var _newEvent = useState({ name: '', type: 'SCHEDULED', whenLocal: '', cap: '8', format: 'Swiss' })
-  var newEvent = _newEvent[0]
-  var setNewEvent = _newEvent[1]
-
   var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
@@ -163,6 +157,27 @@ export default function TournamentTab() {
   var _showArchived = useState(false)
   var showArchived = _showArchived[0]
   var setShowArchived = _showArchived[1]
+
+  // Per-prize-row "Advanced" expander (sponsor + eligibility). Keyed by row idx.
+  var _prizeAdvanced = useState({})
+  var prizeAdvanced = _prizeAdvanced[0]
+  var setPrizeAdvanced = _prizeAdvanced[1]
+
+  function toggleAdvanced(idx) {
+    setPrizeAdvanced(function(s) {
+      var next = Object.assign({}, s)
+      if (next[idx]) delete next[idx]
+      else next[idx] = true
+      return next
+    })
+  }
+
+  function updatePrizeRow(idx, patch) {
+    setClashForm(function(f) {
+      var updated = f.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, patch) : r })
+      return Object.assign({}, f, { prizeRows: updated })
+    })
+  }
 
   useEffect(function() {
     supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed, archived_at, round_count, cut_line, cut_after_game, format').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
@@ -296,6 +311,7 @@ export default function TournamentTab() {
   var ts = tournamentState || {}
   var currentPhase = ts.phase || 'registration'
   var currentPhaseIdx = PHASE_STEPS.indexOf(currentPhase)
+  var clashCashPool = computeCashPool(buildPrizePool(clashForm.prizeRows))
 
   function setPhase(phase) {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
@@ -443,34 +459,6 @@ export default function TournamentTab() {
     supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     addAudit('WARN', 'Tournament reset to Registration')
     toast('Reset to Registration', 'success')
-  }
-
-  function addScheduledEvent() {
-    if (!newEvent.name.trim()) { toast('Event name required', 'error'); return }
-    if (!newEvent.whenLocal) { toast('Pick a date and time', 'error'); return }
-    var d = new Date(newEvent.whenLocal)
-    if (isNaN(d.getTime())) { toast('Invalid date/time', 'error'); return }
-    var ev = {
-      id: Date.now(),
-      name: newEvent.name.trim(),
-      type: newEvent.type,
-      iso: d.toISOString(),
-      date: d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }),
-      time: d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-      cap: parseInt(newEvent.cap) || 8,
-      format: newEvent.format || 'Swiss'
-    }
-    setScheduledEvents(function(evs) { return (evs || []).concat([ev]) })
-    addAudit('ACTION', 'Scheduled event added: ' + ev.name)
-    toast('Event scheduled!', 'success')
-    setNewEvent({ name: '', type: 'SCHEDULED', whenLocal: '', cap: '8', format: 'Swiss' })
-  }
-
-  function cancelScheduledEvent(id) {
-    if (!window.confirm('Cancel this event?')) return
-    setScheduledEvents(function(evs) { return (evs || []).filter(function(e) { return e.id !== id }) })
-    addAudit('ACTION', 'Scheduled event cancelled: #' + id)
-    toast('Event cancelled', 'success')
   }
 
   function finalizePrizeClaims(t) {
@@ -733,132 +721,110 @@ export default function TournamentTab() {
           </div>
         )}
 
-        <div className="mb-4 p-3 rounded-lg bg-secondary/[0.05] border border-secondary/20">
-          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <label className="text-[11px] text-secondary font-bold uppercase tracking-wider flex items-center gap-1">
-              <Icon name="redeem" size={12} className="inline-block" />
-              Prize Pool (optional)
-            </label>
-            {(function() {
-              var pool = computeCashPool(buildPrizePool(clashForm.prizeRows))
-              if (!pool) return null
-              return (
-                <span className="text-[10px] font-mono font-bold text-tertiary bg-tertiary/10 px-2 py-1 rounded">
-                  Total: {currencySymbol(pool.currency)}{pool.total.toLocaleString()}
-                </span>
-              )
-            })()}
-            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([emptyPrizeRow((clashForm.prizeRows || []).length + 1)]) })) }}>+ Add</Btn>
-          </div>
-          {(clashForm.prizeRows || []).map(function(row, idx) {
-            var uploading = uploadingIdx === idx
-            return (
-              <div key={idx} className="mb-2 p-2 rounded bg-surface-container/60 border border-outline-variant/10">
-                <div className="flex gap-2 items-center">
-                  <div className="text-xs text-secondary font-bold w-10 text-center">#{row.placement || (idx + 1)}</div>
-                  <div className="flex-1">
-                    <Inp
-                      value={row.prize}
-                      onChange={function(v) {
-                        var val = typeof v === 'string' ? v : v.target.value
-                        var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { prize: val }) : r })
-                        setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                      }}
-                      placeholder="e.g. €50, RP code, Pro tier"
-                    />
-                  </div>
-                  {clashForm.prizeRows.length > 1 && (
-                    <Btn variant="ghost" size="sm" onClick={function() {
-                      setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) }))
-                    }}>X</Btn>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2 pl-12">
-                  <div>
-                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Type</label>
-                    <Sel value={row.type || 'other'} onChange={function(v) {
-                      var val = typeof v === 'string' ? v : v.target.value
-                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { type: val }) : r })
-                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                    }}>
-                      {PRIZE_TYPES.map(function(t) { return <option key={t.key} value={t.key}>{t.label}</option> })}
-                    </Sel>
-                  </div>
-                  {row.type === 'cash' && (
-                    <>
-                      <div>
-                        <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Amount</label>
-                        <Inp type="number" min="0" step="0.01" value={row.amount || ''} onChange={function(v) {
-                          var val = typeof v === 'string' ? v : v.target.value
-                          var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { amount: val }) : r })
-                          setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                        }} placeholder="50" />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Currency</label>
-                        <Sel value={row.currency || 'EUR'} onChange={function(v) {
-                          var val = typeof v === 'string' ? v : v.target.value
-                          var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { currency: val }) : r })
-                          setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                        }}>
-                          {PRIZE_CURRENCIES.map(function(c) { return <option key={c} value={c}>{c}</option> })}
-                        </Sel>
-                      </div>
-                    </>
-                  )}
-                  <div>
-                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Sponsor</label>
-                    <Sel value={row.sponsor_id || ''} onChange={function(v) {
-                      var val = typeof v === 'string' ? v : v.target.value
-                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { sponsor_id: val }) : r })
-                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                    }}>
-                      <option value="">- none -</option>
-                      {(orgSponsors || []).map(function(s) { return <option key={s.id} value={s.id}>{s.name}</option> })}
-                    </Sel>
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Eligibility</label>
-                    <Inp value={row.eligibility || ''} onChange={function(v) {
-                      var val = typeof v === 'string' ? v : v.target.value
-                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { eligibility: val }) : r })
-                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                    }} placeholder="e.g. top 4, EU" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2 pl-12">
-                  {row.image ? (
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <img src={row.image} alt="Prize image preview" loading="lazy" decoding="async" className="w-10 h-10 rounded object-cover border border-outline-variant/20 flex-shrink-0" />
-                      <div className="text-[10px] text-on-surface/50 truncate flex-1">{row.image.split('/').pop()}</div>
-                      <Btn variant="ghost" size="sm" onClick={function() {
-                        var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { image: '' }) : r })
-                        setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                      }}>Remove</Btn>
-                    </div>
-                  ) : (
-                    <label className={'inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded border cursor-pointer transition-colors ' + (uploading ? 'border-on-surface/10 text-on-surface/40' : 'border-secondary/30 text-secondary hover:bg-secondary/10')}>
-                      <Icon name="add_photo_alternate" size={12} />
-                      {uploading ? 'Uploading...' : 'Add image'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={uploading}
-                        onChange={function(e) {
-                          var f = e.target.files && e.target.files[0]
-                          if (f) uploadPrizeImage(f, idx)
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
-                  )}
-                </div>
+        <div className="mb-4 rounded-xl border border-outline-variant/15 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-secondary/[0.10] to-tertiary/[0.04] border-b border-outline-variant/10">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-secondary/20 border border-secondary/30 flex items-center justify-center flex-shrink-0">
+                <Icon name="redeem" size={14} className="text-secondary" />
               </div>
-            )
-          })}
-          <div className="flex items-center justify-between mt-3 gap-3 flex-wrap">
-            <div className="text-[10px] text-on-surface/40 flex-1 min-w-[180px]">Shown on Home, Clash and tournament detail pages. Leave blank for pride-only clashes.</div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-label font-bold uppercase tracking-widest text-secondary">Prize Pool</div>
+                <div className="text-[10px] text-on-surface/50">{(clashForm.prizeRows || []).length} tier{(clashForm.prizeRows || []).length === 1 ? '' : 's'} configured</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              {clashCashPool && (
+                <span className="font-mono font-black text-sm text-tertiary bg-tertiary/10 border border-tertiary/30 px-2.5 py-1 rounded">
+                  {currencySymbol(clashCashPool.currency)}{clashCashPool.total.toLocaleString()}
+                </span>
+              )}
+              <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([emptyPrizeRow((clashForm.prizeRows || []).length + 1)]) })) }}>+ Add Tier</Btn>
+            </div>
+          </div>
+          <div className="p-2 space-y-1.5 bg-surface-container/30">
+            {(clashForm.prizeRows || []).map(function(row, idx) {
+              var uploading = uploadingIdx === idx
+              var advancedOpen = !!prizeAdvanced[idx]
+              var sponsorName = (orgSponsors || []).find(function(s) { return s.id === row.sponsor_id })
+              sponsorName = sponsorName ? sponsorName.name : ''
+              var place = row.placement || String(idx + 1)
+              var medalTone = idx === 0 ? 'bg-warning/15 border-warning/40 text-warning' : idx === 1 ? 'bg-on-surface/10 border-outline-variant/30 text-on-surface' : idx === 2 ? 'bg-error/15 border-error/30 text-error' : 'bg-surface-container border-outline-variant/20 text-on-surface/60'
+              return (
+                <div key={idx} className="rounded-lg bg-surface-container border border-outline-variant/10 hover:border-outline-variant/25 transition-colors">
+                  <div className="flex items-center gap-2 p-2.5">
+                    <div className={'flex-shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center font-display font-black text-sm ' + medalTone}>#{place}</div>
+                    {row.image ? (
+                      <button type="button" onClick={function() { updatePrizeRow(idx, { image: '' }) }} className="flex-shrink-0 group relative" title="Click to remove image">
+                        <img src={row.image} alt="Prize" loading="lazy" decoding="async" className="w-9 h-9 rounded-lg object-cover border border-outline-variant/30" />
+                        <span className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/60 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                          <Icon name="close" size={14} className="text-white" />
+                        </span>
+                      </button>
+                    ) : (
+                      <label className={'flex-shrink-0 w-9 h-9 rounded-lg border-2 border-dashed flex items-center justify-center cursor-pointer transition-colors ' + (uploading ? 'border-on-surface/20 text-on-surface/30' : 'border-outline-variant/30 text-on-surface/40 hover:border-secondary/50 hover:text-secondary')} title="Add image">
+                        <Icon name={uploading ? 'progress_activity' : 'add_photo_alternate'} size={14} className={uploading ? 'animate-spin' : ''} />
+                        <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={function(e) { var f = e.target.files && e.target.files[0]; if (f) uploadPrizeImage(f, idx); e.target.value = '' }} />
+                      </label>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <Inp value={row.prize} onChange={function(v) { updatePrizeRow(idx, { prize: typeof v === 'string' ? v : v.target.value }) }} placeholder="e.g. €50 cash, RP code, Pro tier upgrade" />
+                    </div>
+                    <div className="flex-shrink-0 w-28">
+                      <Sel value={row.type || 'other'} onChange={function(v) { updatePrizeRow(idx, { type: typeof v === 'string' ? v : v.target.value }) }}>
+                        {PRIZE_TYPES.map(function(t) { return <option key={t.key} value={t.key}>{t.label}</option> })}
+                      </Sel>
+                    </div>
+                    {row.type === 'cash' && (
+                      <div className="flex-shrink-0 flex items-center gap-1">
+                        <div className="w-20">
+                          <Inp type="number" min="0" step="0.01" value={row.amount || ''} onChange={function(v) { updatePrizeRow(idx, { amount: typeof v === 'string' ? v : v.target.value }) }} placeholder="0" />
+                        </div>
+                        <div className="w-20">
+                          <Sel value={row.currency || 'EUR'} onChange={function(v) { updatePrizeRow(idx, { currency: typeof v === 'string' ? v : v.target.value }) }}>
+                            {PRIZE_CURRENCIES.map(function(c) { return <option key={c} value={c}>{c}</option> })}
+                          </Sel>
+                        </div>
+                      </div>
+                    )}
+                    <button type="button" onClick={function() { toggleAdvanced(idx) }} className={'flex-shrink-0 w-8 h-8 rounded flex items-center justify-center transition-colors ' + (advancedOpen ? 'text-secondary bg-secondary/10' : 'text-on-surface/40 hover:text-on-surface hover:bg-surface-container-highest')} title="Sponsor & eligibility">
+                      <Icon name={advancedOpen ? 'expand_less' : 'tune'} size={16} />
+                    </button>
+                    {clashForm.prizeRows.length > 1 && (
+                      <button type="button" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) })) }} className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-on-surface/40 hover:text-error hover:bg-error/10 transition-colors" title="Remove tier">
+                        <Icon name="delete" size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {(advancedOpen || sponsorName || row.eligibility) && (
+                    <div className={'grid grid-cols-1 md:grid-cols-2 gap-2 px-2.5 pb-2.5 ' + (advancedOpen ? '' : 'pt-0')}>
+                      {advancedOpen ? (
+                        <>
+                          <div>
+                            <label className="block text-[9px] font-label text-on-surface/50 uppercase tracking-widest mb-1">Sponsor</label>
+                            <Sel value={row.sponsor_id || ''} onChange={function(v) { updatePrizeRow(idx, { sponsor_id: typeof v === 'string' ? v : v.target.value }) }}>
+                              <option value="">- none -</option>
+                              {(orgSponsors || []).map(function(s) { return <option key={s.id} value={s.id}>{s.name}</option> })}
+                            </Sel>
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-label text-on-surface/50 uppercase tracking-widest mb-1">Eligibility</label>
+                            <Inp value={row.eligibility || ''} onChange={function(v) { updatePrizeRow(idx, { eligibility: typeof v === 'string' ? v : v.target.value }) }} placeholder="e.g. top 4, EU only, Pro tier" />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="md:col-span-2 flex items-center gap-2 text-[10px] text-on-surface/50">
+                          {sponsorName && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary/10 text-tertiary"><Icon name="handshake" size={10} />{sponsorName}</span>}
+                          {row.eligibility && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-on-surface/5"><Icon name="filter_alt" size={10} />{row.eligibility}</span>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex items-center justify-between gap-3 flex-wrap px-4 py-2.5 bg-surface-container/60 border-t border-outline-variant/10">
+            <div className="text-[10px] text-on-surface/50 flex-1 min-w-[180px]">Shown on Home, Clash and tournament detail pages. Leave blank for pride-only clashes.</div>
             <Btn variant="primary" size="sm" onClick={savePrizesOnly} disabled={prizeSaving}>
               {prizeSaving ? 'Saving...' : 'Save Prizes'}
             </Btn>
@@ -990,48 +956,6 @@ export default function TournamentTab() {
           addAudit('ACTION', 'Round config updated')
           toast('Round config saved', 'success')
         }}>Save Config</Btn>
-      </Panel>
-
-      <Panel>
-        <div className="flex items-center gap-2 mb-4">
-          <Icon name="event_available" size={16} className="text-tertiary" />
-          <span className="font-bold text-sm text-on-surface">Schedule Events</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Name</label>
-            <Inp value={newEvent.name} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { name: typeof v === 'string' ? v : v.target.value })) }} />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Date & Time</label>
-            <Inp type="datetime-local" value={newEvent.whenLocal} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { whenLocal: typeof v === 'string' ? v : v.target.value })) }} />
-          </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cap</label>
-            <Inp type="number" min="1" step="1" value={newEvent.cap} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { cap: typeof v === 'string' ? v : v.target.value })) }} />
-          </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Format</label>
-            <Inp value={newEvent.format} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { format: typeof v === 'string' ? v : v.target.value })) }} placeholder="Swiss" />
-          </div>
-        </div>
-        <Btn variant="primary" size="sm" onClick={addScheduledEvent}>Schedule Event</Btn>
-        {(scheduledEvents || []).length > 0 && (
-          <div className="mt-4 space-y-1.5">
-            {(scheduledEvents || []).map(function(ev) {
-              return (
-                <div key={ev.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
-                  <Icon name="event" size={14} className="text-on-surface/40 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-on-surface">{ev.name}</div>
-                    <div className="text-[11px] text-on-surface/40">{ev.date + (ev.time ? ' - ' + ev.time : '')}</div>
-                  </div>
-                  <Btn variant="ghost" size="sm" onClick={function() { cancelScheduledEvent(ev.id) }}>Cancel</Btn>
-                </div>
-              )
-            })}
-          </div>
-        )}
       </Panel>
 
       <Panel>
