@@ -50,6 +50,7 @@ export default function ResultsTab() {
   var lobbySize = 8
   var numLobbies = Math.max(1, Math.ceil(checkedIn.length / lobbySize))
   var lobbyPlayers = checkedIn.slice((lobby - 1) * lobbySize, lobby * lobbySize)
+  var lobbyPlayerIdsKey = lobbyPlayers.map(function(p) { return p.id }).join(',')
   var lobbyKey = 'lobby' + lobby
   var isPublished = published.indexOf(lobbyKey) !== -1
 
@@ -78,7 +79,7 @@ export default function ResultsTab() {
           return pub.indexOf(lobbyKey) === -1 ? pub.concat([lobbyKey]) : pub
         })
       }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e) })
-  }, [lobby, ts.activeTournamentId, lobbyPlayers.length])
+  }, [lobby, ts.activeTournamentId, lobbyPlayerIdsKey])
 
   function setPlace(playerId, place) {
     var key = lobbyKey + '_' + playerId

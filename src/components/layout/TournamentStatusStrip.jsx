@@ -44,7 +44,7 @@ export default function TournamentStatusStrip() {
   // During registration we only surface the strip if we have a real tournament context
   if (!tournamentState.dbTournamentId && !tournamentState.clashTimestamp && phaseKey === 'registration') return null
 
-  var region = normalizeRegion(tournamentState.region || 'EU')
+  var region = normalizeRegion(tournamentState.region || 'EU') || 'EU'
 
   var linkedPlayer = null
   if (currentUser) {

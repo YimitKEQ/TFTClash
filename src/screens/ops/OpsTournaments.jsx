@@ -75,11 +75,12 @@ export default function OpsTournaments(props) {
     var siteKey = region === 'NA' ? 'tournament_state_na' : 'tournament_state'
     var setter = region === 'NA' ? setTournamentStateNa : setTournamentState
     var nextValue = Object.assign({}, ts, { phase: phase })
-    if (setter) setter(function(s) { return Object.assign({}, s, { phase: phase }) })
 
     // Capacity trigger and player views read tournaments.phase directly. Keep
     // both site_settings and the tournaments row in sync when we know which
-    // tournament is the active weekly clash.
+    // tournament is the active weekly clash. Local context state is only
+    // updated after both writes succeed, so a partial failure cannot leave
+    // the UI showing a phase the DB doesn't agree with.
     var tId = ts && (ts.activeTournamentId || ts.dbTournamentId)
     var siteWrite = supabase.from('site_settings').upsert({ key: siteKey, value: JSON.stringify(nextValue) }, { onConflict: 'key' })
     var tournamentWrite = tId
@@ -92,6 +93,7 @@ export default function OpsTournaments(props) {
         var tournamentRes = results[1]
         if (siteRes && siteRes.error) { toast('Phase save failed: ' + siteRes.error.message, 'error'); return }
         if (tournamentRes && tournamentRes.error) { toast('Tournament phase save failed: ' + tournamentRes.error.message, 'error'); return }
+        if (setter) setter(function(s) { return Object.assign({}, s, { phase: phase }) })
         addAudit('ACTION', region + ' weekly phase set to: ' + phase)
         toast(region + ' phase: ' + (PHASE_LABELS[phase] || phase), 'success')
       })
