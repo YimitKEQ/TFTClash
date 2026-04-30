@@ -594,6 +594,7 @@ export default function FlashTournamentScreen(props) {
         if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
         writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: placement });
         toast('Placement overridden', 'success');
+        broadcastUpdate('report_submitted');
         loadReports();
       }).catch(function() { toast('Override failed', 'error'); });
   }
@@ -631,6 +632,7 @@ export default function FlashTournamentScreen(props) {
           reported_placement: d.claimed_placement,
           reported_at: new Date().toISOString()
         }, {onConflict: 'lobby_id,game_number,player_id'}).then(function() {
+          broadcastUpdate('report_submitted');
           loadReports();
         }).catch(function() {});
       }
