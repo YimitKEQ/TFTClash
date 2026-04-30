@@ -66,6 +66,12 @@ export default function FlashTournamentScreen(props) {
   var _adminLineupModal = useState({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''});
   var adminLineupModal = _adminLineupModal[0];
   var setAdminLineupModal = _adminLineupModal[1];
+  var _broadcastModal = useState({open: false, message: '', sending: false});
+  var broadcastModal = _broadcastModal[0];
+  var setBroadcastModal = _broadcastModal[1];
+  var _preflightModal = useState({open: false, loading: false, issues: [], checkedCount: 0});
+  var preflightModal = _preflightModal[0];
+  var setPreflightModal = _preflightModal[1];
   var _myCaptainTeam = useState(null);
   var myCaptainTeam = _myCaptainTeam[0];
   var setMyCaptainTeam = _myCaptainTeam[1];
@@ -889,10 +895,14 @@ export default function FlashTournamentScreen(props) {
 
   function adminBroadcastAnnouncement() {
     if (!isAdmin) return;
-    var raw = window.prompt('Announcement message (sent to registered + checked-in, max 200 chars):', '');
-    if (raw === null) return;
-    var msg = String(raw).replace(/[<>]/g, '').slice(0, 200).trim();
+    setBroadcastModal({open: true, message: '', sending: false});
+  }
+
+  function sendBroadcastMessage() {
+    if (!isAdmin) return;
+    var msg = String(broadcastModal.message || '').replace(/[<>]/g, '').slice(0, 200).trim();
     if (!msg) { toast('Message is empty', 'error'); return; }
+    setBroadcastModal(Object.assign({}, broadcastModal, {sending: true}));
     var title = (tournament ? tournament.name : 'Tournament') + ' - Announcement';
     supabase.rpc('notify_tournament_players', {
       p_tournament_id: tournamentId,
@@ -901,10 +911,53 @@ export default function FlashTournamentScreen(props) {
       p_icon: 'bell',
       p_statuses: ['checked_in', 'registered']
     }).then(function(res) {
-      if (res && res.error) { toast('Broadcast failed: ' + res.error.message, 'error'); return; }
+      if (res && res.error) {
+        toast('Broadcast failed: ' + res.error.message, 'error');
+        setBroadcastModal(Object.assign({}, broadcastModal, {sending: false}));
+        return;
+      }
       writeAuditLog('tournament.admin_broadcast', actorContext(), { type: 'tournament', id: tournamentId }, { tournament_id: tournamentId, message: msg });
       toast('Announcement sent', 'success');
-    }).catch(function() { toast('Broadcast failed', 'error'); });
+      setBroadcastModal({open: false, message: '', sending: false});
+    }).catch(function() {
+      toast('Broadcast failed', 'error');
+      setBroadcastModal(Object.assign({}, broadcastModal, {sending: false}));
+    });
+  }
+
+  function runPreflightCheck() {
+    if (!isAdmin) return;
+    setPreflightModal({open: true, loading: true, issues: [], checkedCount: 0});
+    supabase.from('registrations')
+      .select('id, status, players(id, username, riot_id, region, banned)')
+      .eq('tournament_id', tournamentId)
+      .eq('status', 'checked_in')
+      .then(function(res) {
+        if (res && res.error) { toast('Pre-flight load failed: ' + res.error.message, 'error'); setPreflightModal({open: false, loading: false, issues: [], checkedCount: 0}); return; }
+        var rows = (res && res.data) || [];
+        var issues = [];
+        var tournamentRegion = tournament && tournament.region ? String(tournament.region).toUpperCase() : null;
+        rows.forEach(function(r) {
+          var p = r.players || {};
+          var name = p.username || ('player#' + (p.id || '?'));
+          if (!p.riot_id || !String(p.riot_id).trim()) {
+            issues.push({severity: 'error', name: name, code: 'no_riot_id', label: 'Missing Riot ID'});
+          }
+          if (p.banned) {
+            issues.push({severity: 'error', name: name, code: 'banned', label: 'Banned account'});
+          }
+          if (tournamentRegion && p.region) {
+            var pRegion = String(p.region).toUpperCase();
+            // EUW counts as EU; LAS/BR/etc. count as NA in our regional split.
+            var pBucket = pRegion.indexOf('EU') === 0 ? 'EU' : (pRegion === 'NA' || pRegion === 'BR' || pRegion === 'LAS' || pRegion === 'LAN') ? 'NA' : pRegion;
+            if (pBucket !== tournamentRegion) {
+              issues.push({severity: 'warn', name: name, code: 'region_mismatch', label: 'Region mismatch (' + pRegion + ' -> ' + tournamentRegion + ')'});
+            }
+          }
+        });
+        setPreflightModal({open: true, loading: false, issues: issues, checkedCount: rows.length});
+      })
+      .catch(function() { toast('Pre-flight failed', 'error'); setPreflightModal({open: false, loading: false, issues: [], checkedCount: 0}); });
   }
 
   function openAdminLineupModal(reg) {
@@ -1617,6 +1670,9 @@ export default function FlashTournamentScreen(props) {
                 <div className="flex flex-wrap gap-2">
                   <Btn variant="destructive" size="sm" onClick={adminBroadcastAnnouncement}>
                     <Icon name="campaign" size={14} className="mr-1" />Broadcast Announcement
+                  </Btn>
+                  <Btn variant="secondary" size="sm" onClick={runPreflightCheck}>
+                    <Icon name="rule_settings" size={14} className="mr-1" />Pre-flight Check
                   </Btn>
                   <span className="text-[10px] text-on-surface-variant/60 self-center">Admin actions appear next to each {isTeamEvent ? 'team' : 'player'} below.</span>
                 </div>
@@ -2421,6 +2477,112 @@ export default function FlashTournamentScreen(props) {
             <div className="px-5 py-4 border-t border-outline-variant/10 flex items-center justify-end gap-2">
               <Btn variant="secondary" size="sm" onClick={function(){ setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''}); }}>Cancel</Btn>
               <Btn variant="primary" size="sm" onClick={adminSubmitLineupEdit} disabled={adminLineupModal.sel.length !== teamSizeNum}>Save Lineup</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {broadcastModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={function(){ if (!broadcastModal.sending) setBroadcastModal({open: false, message: '', sending: false}); }}>
+          <div className="bg-surface-container rounded border border-outline-variant/20 max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={function(e){ e.stopPropagation(); }}>
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="campaign" size={18} className="text-error" />
+                <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Broadcast Announcement</span>
+              </div>
+              <button onClick={function(){ if (!broadcastModal.sending) setBroadcastModal({open: false, message: '', sending: false}); }} className="text-on-surface-variant/60 hover:text-on-surface text-xl leading-none">{'\u2715'}</button>
+            </div>
+            <div className="px-5 py-4 border-b border-outline-variant/10">
+              <div className="text-[10px] font-label font-bold tracking-widest uppercase text-on-surface-variant mb-2">Quick templates</div>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  'Tournament starting in 5 minutes - get to your lobby!',
+                  'Round 2 starting in 5 minutes',
+                  'Final round - good luck!',
+                  'Lobby reset in progress, please rejoin in 2 minutes',
+                  'Short break - back in 10 minutes',
+                  'Results being verified, hold tight'
+                ].map(function(tpl, i) {
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={function(){ setBroadcastModal(Object.assign({}, broadcastModal, {message: tpl})); }}
+                      className="text-[11px] font-label uppercase tracking-wider rounded px-2 py-1 border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10"
+                    >
+                      {tpl.length > 32 ? tpl.slice(0, 30) + '...' : tpl}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="px-5 py-4">
+              <label className="block text-[10px] font-label font-bold tracking-widest uppercase text-on-surface-variant mb-2">Message ({broadcastModal.message.length}/200)</label>
+              <textarea
+                value={broadcastModal.message}
+                onChange={function(e){ setBroadcastModal(Object.assign({}, broadcastModal, {message: e.target.value.slice(0, 200)})); }}
+                placeholder="Pick a template above or write your own..."
+                rows={4}
+                disabled={broadcastModal.sending}
+                className="w-full rounded border border-outline-variant/30 bg-surface-container-low px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/60 resize-none"
+              />
+              <div className="text-[10px] text-on-surface-variant/60 mt-2">Sent to registered + checked-in players. Triggers in-app + Discord notifications.</div>
+            </div>
+            <div className="px-5 py-4 border-t border-outline-variant/10 flex items-center justify-end gap-2">
+              <Btn variant="secondary" size="sm" onClick={function(){ setBroadcastModal({open: false, message: '', sending: false}); }} disabled={broadcastModal.sending}>Cancel</Btn>
+              <Btn variant="destructive" size="sm" onClick={sendBroadcastMessage} disabled={broadcastModal.sending || !broadcastModal.message.trim()}>
+                {broadcastModal.sending ? 'Sending...' : 'Send Announcement'}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {preflightModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={function(){ setPreflightModal({open: false, loading: false, issues: [], checkedCount: 0}); }}>
+          <div className="bg-surface-container rounded border border-outline-variant/20 max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={function(e){ e.stopPropagation(); }}>
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="rule_settings" size={18} className="text-primary" />
+                <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Pre-flight Check</span>
+              </div>
+              <button onClick={function(){ setPreflightModal({open: false, loading: false, issues: [], checkedCount: 0}); }} className="text-on-surface-variant/60 hover:text-on-surface text-xl leading-none">{'\u2715'}</button>
+            </div>
+            <div className="px-5 py-3 border-b border-outline-variant/10 text-[12px] text-on-surface-variant">
+              {preflightModal.loading
+                ? 'Running checks...'
+                : 'Checked ' + preflightModal.checkedCount + ' player' + (preflightModal.checkedCount === 1 ? '' : 's') + '. ' + (preflightModal.issues.length === 0 ? 'No issues found.' : preflightModal.issues.length + ' issue' + (preflightModal.issues.length === 1 ? '' : 's') + ' found.')}
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {preflightModal.loading ? (
+                <div className="p-8 text-center text-sm text-on-surface-variant">Loading...</div>
+              ) : preflightModal.issues.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Icon name="check_circle" size={32} className="text-success block mx-auto mb-2" />
+                  <div className="text-sm text-on-surface">All clear. Safe to start.</div>
+                </div>
+              ) : (
+                <div className="divide-y divide-outline-variant/5">
+                  {preflightModal.issues.map(function(issue, i) {
+                    var sevColor = issue.severity === 'error' ? 'text-error' : 'text-tertiary';
+                    var sevBg = issue.severity === 'error' ? 'bg-error/5' : 'bg-tertiary/5';
+                    var sevIcon = issue.severity === 'error' ? 'error' : 'warning';
+                    return (
+                      <div key={i} className={'px-5 py-3 flex items-center gap-3 ' + sevBg}>
+                        <Icon name={sevIcon} size={16} className={sevColor + ' flex-shrink-0'} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-on-surface">{issue.name}</div>
+                          <div className={'text-[11px] ' + sevColor}>{issue.label}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="px-5 py-4 border-t border-outline-variant/10 flex items-center justify-end gap-2">
+              <Btn variant="secondary" size="sm" onClick={runPreflightCheck} disabled={preflightModal.loading}>Re-run</Btn>
+              <Btn variant="primary" size="sm" onClick={function(){ setPreflightModal({open: false, loading: false, issues: [], checkedCount: 0}); }}>Close</Btn>
             </div>
           </div>
         </div>
