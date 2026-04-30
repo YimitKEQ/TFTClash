@@ -1,11 +1,20 @@
 /**
- * setup.js — Full TFT Clash Discord server build.
- * Run once: node setup.js
+ * setup.js -- TFT Clash Discord server build.
+ *
+ * Default mode: IDEMPOTENT. Existing categories, channels, roles, and
+ * messages are LEFT ALONE. Only missing pieces are created. Safe to
+ * re-run after any structural change.
+ *
+ * Force-wipe mode: pass `--force-wipe` to nuke every channel before
+ * rebuilding (the original behavior). Only use this on a brand-new or
+ * scratch server -- it deletes user history.
+ *
+ *   node setup.js               (idempotent, recommended)
+ *   node setup.js --force-wipe  (destructive, fresh server only)
  */
 
 import {
   Client, GatewayIntentBits, PermissionFlagsBits, ChannelType,
-  OverwriteType,
 } from 'discord.js';
 import 'dotenv/config';
 import {
@@ -14,9 +23,11 @@ import {
 } from './utils/embeds.js';
 import { getStandings, getSeasonConfig, getTournamentState, getRegistrations } from './utils/data.js';
 
+var FORCE_WIPE = process.argv.includes('--force-wipe');
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// ─── Roles ────────────────────────────────────────────────────────────────────
+// Roles
 const ROLE_DEFS = [
   { name: 'Season Champion', color: 0xFFD700, hoist: true,  mentionable: true  },
   { name: 'Host',            color: 0xE8A838, hoist: true,  mentionable: true  },
@@ -30,9 +41,7 @@ const ROLE_DEFS = [
   { name: 'Muted',           color: 0x555555, hoist: false, mentionable: false },
 ];
 
-// ─── Server structure ─────────────────────────────────────────────────────────
-// gate: 'public' = anyone | 'verified' = @Player+ | 'host' = @Host only
-// readOnly: only @Host can send messages
+// Server structure. type defaults to text. kind: 'forum' creates a forum channel.
 const STRUCTURE = [
   {
     name: '── WELCOME ──',
@@ -48,10 +57,11 @@ const STRUCTURE = [
     name: '── CLASH HQ ──',
     gate: 'verified',
     children: [
-      { name: '📅・clash-schedule', gate: 'verified', readOnly: true,  topic: 'Upcoming clash dates and formats. Bot-powered.' },
-      { name: '🏆・results',        gate: 'verified', readOnly: true,  topic: 'Official results posted here after every clash.' },
-      { name: '📊・standings',      gate: 'verified', readOnly: true,  topic: 'Season leaderboard — updated after each clash.' },
-      { name: '🎯・bracket',        gate: 'verified', readOnly: true,  topic: 'Bracket and lobby info dropped before each clash.' },
+      { name: '📅・clash-schedule',      gate: 'verified', readOnly: true,  topic: 'Upcoming clash dates and formats. Bot-powered.' },
+      { name: '🎟️・clash-registrations', gate: 'verified', readOnly: true,  topic: 'Live feed of new clash registrations.' },
+      { name: '🏆・results',             gate: 'verified', readOnly: true,  topic: 'Official results posted here after every clash.' },
+      { name: '📊・standings',           gate: 'verified', readOnly: true,  topic: 'Season leaderboard updated after each clash.' },
+      { name: '🎯・bracket',             gate: 'verified', readOnly: true,  topic: 'Bracket and lobby info dropped before each clash.' },
     ],
   },
   {
@@ -63,6 +73,16 @@ const STRUCTURE = [
       { name: '🎬・clips',        gate: 'verified', readOnly: false, topic: 'Highlight reels, clutch plays, funny moments.' },
       { name: '🧠・meta-talk',    gate: 'verified', readOnly: false, topic: 'Comp discussion, patch notes, theory-crafting.' },
       { name: '🤖・bot-commands', gate: 'verified', readOnly: false, topic: 'Use /profile /standings /clash here.' },
+    ],
+  },
+  {
+    name: '── HELP & FEEDBACK ──',
+    gate: 'verified',
+    children: [
+      { name: '📖・how-to-clash', gate: 'verified', readOnly: true,  topic: 'Step-by-step guide on how a TFT Clash works.' },
+      { name: '❓・faq',          gate: 'verified', readOnly: true,  topic: 'Frequently asked questions. Read before pinging a host.' },
+      { name: '💡・feedback',     gate: 'verified', readOnly: false, topic: 'Suggestions, ideas, feature requests. One thread per idea.', kind: 'forum' },
+      { name: '🐛・bug-reports',  gate: 'verified', readOnly: false, topic: 'Site or bot bug? Open a thread with steps to reproduce.', kind: 'forum' },
     ],
   },
   {
@@ -85,74 +105,96 @@ const STRUCTURE = [
   },
 ];
 
-// ─── Build permission overwrites ──────────────────────────────────────────────
-function buildOverwrites(gate, readOnly, roles) {
-  const { everyone, player, host } = roles;
+// Permission overwrites
+function buildOverwrites(gate, readOnly, isForum, roles) {
+  const { everyone, player, host, muted } = roles;
   const SEND          = PermissionFlagsBits.SendMessages;
   const VIEW          = PermissionFlagsBits.ViewChannel;
   const ADD_REACTIONS = PermissionFlagsBits.AddReactions;
   const ATTACH_FILES  = PermissionFlagsBits.AttachFiles;
   const EMBED_LINKS   = PermissionFlagsBits.EmbedLinks;
   const READ_HISTORY  = PermissionFlagsBits.ReadMessageHistory;
+  const CREATE_THREAD = PermissionFlagsBits.CreatePublicThreads;
+  const SEND_THREAD   = PermissionFlagsBits.SendMessagesInThreads;
 
-  // Full chat permissions for community channels (general, lfg, clips, etc.)
-  const CHAT_ALLOW = [SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY];
+  const CHAT_ALLOW  = [SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY];
+  const FORUM_ALLOW = [VIEW, READ_HISTORY, CREATE_THREAD, SEND_THREAD, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS];
 
   const ow = [];
 
   if (gate === 'public') {
-    // Everyone can see; only hosts can send in readOnly channels
     if (readOnly) {
       ow.push({ id: everyone, deny: [SEND] });
-      ow.push({ id: host.id,  allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
+      if (host) ow.push({ id: host.id, allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
     }
   } else if (gate === 'verified') {
-    // Hide from unverified (@everyone); show to @Player+
-    ow.push({ id: everyone,  deny:  [VIEW] });
-    if (readOnly) {
-      // Read-only channels: Player can view but not send. Host can send.
-      ow.push({ id: player.id, allow: [VIEW, ADD_REACTIONS, READ_HISTORY], deny: [SEND] });
-      ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
+    ow.push({ id: everyone, deny: [VIEW] });
+    if (isForum) {
+      if (player) ow.push({ id: player.id, allow: FORUM_ALLOW });
+      if (host)   ow.push({ id: host.id,   allow: FORUM_ALLOW.concat([SEND]) });
+    } else if (readOnly) {
+      if (player) ow.push({ id: player.id, allow: [VIEW, ADD_REACTIONS, READ_HISTORY], deny: [SEND] });
+      if (host)   ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
     } else {
-      // Community channels: full chat for Player and Host
-      ow.push({ id: player.id, allow: [VIEW].concat(CHAT_ALLOW) });
-      ow.push({ id: host.id,   allow: [VIEW].concat(CHAT_ALLOW) });
+      if (player) ow.push({ id: player.id, allow: [VIEW].concat(CHAT_ALLOW) });
+      if (host)   ow.push({ id: host.id,   allow: [VIEW].concat(CHAT_ALLOW) });
     }
   } else if (gate === 'host') {
-    // Host-only admin channels: explicitly hide from @Player and @everyone
-    ow.push({ id: everyone,  deny:  [VIEW] });
-    ow.push({ id: player.id, deny:  [VIEW] });
-    ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
+    ow.push({ id: everyone, deny: [VIEW] });
+    if (player) ow.push({ id: player.id, deny: [VIEW] });
+    if (host)   ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
   }
 
-  // Always deny @Muted from sending and adding reactions
-  if (roles.muted) {
-    ow.push({ id: roles.muted.id, deny: [SEND, ADD_REACTIONS] });
-  }
+  if (muted) ow.push({ id: muted.id, deny: [SEND, ADD_REACTIONS] });
 
   return ow;
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+function channelTypeFor(ch) {
+  if (ch.type === 'voice') return ChannelType.GuildVoice;
+  if (ch.kind === 'forum') return ChannelType.GuildForum;
+  return ChannelType.GuildText;
+}
+
+// Find existing category by name
+function findCategory(guild, name) {
+  return guild.channels.cache.find(function(c) {
+    return c.type === ChannelType.GuildCategory && c.name === name;
+  });
+}
+
+// Find existing channel by name (any non-category type)
+function findChannel(guild, name) {
+  return guild.channels.cache.find(function(c) {
+    return c.type !== ChannelType.GuildCategory && c.name === name;
+  });
+}
+
 client.once('ready', async () => {
   console.log(`\nLogged in as ${client.user.tag}`);
   const guild = client.guilds.cache.get(process.env.GUILD_ID);
   if (!guild) { console.error('Guild not found'); process.exit(1); }
 
-  console.log(`Setting up: ${guild.name}\n`);
+  console.log(`Setting up: ${guild.name}`);
+  console.log(`Mode: ${FORCE_WIPE ? 'FORCE-WIPE (destructive)' : 'IDEMPOTENT (safe)'}\n`);
 
-  // 1. Wipe channels
-  console.log('[1/5] Clearing channels...');
-  for (const [, ch] of await guild.channels.fetch()) {
-    try { await ch.delete(); } catch {}
+  // 1. Optional wipe (only with --force-wipe)
+  if (FORCE_WIPE) {
+    console.log('[1/5] Force-wipe: deleting all channels...');
+    for (const [, ch] of await guild.channels.fetch()) {
+      try { await ch.delete(); } catch {}
+    }
+  } else {
+    console.log('[1/5] Skip wipe (idempotent mode). Existing channels preserved.');
   }
 
-  // 2. Create roles
-  console.log('[2/5] Creating roles...');
+  // 2. Create roles (idempotent: skip if exists)
+  console.log('[2/5] Ensuring roles...');
   for (const def of ROLE_DEFS) {
     const exists = guild.roles.cache.find(r => r.name === def.name);
     if (!exists) {
       await guild.roles.create({ name: def.name, color: def.color, hoist: def.hoist, mentionable: def.mentionable });
+      console.log(`  + created role ${def.name}`);
     }
   }
   await guild.roles.fetch();
@@ -165,95 +207,106 @@ client.once('ready', async () => {
     muted:    roleMap('Muted'),
   };
 
-  // 3. Build channels
-  console.log('[3/5] Building channels...');
+  // 3. Build channels (idempotent: skip if category/channel exists by name)
+  console.log('[3/5] Ensuring categories and channels...');
+  await guild.channels.fetch();
   const channelMap = {};
 
   for (const cat of STRUCTURE) {
-    const catOw = buildOverwrites(cat.gate, false, roles);
-
-    const category = await guild.channels.create({
-      name: cat.name,
-      type: ChannelType.GuildCategory,
-      permissionOverwrites: catOw,
-    });
-    console.log(`  ${cat.name}`);
+    let category = findCategory(guild, cat.name);
+    if (!category) {
+      const catOw = buildOverwrites(cat.gate, false, false, roles);
+      category = await guild.channels.create({
+        name: cat.name,
+        type: ChannelType.GuildCategory,
+        permissionOverwrites: catOw,
+      });
+      console.log(`  + created category ${cat.name}`);
+    } else {
+      console.log(`  · category exists: ${cat.name}`);
+    }
 
     for (const ch of cat.children) {
-      const isVoice = ch.type === 'voice';
-      const chOw    = buildOverwrites(ch.gate, ch.readOnly ?? false, roles);
-
-      const channel = await guild.channels.create({
-        name:                 ch.name,
-        type:                 isVoice ? ChannelType.GuildVoice : ChannelType.GuildText,
-        parent:               category.id,
-        topic:                ch.topic ?? '',
-        permissionOverwrites: chOw,
-      });
-
-      // Store by clean name for lookup
-      const key = ch.name.replace(/[^a-z0-9\-]/gi, '').toLowerCase();
-      channelMap[key] = channel;
-      console.log(`    ${ch.name}`);
+      const existing = findChannel(guild, ch.name);
+      if (existing) {
+        const key = ch.name.replace(/[^a-z0-9\-]/gi, '').toLowerCase();
+        channelMap[key] = existing;
+        console.log(`    · channel exists: ${ch.name}`);
+        continue;
+      }
+      const isForum = ch.kind === 'forum';
+      const chOw    = buildOverwrites(ch.gate, ch.readOnly ?? false, isForum, roles);
+      try {
+        const channel = await guild.channels.create({
+          name:                 ch.name,
+          type:                 channelTypeFor(ch),
+          parent:               category.id,
+          topic:                ch.topic ?? '',
+          permissionOverwrites: chOw,
+        });
+        const key = ch.name.replace(/[^a-z0-9\-]/gi, '').toLowerCase();
+        channelMap[key] = channel;
+        console.log(`    + created ${isForum ? 'forum' : (ch.type === 'voice' ? 'voice' : 'text')} channel ${ch.name}`);
+      } catch (err) {
+        console.error(`    ✗ failed to create ${ch.name}: ${err.message}`);
+      }
     }
   }
 
-  // 4. Post initial content
-  console.log('\n[4/5] Posting initial content...');
+  // 4. Post initial content (only when wiping; otherwise leave history alone)
+  if (FORCE_WIPE) {
+    console.log('\n[4/5] Posting initial content (force-wipe mode)...');
 
-  const get = (key) => Object.entries(channelMap).find(([k]) => k.includes(key))?.[1];
+    const get = (key) => Object.entries(channelMap).find(([k]) => k.includes(key))?.[1];
 
-  // Rules
-  const rulesCh = get('rules');
-  if (rulesCh) {
-    const m = await rulesCh.send({ embeds: [rulesEmbed()] });
-    await m.pin().catch(() => {});
-    console.log('  ✓ rules');
+    const rulesCh = get('rules');
+    if (rulesCh) {
+      const m = await rulesCh.send({ embeds: [rulesEmbed()] });
+      await m.pin().catch(() => {});
+      console.log('  ✓ rules');
+    }
+
+    const verifyCh = get('verify');
+    if (verifyCh) {
+      const m = await verifyCh.send({ embeds: [verifyEmbed()], components: [verifyButton()] });
+      await m.pin().catch(() => {});
+      console.log('  ✓ verify');
+    }
+
+    const season = await getSeasonConfig();
+    const ts = await getTournamentState();
+    const players = await getStandings(10);
+    const regs = await getRegistrations();
+
+    const annCh = get('announcements');
+    if (annCh) {
+      await annCh.send({ embeds: [seasonIntroEmbed(season)] });
+      console.log('  ✓ announcements');
+    }
+
+    const schedCh = get('clashschedule');
+    if (schedCh) {
+      await schedCh.send({ embeds: [clashInfoEmbed(ts, season, regs.length)] });
+      console.log('  ✓ clash-schedule');
+    }
+
+    const standCh = get('standings');
+    if (standCh) {
+      await standCh.send({ embeds: [standingsEmbed(players, season)] });
+      console.log('  ✓ standings');
+    }
+  } else {
+    console.log('\n[4/5] Skip seeding (idempotent mode). Run `node harden-channels.js` to refresh pinned guides safely.');
   }
 
-  // Verify
-  const verifyCh = get('verify');
-  if (verifyCh) {
-    const m = await verifyCh.send({ embeds: [verifyEmbed()], components: [verifyButton()] });
-    await m.pin().catch(() => {});
-    console.log('  ✓ verify');
-  }
-
-  // Fetch live data for embeds
-  const season = await getSeasonConfig();
-  const ts = await getTournamentState();
-  const players = await getStandings(10);
-  const regs = await getRegistrations();
-
-  // Announcements
-  const annCh = get('announcements');
-  if (annCh) {
-    await annCh.send({ embeds: [seasonIntroEmbed(season)] });
-    console.log('  ✓ announcements');
-  }
-
-  // Clash schedule
-  const schedCh = get('clashschedule');
-  if (schedCh) {
-    await schedCh.send({ embeds: [clashInfoEmbed(ts, season, regs.length)] });
-    console.log('  ✓ clash-schedule');
-  }
-
-  // Standings
-  const standCh = get('standings');
-  if (standCh) {
-    await standCh.send({ embeds: [standingsEmbed(players, season)] });
-    console.log('  ✓ standings');
-  }
-
-  // 5. Set bot status
+  // 5. Bot status
   console.log('\n[5/5] Setting bot status...');
   client.user.setPresence({
     activities: [{ name: 'TFT Clash · /clash', type: 0 }],
     status: 'online',
   });
 
-  console.log('\n✅ Server is ready. Run: node index.js\n');
+  console.log(`\n✅ Server is ready (${FORCE_WIPE ? 'wiped + rebuilt' : 'safely synced'}). Run: node index.js\n`);
   process.exit(0);
 });
 

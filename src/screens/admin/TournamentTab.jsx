@@ -1111,6 +1111,23 @@ export default function TournamentTab() {
                   {(t.phase === 'complete' || t.phase === 'in_progress') && (
                     <Btn variant="ghost" size="sm" onClick={function() { finalizePrizeClaims(t) }}>Claims</Btn>
                   )}
+                  {t.phase !== 'complete' && t.phase !== 'cancelled' && (
+                    <Btn variant="ghost" size="sm" onClick={function() {
+                      if (!window.confirm('Force complete ' + t.name + '?\n\nThis flips phase to complete so it falls out of upcoming/live feeds. Use this to archive a test tournament without deleting registrations or results.')) return
+                      supabase.from('tournaments').update({ phase: 'complete' }).eq('id', t.id).then(function(r) {
+                        if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
+                        setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'complete' }) : x }) })
+                        if (tournamentStateEu && tournamentStateEu.dbTournamentId === t.id && setTournamentStateEu) {
+                          setTournamentStateEu(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+                        }
+                        if (tournamentStateNa && tournamentStateNa.dbTournamentId === t.id && setTournamentStateNa) {
+                          setTournamentStateNa(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+                        }
+                        addAudit('ACTION', 'Tournament archived (force complete): ' + t.name)
+                        toast('Archived', 'success')
+                      }).catch(function() { toast('Archive failed', 'error') })
+                    }}>Archive</Btn>
+                  )}
                   <Btn variant="ghost" size="sm" onClick={function() {
                     if (!window.confirm('Delete ' + t.name + '?')) return
                     supabase.from('tournaments').delete().eq('id', t.id).then(function(r) {

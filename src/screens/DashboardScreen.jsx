@@ -127,7 +127,7 @@ function PulseHeader({
   if (D > 0) countdownStr = D + 'd ' + countdownStr
 
   return (
-    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container shadow-[inset_0_0_20px_rgba(217,185,255,0.15)]"
+    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/20 mb-6 bg-surface-container"
     >
       {/* Top-right countdown */}
       <div className="absolute top-0 right-0 p-4 text-right">
@@ -166,7 +166,7 @@ function PulseHeader({
         {/* Avatar */}
         <div className="relative flex-shrink-0">
           <div
-            className="w-20 h-20 rounded-full border-4 border-secondary/40 p-1 shadow-[0_0_20px_rgba(217,185,255,0.3)]"
+            className="w-20 h-20 rounded-full border-4 border-secondary/40 p-1"
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center">
               {linkedPlayer ? (
