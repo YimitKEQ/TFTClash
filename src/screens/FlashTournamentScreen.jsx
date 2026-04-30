@@ -62,6 +62,9 @@ export default function FlashTournamentScreen(props) {
   var _gameResults = useState([]);
   var gameResults = _gameResults[0];
   var setGameResults = _gameResults[1];
+  var _adminLineupModal = useState({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''});
+  var adminLineupModal = _adminLineupModal[0];
+  var setAdminLineupModal = _adminLineupModal[1];
   var channelRef = useRef(null);
 
   function loadTournament() {
@@ -73,10 +76,13 @@ export default function FlashTournamentScreen(props) {
   }
 
   function loadRegistrations() {
-    return supabase.from('registrations').select('*, players(username, riot_id, rank, region)').eq('tournament_id', tournamentId).then(function(res) {
-      if (res.data) setRegistrations(res.data);
-      return res;
-    });
+    return supabase.from('registrations')
+      .select('*, players(username, riot_id, rank, region), teams!registrations_team_id_fkey(id, name, tag)')
+      .eq('tournament_id', tournamentId)
+      .then(function(res) {
+        if (res.data) setRegistrations(res.data);
+        return res;
+      });
   }
 
   function loadLobbies() {
@@ -294,7 +300,26 @@ export default function FlashTournamentScreen(props) {
             toast(teamLobbies.length + ' team lobbies generated!', 'success');
             broadcastUpdate('lobbies_generated');
             loadLobbies();
-            supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Lobby Assigned', p_body: 'Your team lobby has been assigned for ' + (tournament ? tournament.name : 'the tournament') + '!', p_icon: 'trophy', p_statuses: ['checked_in']}).catch(function() {});
+            // Per-player team-context notifications: tell each starter which lobby letter their team is in.
+            try {
+              var letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P'];
+              teamLobbies.forEach(function(lobby, lIdx) {
+                var lobbyLabel = 'Lobby ' + (letters[lIdx] || (lIdx + 1));
+                (lobby.teams || []).forEach(function(t) {
+                  var teamLabel = t.tag ? ('[' + t.tag + '] ' + t.name) : t.name;
+                  (t.players || []).forEach(function(p) {
+                    if (p && p.id) {
+                      createNotification(
+                        p.id,
+                        lobbyLabel + ' Assigned',
+                        'You are starting for ' + teamLabel + ' in ' + lobbyLabel + ' for ' + (tournament ? tournament.name : 'the tournament') + '. Game on!',
+                        'trophy'
+                      );
+                    }
+                  });
+                });
+              });
+            } catch (e) {}
           }).catch(function() { setActionLoading(false); toast('Failed to generate lobbies', 'error'); });
         }).catch(function() { setActionLoading(false); toast('Failed to load lineup players', 'error'); });
       }).catch(function() { setActionLoading(false); toast('Failed to load team registrations', 'error'); });
@@ -313,6 +338,9 @@ export default function FlashTournamentScreen(props) {
   var maxP = tournament ? tournament.max_players || 128 : 128;
   var phase = tournament ? tournament.phase : 'draft';
   var prizes = tournament && Array.isArray(tournament.prize_pool_json) ? tournament.prize_pool_json : [];
+  var _teamSizeRaw = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+  var teamSizeNum = Number.isFinite(_teamSizeRaw) && _teamSizeRaw > 0 ? _teamSizeRaw : 1;
+  var isTeamEvent = teamSizeNum > 1;
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
@@ -601,6 +629,135 @@ export default function FlashTournamentScreen(props) {
         createNotification(disputingPlayer.authUserId, 'Dispute ' + (accept ? 'Accepted' : 'Rejected'), body, 'bell');
       }
     }).catch(function() { toast('Failed to resolve dispute', 'error'); });
+  }
+
+  function adminForceCheckIn(regId) {
+    if (!isAdmin) return;
+    var reg = registrations.find(function(r) { return r.id === regId; });
+    if (!reg) return;
+    if (isTeamEvent) {
+      var lineup = Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
+      if (lineup.length !== teamSizeNum) {
+        toast('Set the team lineup first using Edit Lineup, then check in.', 'error');
+        return;
+      }
+    }
+    if (!confirm('Force check-in this ' + (isTeamEvent ? 'team' : 'player') + '?')) return;
+    var patch = {status: 'checked_in', checked_in_at: new Date().toISOString()};
+    supabase.from('registrations').update(patch).eq('id', regId).then(function(res) {
+      if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
+      writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+      if (reg.player_id) {
+        createNotification(reg.player_id, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
+      }
+      toast('Checked in', 'success');
+      broadcastUpdate('admin_force_checkin');
+      loadRegistrations();
+    }).catch(function() { toast('Network error', 'error'); });
+  }
+
+  function adminUnCheckIn(regId) {
+    if (!isAdmin) return;
+    var reg = registrations.find(function(r) { return r.id === regId; });
+    if (!reg) return;
+    if (!confirm('Revert this ' + (isTeamEvent ? 'team\'s' : 'player\'s') + ' check-in?')) return;
+    supabase.from('registrations').update({status: 'registered', checked_in_at: null}).eq('id', regId).then(function(res) {
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      writeAuditLog('tournament.admin_uncheckin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+      toast('Reverted to registered', 'success');
+      broadcastUpdate('admin_uncheckin');
+      loadRegistrations();
+    }).catch(function() { toast('Network error', 'error'); });
+  }
+
+  function adminForceWithdraw(regId) {
+    if (!isAdmin) return;
+    var reg = registrations.find(function(r) { return r.id === regId; });
+    if (!reg) return;
+    if (!confirm('Force withdraw this ' + (isTeamEvent ? 'team' : 'player') + '? This deletes the registration.')) return;
+    supabase.from('registrations').delete().eq('id', regId).then(function(res) {
+      if (res.error) { toast('Force withdraw failed: ' + res.error.message, 'error'); return; }
+      writeAuditLog('tournament.admin_force_withdraw', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+      if (reg.player_id) {
+        createNotification(reg.player_id, 'Removed from Tournament', 'An admin has removed you from ' + (tournament ? tournament.name : 'the tournament') + '.', 'bell');
+      }
+      toast('Withdrawn', 'success');
+      broadcastUpdate('admin_force_withdraw');
+      loadRegistrations();
+    }).catch(function() { toast('Network error', 'error'); });
+  }
+
+  function adminBroadcastAnnouncement() {
+    if (!isAdmin) return;
+    var raw = window.prompt('Announcement message (sent to registered + checked-in, max 200 chars):', '');
+    if (raw === null) return;
+    var msg = String(raw).replace(/[<>]/g, '').slice(0, 200).trim();
+    if (!msg) { toast('Message is empty', 'error'); return; }
+    var title = (tournament ? tournament.name : 'Tournament') + ' - Announcement';
+    supabase.rpc('notify_tournament_players', {
+      p_tournament_id: tournamentId,
+      p_title: title,
+      p_body: msg,
+      p_icon: 'bell',
+      p_statuses: ['checked_in', 'registered']
+    }).then(function(res) {
+      if (res && res.error) { toast('Broadcast failed: ' + res.error.message, 'error'); return; }
+      writeAuditLog('tournament.admin_broadcast', actorContext(), { type: 'tournament', id: tournamentId }, { tournament_id: tournamentId, message: msg });
+      toast('Announcement sent', 'success');
+    }).catch(function() { toast('Broadcast failed', 'error'); });
+  }
+
+  function openAdminLineupModal(reg) {
+    if (!isAdmin || !isTeamEvent || !reg || !reg.team_id) return;
+    Promise.all([
+      supabase.from('team_members')
+        .select('id, player_id, role, players(id, username, riot_id, rank)')
+        .eq('team_id', reg.team_id)
+        .is('removed_at', null),
+      supabase.from('teams').select('name, tag').eq('id', reg.team_id).maybeSingle()
+    ]).then(function(out) {
+      var memRes = out[0]; var tRes = out[1];
+      if (memRes && memRes.error) { toast('Failed to load roster: ' + memRes.error.message, 'error'); return; }
+      var members = ((memRes && memRes.data) || []).filter(function(m){ return m.player_id; });
+      setAdminLineupModal({
+        open: true,
+        regId: reg.id,
+        sel: Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids.slice() : [],
+        rosterMembers: members,
+        teamName: tRes && tRes.data ? tRes.data.name : 'Team',
+        tag: tRes && tRes.data ? (tRes.data.tag || '') : ''
+      });
+    }).catch(function() { toast('Failed to load roster', 'error'); });
+  }
+
+  function toggleAdminLineupSel(playerId) {
+    var sel = adminLineupModal.sel || [];
+    if (sel.indexOf(playerId) !== -1) {
+      setAdminLineupModal(Object.assign({}, adminLineupModal, {sel: sel.filter(function(x){ return x !== playerId; })}));
+    } else {
+      if (sel.length >= teamSizeNum) {
+        toast('Lineup full (' + teamSizeNum + '). Deselect to swap.', 'info');
+        return;
+      }
+      setAdminLineupModal(Object.assign({}, adminLineupModal, {sel: sel.concat([playerId])}));
+    }
+  }
+
+  function adminSubmitLineupEdit() {
+    if (!isAdmin || !adminLineupModal.open || !adminLineupModal.regId) return;
+    var newLineup = adminLineupModal.sel || [];
+    if (newLineup.length !== teamSizeNum) {
+      toast('Lineup must have exactly ' + teamSizeNum + ' players', 'error');
+      return;
+    }
+    supabase.from('registrations').update({lineup_player_ids: newLineup}).eq('id', adminLineupModal.regId).then(function(res) {
+      if (res.error) { toast('Lineup update failed: ' + res.error.message, 'error'); return; }
+      writeAuditLog('tournament.admin_edit_lineup', actorContext(), { type: 'registration', id: adminLineupModal.regId }, { tournament_id: tournamentId, lineup: newLineup });
+      toast('Lineup updated', 'success');
+      setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''});
+      broadcastUpdate('admin_edit_lineup');
+      loadRegistrations();
+    }).catch(function() { toast('Network error', 'error'); });
   }
 
   function startNextGame() {
@@ -1194,44 +1351,130 @@ export default function FlashTournamentScreen(props) {
             TAB: PLAYERS
            ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'players' && (
-          <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
-            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
-              <Icon name="group" size={18} className="text-primary" />
-              <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{"Registered Players (" + registrations.length + ")"}</span>
-            </div>
-            {sortedRegs.length === 0 ? (
-              <div className="text-center py-16 px-5">
-                <Icon name="person_add" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
-                <div className="text-on-surface-variant text-sm">No players registered yet. Share the tournament link!</div>
-              </div>
-            ) : (
-              <div className="divide-y divide-outline-variant/5">
-                {sortedRegs.map(function(r, idx) {
-                  var pData = r.players || {};
-                  var isCheckedIn = r.status === 'checked_in';
-                  var isDropped = r.status === 'dropped';
-                  var isWait = r.status === 'waitlisted';
-                  var isMe = myPlayer && r.player_id === myPlayer.id;
-                  return (
-                    <div key={r.id || r.player_id} className={"flex items-center gap-3 px-5 py-2.5 " + (isMe ? "bg-secondary/5" : isDropped ? "opacity-40" : "")}>
-                      <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (isCheckedIn ? "text-tertiary" : isWait ? "text-primary" : isDropped ? "text-error" : "text-secondary")}>
-                        {isCheckedIn ? '\u2713' : isWait ? '\u25CB' : isDropped ? '\u2717' : '\u25CF'}
-                      </span>
-                      <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                        <Icon name="person" size={14} className="text-on-surface-variant/40" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={"text-sm font-semibold " + (isMe ? "text-secondary" : "text-on-surface")}>{pData.username || 'Player'}</div>
-                        <div className="text-[10px] text-on-surface-variant/40">{(pData.rank || 'Unranked') + " - " + (pData.region || '')}</div>
-                      </div>
-                      <span className={"text-[10px] font-label font-bold tracking-widest uppercase rounded px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isWait ? "text-primary bg-primary/10 border-primary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
-                        {r.status === 'checked_in' ? 'Checked In' : r.status}
-                      </span>
-                    </div>
-                  );
-                })}
+          <div className="space-y-4">
+            {isAdmin && phase !== 'complete' && (
+              <div className="bg-error/5 rounded border border-error/30 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon name="admin_panel_settings" size={16} className="text-error" />
+                  <span className="font-label font-bold text-xs tracking-widest uppercase text-error">Admin Tools</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Btn variant="destructive" size="sm" onClick={adminBroadcastAnnouncement}>
+                    <Icon name="campaign" size={14} className="mr-1" />Broadcast Announcement
+                  </Btn>
+                  <span className="text-[10px] text-on-surface-variant/60 self-center">Admin actions appear next to each {isTeamEvent ? 'team' : 'player'} below.</span>
+                </div>
               </div>
             )}
+
+            <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+              <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                <Icon name={isTeamEvent ? "groups" : "group"} size={18} className="text-primary" />
+                <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
+                  {isTeamEvent
+                    ? ('Registered Teams (' + registrations.filter(function(r){return r.team_id;}).length + ')')
+                    : ('Registered Players (' + registrations.length + ')')}
+                </span>
+              </div>
+              {sortedRegs.length === 0 ? (
+                <div className="text-center py-16 px-5">
+                  <Icon name="person_add" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
+                  <div className="text-on-surface-variant text-sm">No {isTeamEvent ? 'teams' : 'players'} registered yet. Share the tournament link!</div>
+                </div>
+              ) : isTeamEvent ? (
+                <div className="divide-y divide-outline-variant/5">
+                  {sortedRegs.filter(function(r){ return r.team_id; }).map(function(r) {
+                    var team = r.teams || {};
+                    var isCheckedIn = r.status === 'checked_in';
+                    var isDropped = r.status === 'dropped';
+                    var lineup = Array.isArray(r.lineup_player_ids) ? r.lineup_player_ids : [];
+                    var hasLineup = lineup.length === teamSizeNum;
+                    return (
+                      <div key={r.id} className={"px-5 py-3 " + (isDropped ? "opacity-40" : "")}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (isCheckedIn ? "text-tertiary" : isDropped ? "text-error" : "text-secondary")}>
+                            {isCheckedIn ? '\u2713' : isDropped ? '\u2717' : '\u25CF'}
+                          </span>
+                          <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                            <Icon name="groups" size={14} className="text-on-surface-variant/60" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-on-surface">{team.name || 'Team'}</span>
+                              {team.tag && (
+                                <span className="text-[10px] font-label font-bold tracking-widest uppercase rounded px-1.5 py-0.5 border border-secondary/30 bg-secondary/10 text-secondary">{team.tag}</span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-on-surface-variant/50">
+                              {hasLineup ? (lineup.length + ' starters set') : 'no lineup yet'}
+                            </div>
+                          </div>
+                          <span className={"text-[10px] font-label font-bold tracking-widest uppercase rounded px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
+                            {r.status === 'checked_in' ? 'Checked In' : r.status}
+                          </span>
+                        </div>
+                        {isAdmin && phase !== 'complete' && (
+                          <div className="flex flex-wrap gap-1.5 pl-10">
+                            {!isCheckedIn && !isDropped && (
+                              <button onClick={function(){ adminForceCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-tertiary/40 text-tertiary bg-tertiary/5 hover:bg-tertiary/10">Force Check-in</button>
+                            )}
+                            {isCheckedIn && (
+                              <button onClick={function(){ adminUnCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-secondary/40 text-secondary bg-secondary/5 hover:bg-secondary/10">Un-Check-in</button>
+                            )}
+                            <button onClick={function(){ openAdminLineupModal(r); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-primary/40 text-primary bg-primary/5 hover:bg-primary/10">Edit Lineup</button>
+                            {!isDropped && (
+                              <button onClick={function(){ adminForceWithdraw(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-error/40 text-error bg-error/5 hover:bg-error/10">Withdraw</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="divide-y divide-outline-variant/5">
+                  {sortedRegs.map(function(r, idx) {
+                    var pData = r.players || {};
+                    var isCheckedIn = r.status === 'checked_in';
+                    var isDropped = r.status === 'dropped';
+                    var isWait = r.status === 'waitlisted';
+                    var isMe = myPlayer && r.player_id === myPlayer.id;
+                    return (
+                      <div key={r.id || r.player_id} className={"px-5 py-2.5 " + (isMe ? "bg-secondary/5" : isDropped ? "opacity-40" : "")}>
+                        <div className="flex items-center gap-3">
+                          <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (isCheckedIn ? "text-tertiary" : isWait ? "text-primary" : isDropped ? "text-error" : "text-secondary")}>
+                            {isCheckedIn ? '\u2713' : isWait ? '\u25CB' : isDropped ? '\u2717' : '\u25CF'}
+                          </span>
+                          <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                            <Icon name="person" size={14} className="text-on-surface-variant/40" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={"text-sm font-semibold " + (isMe ? "text-secondary" : "text-on-surface")}>{pData.username || 'Player'}</div>
+                            <div className="text-[10px] text-on-surface-variant/40">{(pData.rank || 'Unranked') + " - " + (pData.region || '')}</div>
+                          </div>
+                          <span className={"text-[10px] font-label font-bold tracking-widest uppercase rounded px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isWait ? "text-primary bg-primary/10 border-primary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
+                            {r.status === 'checked_in' ? 'Checked In' : r.status}
+                          </span>
+                        </div>
+                        {isAdmin && phase !== 'complete' && (
+                          <div className="flex flex-wrap gap-1.5 pl-10 pt-2">
+                            {!isCheckedIn && !isDropped && !isWait && (
+                              <button onClick={function(){ adminForceCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-tertiary/40 text-tertiary bg-tertiary/5 hover:bg-tertiary/10">Force Check-in</button>
+                            )}
+                            {isCheckedIn && (
+                              <button onClick={function(){ adminUnCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-secondary/40 text-secondary bg-secondary/5 hover:bg-secondary/10">Un-Check-in</button>
+                            )}
+                            {!isDropped && (
+                              <button onClick={function(){ adminForceWithdraw(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-error/40 text-error bg-error/5 hover:bg-error/10">Withdraw</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1878,6 +2121,54 @@ export default function FlashTournamentScreen(props) {
         )}
 
       </div>
+
+      {adminLineupModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={function(){ setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''}); }}>
+          <div className="bg-surface-container rounded border border-outline-variant/20 max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={function(e){ e.stopPropagation(); }}>
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Icon name="admin_panel_settings" size={18} className="text-error" />
+                <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Admin: Edit Lineup</span>
+              </div>
+              <button onClick={function(){ setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''}); }} className="text-on-surface-variant/60 hover:text-on-surface text-xl leading-none">{'\u2715'}</button>
+            </div>
+            <div className="px-5 py-3 border-b border-outline-variant/10">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-semibold text-on-surface">{adminLineupModal.teamName}</span>
+                {adminLineupModal.tag && (
+                  <span className="text-[10px] font-label font-bold tracking-widest uppercase rounded px-1.5 py-0.5 border border-secondary/30 bg-secondary/10 text-secondary">{adminLineupModal.tag}</span>
+                )}
+              </div>
+              <div className="text-[11px] text-on-surface-variant mt-1">
+                {'Pick exactly ' + teamSizeNum + ' starters. ' + (adminLineupModal.sel.length) + '/' + teamSizeNum + ' selected.'}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/5">
+              {(adminLineupModal.rosterMembers || []).length === 0 ? (
+                <div className="p-5 text-sm text-on-surface-variant">No active roster members on this team.</div>
+              ) : (adminLineupModal.rosterMembers || []).map(function(m) {
+                var p = m.players || {};
+                var picked = (adminLineupModal.sel || []).indexOf(m.player_id) !== -1;
+                return (
+                  <button key={m.id} type="button" onClick={function(){ toggleAdminLineupSel(m.player_id); }} className={"w-full text-left px-5 py-3 flex items-center gap-3 hover:bg-surface-container-high " + (picked ? "bg-tertiary/5" : "")}>
+                    <span className={"w-5 h-5 rounded border flex items-center justify-center " + (picked ? "border-tertiary bg-tertiary/20 text-tertiary" : "border-outline-variant/40")}>
+                      {picked ? '\u2713' : ''}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-on-surface">{p.username || 'Player'}</div>
+                      <div className="text-[10px] text-on-surface-variant/50">{(p.rank || 'Unranked') + (m.role === 'captain' ? ' - Captain' : m.role === 'sub' ? ' - Sub' : '')}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="px-5 py-4 border-t border-outline-variant/10 flex items-center justify-end gap-2">
+              <Btn variant="secondary" size="sm" onClick={function(){ setAdminLineupModal({open: false, regId: null, sel: [], rosterMembers: [], teamName: '', tag: ''}); }}>Cancel</Btn>
+              <Btn variant="primary" size="sm" onClick={adminSubmitLineupEdit} disabled={adminLineupModal.sel.length !== teamSizeNum}>Save Lineup</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 }
