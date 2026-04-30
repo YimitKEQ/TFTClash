@@ -10,8 +10,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { supabase } from '../lib/supabase.js';
-import { getTeamWithRoster } from '../lib/teams.js';
+import { getTeamWithRoster, getTeamTournamentHistory } from '../lib/teams.js';
 import PageLayout from '../components/layout/PageLayout';
 import { Panel, Btn, Icon, Tag } from '../components/ui';
 
@@ -122,42 +121,14 @@ export default function TeamProfileScreen() {
     var cancelled = false;
     setLoading(true);
     setErr(null);
-    getTeamWithRoster(teamId)
-      .then(function(t) {
+    Promise.all([getTeamWithRoster(teamId), getTeamTournamentHistory(teamId)])
+      .then(function(out) {
         if (cancelled) return;
+        var t = out[0]; var hist = out[1] || [];
         if (!t) { setErr('Team not found'); setLoading(false); return; }
         setTeam(t);
-        return supabase.from('registrations')
-          .select('id, status, lineup_player_ids, tournament:tournaments!registrations_tournament_id_fkey(id, name, phase, team_size, date, status)')
-          .eq('team_id', teamId)
-          .order('id', { ascending: false });
-      })
-      .then(function(regsRes) {
-        if (cancelled || !regsRes) return;
-        if (regsRes.error) { setHistory([]); setLoading(false); return; }
-        var regs = regsRes.data || [];
-        if (regs.length === 0) { setHistory([]); setLoading(false); return; }
-        var tIds = regs.map(function(r){ return r.tournament && r.tournament.id; }).filter(Boolean);
-        if (tIds.length === 0) { setHistory(regs.map(function(r){ return Object.assign({}, r, { totalPts: 0 }); })); setLoading(false); return; }
-        supabase.from('game_results')
-          .select('tournament_id, points')
-          .eq('team_id', teamId)
-          .in('tournament_id', tIds)
-          .then(function(gRes) {
-            if (cancelled) return;
-            var ptsByT = {};
-            ((gRes && gRes.data) || []).forEach(function(g){
-              if (!g.tournament_id) return;
-              ptsByT[g.tournament_id] = (ptsByT[g.tournament_id] || 0) + (g.points || 0);
-            });
-            var rows = regs.map(function(r){
-              var tid = r.tournament && r.tournament.id;
-              return Object.assign({}, r, { totalPts: tid ? (ptsByT[tid] || 0) : 0 });
-            });
-            setHistory(rows);
-            setLoading(false);
-          })
-          .catch(function() { setHistory(regs.map(function(r){ return Object.assign({}, r, { totalPts: 0 }); })); setLoading(false); });
+        setHistory(hist);
+        setLoading(false);
       })
       .catch(function(e) {
         if (cancelled) return;

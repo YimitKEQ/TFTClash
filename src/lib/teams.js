@@ -92,6 +92,57 @@ export async function listMyInvites(playerId) {
   return res.data || [];
 }
 
+export async function listTeamSentInvites(teamId) {
+  if (!teamId) return [];
+  var res = await supabase
+    .from('team_invites')
+    .select('id, team_id, invitee_player_id, inviter_player_id, status, message, expires_at, created_at')
+    .eq('team_id', teamId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (res.error) throw res.error;
+  var rows = res.data || [];
+  if (rows.length === 0) return rows;
+  var ids = rows.map(function(r){ return r.invitee_player_id; });
+  var pRes = await supabase
+    .from('players')
+    .select('id, username, riot_id, region, rank')
+    .in('id', ids);
+  if (pRes.error) return rows;
+  var byId = {};
+  (pRes.data || []).forEach(function(p){ byId[p.id] = p; });
+  return rows.map(function(r){ return Object.assign({}, r, { invitee: byId[r.invitee_player_id] || null }); });
+}
+
+export async function getTeamTournamentHistory(teamId) {
+  if (!teamId) return [];
+  var regsRes = await supabase
+    .from('registrations')
+    .select('id, status, lineup_player_ids, tournament:tournaments!registrations_tournament_id_fkey(id, name, phase, team_size, date, status)')
+    .eq('team_id', teamId)
+    .order('id', { ascending: false });
+  if (regsRes.error) throw regsRes.error;
+  var regs = regsRes.data || [];
+  if (regs.length === 0) return [];
+  var tIds = regs.map(function(r){ return r.tournament && r.tournament.id; }).filter(Boolean);
+  if (tIds.length === 0) return regs.map(function(r){ return Object.assign({}, r, { totalPts: 0 }); });
+  var gRes = await supabase
+    .from('game_results')
+    .select('tournament_id, points')
+    .eq('team_id', teamId)
+    .in('tournament_id', tIds);
+  if (gRes.error) return regs.map(function(r){ return Object.assign({}, r, { totalPts: 0 }); });
+  var ptsByT = {};
+  (gRes.data || []).forEach(function(g){
+    if (!g.tournament_id) return;
+    ptsByT[g.tournament_id] = (ptsByT[g.tournament_id] || 0) + (g.points || 0);
+  });
+  return regs.map(function(r){
+    var tid = r.tournament && r.tournament.id;
+    return Object.assign({}, r, { totalPts: tid ? (ptsByT[tid] || 0) : 0 });
+  });
+}
+
 // ─── Writes: team lifecycle ─────────────────────────────────────────────────
 
 export async function createTeam(input) {

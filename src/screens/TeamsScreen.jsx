@@ -16,7 +16,7 @@ import { useApp } from '../context/AppContext';
 import PageLayout from '../components/layout/PageLayout';
 import { Panel, Btn, Inp, Icon, Tag } from '../components/ui';
 import {
-  listTeams, getMyTeam, listMyInvites,
+  listTeams, getMyTeam, listMyInvites, listTeamSentInvites, getTeamTournamentHistory,
   createTeam, disbandTeam, sendInvite, respondInvite,
   setMemberRole, transferCaptaincy, leaveTeam, kickMember
 } from '../lib/teams.js';
@@ -104,6 +104,126 @@ function CreateTeamForm(props) {
           <Btn type="submit" loading={busy} icon="add">Create team</Btn>
         </div>
       </form>
+    </Panel>
+  );
+}
+
+function TeamStatsPanel(props) {
+  var team = props.team;
+  var history = props.history || [];
+  if (!team) return null;
+  var totalPts = history.reduce(function(s, r){ return s + (r.totalPts || 0); }, 0);
+  var registeredCount = history.filter(function(r){ return r.status === 'registered' || r.status === 'checked_in'; }).length;
+  var completedCount = history.filter(function(r){ var p = (r.tournament && r.tournament.phase) || ''; return String(p).toLowerCase().indexOf('complete') !== -1; }).length;
+  var memberCount = (team.members || []).length;
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <Panel padding="tight" className="text-center">
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50">Members</div>
+        <div className="font-display text-2xl text-on-surface">{memberCount}</div>
+      </Panel>
+      <Panel padding="tight" className="text-center">
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50">Active</div>
+        <div className="font-display text-2xl text-on-surface">{registeredCount}</div>
+        <div className="text-[10px] text-on-surface/50">tournaments</div>
+      </Panel>
+      <Panel padding="tight" className="text-center">
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50">Completed</div>
+        <div className="font-display text-2xl text-on-surface">{completedCount}</div>
+        <div className="text-[10px] text-on-surface/50">events</div>
+      </Panel>
+      <Panel padding="tight" className="text-center">
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50">Total Points</div>
+        <div className="font-display text-2xl text-primary">{totalPts}</div>
+      </Panel>
+    </div>
+  );
+}
+
+function SentInvitesPanel(props) {
+  var sent = props.sent || [];
+  var onCancel = props.onCancel;
+  if (!sent.length) return null;
+  return (
+    <Panel padding="default" className="space-y-3">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Pending sent invites</h3>
+        <p className="text-sm text-on-surface/60 mt-1">Players you have invited who haven't responded yet.</p>
+      </div>
+      <div className="space-y-2">
+        {sent.map(function(inv){
+          var p = inv.invitee || {};
+          return (
+            <div key={inv.id} className="flex items-center justify-between gap-3 bg-surface-container-low/40 border border-outline-variant/10 rounded-lg p-3">
+              <div className="min-w-0">
+                <div className="font-bold text-on-surface truncate">{p.username || ('Player #' + (inv.invitee_player_id || '').slice(0, 6))}</div>
+                {p.riot_id ? <div className="text-xs font-mono text-on-surface/50 truncate">{p.riot_id}</div> : null}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Tag variant="ghost">Pending</Tag>
+                <Btn size="sm" v="ghost" icon="close" onClick={function(){ onCancel(inv.id); }}>Cancel</Btn>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
+function TeamHistoryPanel(props) {
+  var history = props.history || [];
+  var onOpen = props.onOpen;
+  if (!history.length) return null;
+  function statusVariant(s) {
+    if (s === 'checked_in') return 'success';
+    if (s === 'registered') return 'secondary';
+    if (s === 'waitlisted') return 'tertiary';
+    if (s === 'dropped') return 'ghost';
+    return 'ghost';
+  }
+  function fmtDate(s) {
+    if (!s) return '';
+    try {
+      var d = new Date(s);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) { return ''; }
+  }
+  return (
+    <Panel padding="default" className="space-y-3">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Tournament history</h3>
+        <p className="text-sm text-on-surface/60 mt-1">Your team's registrations and finishes.</p>
+      </div>
+      <div className="space-y-2">
+        {history.map(function(row){
+          var t = row.tournament || {};
+          return (
+            <button
+              key={row.id}
+              type="button"
+              onClick={function(){ if (onOpen && t.id) onOpen(t.id); }}
+              className="w-full text-left flex items-center gap-3 p-3 bg-surface-container-low/40 border border-outline-variant/10 rounded-lg hover:bg-surface-container-low/70 hover:border-primary/30 transition focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="font-bold text-on-surface truncate">{t.name || 'Tournament'}</div>
+                  <Tag variant={statusVariant(row.status)}>{row.status || 'unknown'}</Tag>
+                </div>
+                <div className="text-xs text-on-surface/50 mt-1">{fmtDate(t.date)}</div>
+              </div>
+              {row.totalPts > 0 ? (
+                <div className="text-right">
+                  <div className="font-mono text-lg text-primary">{row.totalPts}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-on-surface/50">pts</div>
+                </div>
+              ) : null}
+              <Icon name="chevron_right" className="text-on-surface/30" />
+            </button>
+          );
+        })}
+      </div>
     </Panel>
   );
 }
@@ -339,6 +459,8 @@ export default function TeamsScreen() {
   var [myTeam, setMyTeam] = useState(null);
   var [invites, setInvites] = useState([]);
   var [allTeams, setAllTeams] = useState([]);
+  var [sentInvites, setSentInvites] = useState([]);
+  var [history, setHistory] = useState([]);
   var [reload, setReload] = useState(0);
 
   useEffect(function() {
@@ -362,7 +484,23 @@ export default function TeamsScreen() {
       setMyTeam(team);
       setInvites(invs);
       setAllTeams(all);
-      setLoading(false);
+      if (team && team.id) {
+        var amCap = team.captain_player_id === playerId;
+        Promise.all([
+          getTeamTournamentHistory(team.id).catch(function(){ return []; }),
+          amCap ? listTeamSentInvites(team.id).catch(function(){ return []; }) : Promise.resolve([])
+        ]).then(function(extras) {
+          if (cancelled) return;
+          setHistory(extras[0] || []);
+          setSentInvites(extras[1] || []);
+          setLoading(false);
+        }).catch(function() {
+          if (cancelled) return;
+          setHistory([]); setSentInvites([]); setLoading(false);
+        });
+      } else {
+        setHistory([]); setSentInvites([]); setLoading(false);
+      }
     }).catch(function(err) {
       if (cancelled) return;
       setLoading(false);
@@ -370,6 +508,13 @@ export default function TeamsScreen() {
     });
     return function() { cancelled = true; };
   }, [currentUser ? currentUser.id : null, reload]);
+
+  function handleCancelSent(inviteId) {
+    if (!window.confirm('Cancel this invite?')) return;
+    respondInvite(inviteId, 'cancel', currentUser ? currentUser.id : null)
+      .then(function() { if (toast) toast('Invite cancelled.'); refresh(); })
+      .catch(function(err) { if (toast) toast('Cancel failed: ' + (err.message || 'unknown error')); });
+  }
 
   function refresh() { setReload(function(n){ return n + 1; }); }
 
@@ -470,17 +615,24 @@ export default function TeamsScreen() {
         <InviteList invites={invites} onRespond={handleRespond} />
 
         {myTeam ? (
-          <MyTeamPanel
-            team={myTeam}
-            amCaptain={amCaptain}
-            myMemberId={myMember ? myMember.id : null}
-            onInvite={refresh}
-            onRoleChange={handleRoleChange}
-            onTransferCaptain={handleTransfer}
-            onLeave={handleLeave}
-            onKick={handleKick}
-            onDisband={handleDisband}
-          />
+          <>
+            <TeamStatsPanel team={myTeam} history={history} />
+            <MyTeamPanel
+              team={myTeam}
+              amCaptain={amCaptain}
+              myMemberId={myMember ? myMember.id : null}
+              onInvite={refresh}
+              onRoleChange={handleRoleChange}
+              onTransferCaptain={handleTransfer}
+              onLeave={handleLeave}
+              onKick={handleKick}
+              onDisband={handleDisband}
+            />
+            {amCaptain ? (
+              <SentInvitesPanel sent={sentInvites} onCancel={handleCancelSent} />
+            ) : null}
+            <TeamHistoryPanel history={history} onOpen={function(tid){ navigate('/tournament/' + tid); }} />
+          </>
         ) : (
           <CreateTeamForm
             captainPlayerId={currentUser.id}
