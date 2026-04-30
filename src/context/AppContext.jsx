@@ -640,7 +640,10 @@ export function AppProvider(props) {
               });
               setTournamentState(function(ts2){
                 rtRef.current.tournament_state=true;
-                return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds.length>0?checkIds:ts2.checkedInIds||[]});
+                // DB is source of truth. Always overwrite — never preserve stale
+                // local state, otherwise a buggy realtime write can stick around
+                // even after page reloads (see custom-tourney check-in leak fix).
+                return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds});
               });
             });
           // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
