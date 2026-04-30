@@ -115,9 +115,13 @@ export default function NextEventCard(props) {
     // captain UI lives. Solo events can self-check-in inline.
     if (isTeam) { openTournament(); return }
     if (!reg || !reg.id) { openTournament(); return }
+    if (!linkedPlayer || !linkedPlayer.id) { openTournament(); return }
+    // Defense in depth: scope by both registration id AND player_id so a stale
+    // reg reference cannot accidentally check in another player.
     supabase.from('registrations')
       .update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
       .eq('id', reg.id)
+      .eq('player_id', linkedPlayer.id)
       .then(function(res) {
         if (res && res.error) { openTournament(); return }
         setState(function(s) { return Object.assign({}, s, { registration: Object.assign({}, s.registration, { status: 'checked_in' }) }) })

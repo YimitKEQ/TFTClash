@@ -106,13 +106,16 @@ export default function PayoutsTab() {
   }
 
   function updateClaim(row, patch, label) {
+    // Capture the player name BEFORE the async update — otherwise the closure
+    // may read a stale rows.byPlayer if state has already advanced.
+    var playerLabel = (rows.byPlayer && rows.byPlayer[row.player_id] && rows.byPlayer[row.player_id].username) ? rows.byPlayer[row.player_id].username : row.player_id
     supabase.from('prize_claims').update(patch).eq('id', row.id).select().single().then(function(res) {
       if (res.error) { toastMsg(label + ' failed: ' + res.error.message, 'error'); return }
       setRows(function(prev) {
         var list = prev.list.map(function(r) { return r.id === row.id ? res.data : r })
         return Object.assign({}, prev, { list: list })
       })
-      addAudit(label.toUpperCase().replace(/\s+/g, '_'), label + ': ' + (rows.byPlayer[row.player_id] ? rows.byPlayer[row.player_id].username : row.player_id) + ' / ' + row.prize_label)
+      addAudit(label.toUpperCase().replace(/\s+/g, '_'), label + ': ' + playerLabel + ' / ' + row.prize_label)
       toastMsg(label + ' saved', 'success')
     }).catch(function() { toastMsg(label + ' failed', 'error') })
   }

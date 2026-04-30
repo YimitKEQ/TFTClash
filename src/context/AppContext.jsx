@@ -599,13 +599,15 @@ export function AppProvider(props) {
 
         if(!res.data){setIsLoadingData(false);return;}
 
+        var loadedTournamentState=null;
+
         res.data.forEach(function(row){
           try{
             if(row.key==='announcement'){rtRef.current.announcement=true;var aVal=row.value;try{var parsed=typeof aVal==='string'?JSON.parse(aVal):aVal;setAnnouncement(parsed&&parsed.message?parsed.message:typeof parsed==='string'?parsed:'');}catch(e){setAnnouncement(typeof aVal==='string'?aVal:'');}}
             else{
               var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
-              if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
+              if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;loadedTournamentState=val;setTournamentState(val);}
               if(row.key==='tournament_state_na'&&val&&typeof val==='object'&&Object.keys(val).length>0){rtRef.current.tournament_state_na=true;setTournamentStateNa(val);}
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
               if(row.key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
@@ -625,11 +627,15 @@ export function AppProvider(props) {
         announcementInitRef.current=true;
         settingsLoadedRef.current=true;
 
-        // Reconcile registrations from DB
-        setTournamentState(function(ts){
-          if(!ts.dbTournamentId)return ts;
+        // Reconcile from DB tables. Async fetches run OUTSIDE any setState updater
+        // (React 18 Strict Mode double-invokes updaters in dev, which would fire
+        // the queries twice). Capture dbTournamentId synchronously from the row
+        // we just parsed, then update state via pure updater callbacks once the
+        // network responses arrive.
+        var reconcileDbTid=loadedTournamentState&&loadedTournamentState.dbTournamentId?String(loadedTournamentState.dbTournamentId):null;
+        if(reconcileDbTid){
           supabase.from('registrations').select('player_id,status')
-            .eq('tournament_id',ts.dbTournamentId)
+            .eq('tournament_id',reconcileDbTid)
             .then(function(regRes){
               if(regRes.error||!regRes.data)return;
               var regIds=[];
@@ -639,6 +645,7 @@ export function AppProvider(props) {
                 if(r.status==='checked_in')checkIds.push(String(r.player_id));
               });
               setTournamentState(function(ts2){
+                if(!ts2||String(ts2.dbTournamentId||'')!==reconcileDbTid)return ts2;
                 rtRef.current.tournament_state=true;
                 // DB is source of truth. Always overwrite — never preserve stale
                 // local state, otherwise a buggy realtime write can stick around
@@ -646,19 +653,18 @@ export function AppProvider(props) {
                 return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds});
               });
             });
-          // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
-          // If the tournament row is GONE (admin deleted it but site_settings still references it),
-          // clear dbTournamentId locally so a player attempting to register
-          // does not crash with FK 23503 against a dangling reference. The
-          // server-side site_settings will be re-synced by the next admin
-          // action; non-admin clients can't write to site_settings directly.
+
+          // Reconcile prize pool / finale flag / rules from tournaments table.
+          // If the tournament row is GONE (admin deleted but site_settings still
+          // references it), clear dbTournamentId locally so registration does
+          // not crash with FK 23503 against a dangling reference.
           supabase.from('tournaments').select('id,prize_pool_json,rules_text,is_finale,name,date,max_players,round_count,region')
-            .eq('id',ts.dbTournamentId).maybeSingle()
+            .eq('id',reconcileDbTid).maybeSingle()
             .then(function(tRes){
               if(tRes.error)return;
               if(!tRes.data){
                 setTournamentState(function(ts2){
-                  if(!ts2||ts2.dbTournamentId!==ts.dbTournamentId)return ts2;
+                  if(!ts2||String(ts2.dbTournamentId||'')!==reconcileDbTid)return ts2;
                   rtRef.current.tournament_state=true;
                   return Object.assign({},ts2,{dbTournamentId:null,activeTournamentId:null,phase:'idle',registeredIds:[],checkedInIds:[],waitlistIds:[],lobbies:[],lockedLobbies:[]});
                 });
@@ -667,6 +673,7 @@ export function AppProvider(props) {
               var pool=tRes.data.prize_pool_json;
               if(typeof pool==='string'){try{pool=JSON.parse(pool);}catch(e){pool=null;}}
               setTournamentState(function(ts2){
+                if(!ts2||String(ts2.dbTournamentId||'')!==reconcileDbTid)return ts2;
                 rtRef.current.tournament_state=true;
                 var next=Object.assign({},ts2);
                 if(Array.isArray(pool))next.prizePool=pool;
@@ -676,8 +683,7 @@ export function AppProvider(props) {
                 return next;
               });
             }).catch(function(){});
-          return ts;
-        });
+        }
 
         setIsLoadingData(false);
 

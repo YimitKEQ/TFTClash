@@ -1113,10 +1113,11 @@ export default function TournamentTab() {
                   )}
                   {t.phase !== 'complete' && t.phase !== 'cancelled' && (
                     <Btn variant="ghost" size="sm" onClick={function() {
-                      if (!window.confirm('Force complete ' + t.name + '?\n\nThis flips phase to complete so it falls out of upcoming/live feeds. Use this to archive a test tournament without deleting registrations or results.')) return
-                      supabase.from('tournaments').update({ phase: 'complete' }).eq('id', t.id).then(function(r) {
+                      if (!window.confirm('Force complete ' + t.name + '?\n\nThis flips phase to complete and stamps archived_at so it falls out of upcoming/live feeds. Registrations and results are preserved.')) return
+                      var nowIso = new Date().toISOString()
+                      supabase.from('tournaments').update({ phase: 'complete', archived_at: nowIso }).eq('id', t.id).then(function(r) {
                         if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
-                        setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'complete' }) : x }) })
+                        setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'complete', archived_at: nowIso }) : x }) })
                         if (tournamentStateEu && tournamentStateEu.dbTournamentId === t.id && setTournamentStateEu) {
                           setTournamentStateEu(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
                         }

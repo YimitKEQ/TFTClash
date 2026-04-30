@@ -210,6 +210,7 @@ client.once('ready', async () => {
   // 3. Build channels (idempotent: skip if category/channel exists by name)
   console.log('[3/5] Ensuring categories and channels...');
   await guild.channels.fetch();
+  // Keyed by Discord snowflake (unique). Lookup helpers below scan by name.
   const channelMap = {};
 
   for (const cat of STRUCTURE) {
@@ -229,8 +230,7 @@ client.once('ready', async () => {
     for (const ch of cat.children) {
       const existing = findChannel(guild, ch.name);
       if (existing) {
-        const key = ch.name.replace(/[^a-z0-9\-]/gi, '').toLowerCase();
-        channelMap[key] = existing;
+        channelMap[existing.id] = existing;
         console.log(`    · channel exists: ${ch.name}`);
         continue;
       }
@@ -244,8 +244,7 @@ client.once('ready', async () => {
           topic:                ch.topic ?? '',
           permissionOverwrites: chOw,
         });
-        const key = ch.name.replace(/[^a-z0-9\-]/gi, '').toLowerCase();
-        channelMap[key] = channel;
+        channelMap[channel.id] = channel;
         console.log(`    + created ${isForum ? 'forum' : (ch.type === 'voice' ? 'voice' : 'text')} channel ${ch.name}`);
       } catch (err) {
         console.error(`    ✗ failed to create ${ch.name}: ${err.message}`);
@@ -257,7 +256,13 @@ client.once('ready', async () => {
   if (FORCE_WIPE) {
     console.log('\n[4/5] Posting initial content (force-wipe mode)...');
 
-    const get = (key) => Object.entries(channelMap).find(([k]) => k.includes(key))?.[1];
+    // Match the channel whose stripped name contains the needle. Returns the
+    // first match — safe here because in force-wipe mode the server was just
+    // rebuilt from STRUCTURE, so each needle resolves to a single channel.
+    const get = (needle) => Object.values(channelMap).find(function(c) {
+      const stripped = String(c.name || '').replace(/[^a-z0-9\-]/gi, '').toLowerCase();
+      return stripped.includes(needle);
+    });
 
     const rulesCh = get('rules');
     if (rulesCh) {

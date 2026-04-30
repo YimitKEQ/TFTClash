@@ -56,9 +56,19 @@ export default function AdminScreen() {
   return (
     <PageLayout>
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Icon name="admin_panel_settings" size={20} className="text-primary" />
-          <h1 className="font-editorial text-xl font-bold text-on-surface">Admin Panel</h1>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span className="font-label text-[10px] font-bold uppercase tracking-widest text-primary">Admin</span>
+            </span>
+            <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/40">Operations Panel</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Icon name="admin_panel_settings" size={22} className="text-primary" />
+            <h1 className="font-display text-2xl font-black uppercase tracking-tight text-on-surface">Command Center</h1>
+          </div>
+          <div className="mt-2 h-px bg-gradient-to-r from-primary/30 via-outline-variant/20 to-transparent"></div>
         </div>
 
         <PillTabGroup align="start" className="mb-6">
