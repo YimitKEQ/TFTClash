@@ -975,7 +975,16 @@ export default function FlashTournamentScreen(props) {
   var phaseColors = {draft: 'text-on-surface-variant', registration: 'text-secondary', check_in: 'text-primary', in_progress: 'text-tertiary', complete: 'text-tertiary'};
   var phaseBgs = {draft: 'bg-on-surface-variant/10 border-on-surface-variant/20', registration: 'bg-secondary/10 border-secondary/20', check_in: 'bg-primary/10 border-primary/20', in_progress: 'bg-tertiary/10 border-tertiary/20', complete: 'bg-tertiary/10 border-tertiary/20'};
   var phaseLabels = {draft: 'DRAFT', registration: 'REGISTRATION OPEN', check_in: 'CHECK-IN OPEN', in_progress: 'IN PROGRESS', completed: 'COMPLETED', complete: 'COMPLETE'};
-  var dateStr = tournament.date ? new Date(tournament.date).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'TBD';
+  var startTs = tournament.started_at || tournament.checkin_close_at || tournament.checkin_open_at || tournament.registration_close_at || null;
+  var dateStr;
+  if (startTs) {
+    dateStr = new Date(startTs).toLocaleString('en-GB', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+  } else if (tournament.date) {
+    var _d = new Date(tournament.date + 'T00:00:00');
+    dateStr = _d.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+  } else {
+    dateStr = 'TBD';
+  }
 
   var isLive = phase === 'in_progress';
   var isComplete = phase === 'complete';

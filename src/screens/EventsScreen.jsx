@@ -774,9 +774,15 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
           var maxP = t.max_players || 128
           var pct = Math.min(100, Math.round((regCount / maxP) * 100))
           var barColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF'
-          var dateStr = t.date
-            ? new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-            : 'TBD'
+          var _startTs = t.started_at || t.checkin_close_at || t.checkin_open_at || t.registration_close_at || null
+          var dateStr
+          if (_startTs) {
+            dateStr = new Date(_startTs).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          } else if (t.date) {
+            dateStr = new Date(t.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+          } else {
+            dateStr = 'TBD'
+          }
           var prizes = Array.isArray(t.prize_pool_json) ? t.prize_pool_json : []
           var badgeClass = phaseBadgeClasses[t.phase] || 'bg-surface-variant/40 text-on-surface-variant'
 
@@ -1165,10 +1171,18 @@ function WeeklyRegionCard(props) {
   var maxP = clash.max_players || 24
   var pct = maxP > 0 ? Math.min(100, Math.round((regCount / maxP) * 100)) : 0
   var barColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF'
-  var when = clash.date ? new Date(clash.date) : null
-  var dateStr = when && !isNaN(when.getTime())
-    ? when.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-    : 'TBD'
+  var _startTs = clash.started_at || clash.checkin_close_at || clash.checkin_open_at || clash.registration_close_at || null
+  var when = _startTs ? new Date(_startTs) : (clash.date ? new Date(clash.date + 'T00:00:00') : null)
+  var dateStr
+  if (when && !isNaN(when.getTime())) {
+    if (_startTs) {
+      dateStr = when.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    } else {
+      dateStr = when.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+    }
+  } else {
+    dateStr = 'TBD'
+  }
   var countdown = formatCountdown(clash.date)
   var prizes = Array.isArray(clash.prize_pool_json) ? clash.prize_pool_json : []
   var isPreview = !!clash.__preview
