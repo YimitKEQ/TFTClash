@@ -74,6 +74,23 @@ export default function TournamentDetailScreen() {
   var myCaptainTeam = _myCaptainTeam[0]
   var setMyCaptainTeam = _myCaptainTeam[1]
 
+  var _teamRoster = useState([])
+  var teamRoster = _teamRoster[0]
+  var setTeamRoster = _teamRoster[1]
+  var _myTeamReg = useState(null)
+  var myTeamReg = _myTeamReg[0]
+  var setMyTeamReg = _myTeamReg[1]
+  var _lineupSel = useState([])
+  var lineupSel = _lineupSel[0]
+  var setLineupSel = _lineupSel[1]
+  var _checkInBusy = useState(false)
+  var checkInBusy = _checkInBusy[0]
+  var setCheckInBusy = _checkInBusy[1]
+
+  var _eventTeams = useState({})
+  var eventTeams = _eventTeams[0]
+  var setEventTeams = _eventTeams[1]
+
   var _pinned = useState(false)
   var pinned = _pinned[0]
   var setPinned = _pinned[1]
@@ -169,6 +186,91 @@ export default function TournamentDetailScreen() {
   useEffect(refreshLiveReg, [dbTournamentId, linkedPlayerId, isTeamEvent, myCaptainTeam && myCaptainTeam.id])
 
   useEffect(function() {
+    if (!isTeamEvent || !myCaptainTeam || !dbTournamentId || !supabase.from) {
+      setTeamRoster([]); setMyTeamReg(null); setLineupSel([]); return;
+    }
+    var cancelled = false;
+    Promise.all([
+      supabase.from('team_members')
+        .select('id, player_id, role, joined_at')
+        .eq('team_id', myCaptainTeam.id)
+        .is('removed_at', null),
+      supabase.from('registrations')
+        .select('id, status, lineup_player_ids')
+        .eq('tournament_id', dbTournamentId)
+        .eq('team_id', myCaptainTeam.id)
+        .maybeSingle()
+    ]).then(function(out) {
+      if (cancelled) return;
+      var memRes = out[0]; var regRes = out[1];
+      var members = (memRes && memRes.data) || [];
+      var pids = members.map(function(m){ return m.player_id; });
+      if (pids.length === 0) { setTeamRoster([]); setMyTeamReg(regRes && regRes.data); setLineupSel([]); return; }
+      supabase.from('players').select('id, username, riot_id').in('id', pids).then(function(pRes){
+        if (cancelled) return;
+        var byPid = {};
+        ((pRes && pRes.data) || []).forEach(function(p){ byPid[p.id] = p; });
+        var roster = members.map(function(m){ return Object.assign({}, m, { player: byPid[m.player_id] || null }); });
+        setTeamRoster(roster);
+        var reg = regRes && regRes.data;
+        setMyTeamReg(reg);
+        var existing = (reg && Array.isArray(reg.lineup_player_ids)) ? reg.lineup_player_ids : [];
+        setLineupSel(existing);
+      }).catch(function(){});
+    }).catch(function(){});
+    return function(){ cancelled = true; };
+  }, [isTeamEvent, myCaptainTeam && myCaptainTeam.id, dbTournamentId, liveReg.loaded, liveReg.isRegistered])
+
+  function toggleLineupSel(playerId) {
+    if (lineupSel.indexOf(playerId) !== -1) {
+      setLineupSel(lineupSel.filter(function(x){ return x !== playerId; }));
+    } else {
+      if (lineupSel.length >= teamSize) {
+        toast('Lineup is full (' + teamSize + ' starters). Deselect to swap.', 'info');
+        return;
+      }
+      setLineupSel(lineupSel.concat([playerId]));
+    }
+  }
+
+  function submitTeamCheckIn() {
+    if (!myCaptainTeam || !myTeamReg || checkInBusy) return;
+    if (lineupSel.length !== teamSize) {
+      toast('Pick exactly ' + teamSize + ' starters before checking in.', 'error');
+      return;
+    }
+    setCheckInBusy(true);
+    supabase.from('registrations')
+      .update({ status: 'checked_in', lineup_player_ids: lineupSel, checked_in_at: new Date().toISOString() })
+      .eq('id', myTeamReg.id)
+      .then(function(r){
+        setCheckInBusy(false);
+        if (r && r.error) { toast('Check-in failed: ' + r.error.message, 'error'); return; }
+        toast(myCaptainTeam.name + ' checked in.', 'success');
+        setMyTeamReg(Object.assign({}, myTeamReg, { status: 'checked_in', lineup_player_ids: lineupSel }));
+        refreshLiveReg();
+      })
+      .catch(function(){ setCheckInBusy(false); toast('Check-in failed', 'error'); });
+  }
+
+  useEffect(function() {
+    if (!isTeamEvent || !supabase.from || tournamentResults.length === 0) { setEventTeams({}); return; }
+    var ids = {}
+    tournamentResults.forEach(function(r) { if (r.team_id) ids[r.team_id] = true })
+    var idList = Object.keys(ids)
+    if (idList.length === 0) { setEventTeams({}); return; }
+    var cancelled = false
+    supabase.from('teams').select('id, name, tag').in('id', idList)
+      .then(function(res) {
+        if (cancelled || !res || res.error || !res.data) return
+        var map = {}
+        res.data.forEach(function(t) { map[t.id] = t })
+        setEventTeams(map)
+      }).catch(function() {})
+    return function() { cancelled = true }
+  }, [isTeamEvent, tournamentResults])
+
+  useEffect(function() {
     if (!dbTournamentId || !supabase.channel) return
     var ch = supabase.channel('tournament_detail_regs_' + dbTournamentId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: 'tournament_id=eq.' + dbTournamentId }, function() {
@@ -202,6 +304,10 @@ export default function TournamentDetailScreen() {
   var isCompleted = event.status === 'complete' || event.phase === 'complete' || event.phase === 'completed'
   var canRegister = !isCompleted && !isFull && !isRegistered
   var regPercent = capacityUnits > 0 ? Math.round((liveCount / capacityUnits) * 100) : 0
+  var phaseRaw = String(event.phase || '').toLowerCase()
+  var isCheckInPhase = phaseRaw === 'checkin' || phaseRaw === 'check_in' || phaseRaw === 'check-in'
+  var isInProgressPhase = phaseRaw === 'inprogress' || phaseRaw === 'in_progress' || phaseRaw === 'between_rounds'
+  var isAlreadyCheckedIn = !!(myTeamReg && myTeamReg.status === 'checked_in')
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
@@ -349,6 +455,37 @@ export default function TournamentDetailScreen() {
       if (r.placement <= 4) playerMap[r.player_id].top4 += 1
     })
     standings = Object.values(playerMap).sort(function(a, b) { return b.total - a.total; })
+  }
+
+  var teamStandings = []
+  if (isTeamEvent && tournamentResults.length > 0) {
+    var teamMap = {}
+    tournamentResults.forEach(function(r) {
+      if (!r.team_id) return
+      if (!teamMap[r.team_id]) {
+        teamMap[r.team_id] = { team_id: r.team_id, total: 0, top4: 0, top2: 0, wins: 0, rounds: {}, bestPlacement: 99 }
+      }
+      var t = teamMap[r.team_id]
+      t.total += r.points || 0
+      t.rounds[r.round_number] = true
+      if (r.placement === 1) t.wins += 1
+      if (r.placement <= 2) t.top2 += 1
+      if (r.placement <= 4) t.top4 += 1
+      if (r.placement < t.bestPlacement) t.bestPlacement = r.placement
+    })
+    teamStandings = Object.values(teamMap).map(function(t) {
+      var meta = eventTeams[t.team_id] || {}
+      return Object.assign({}, t, {
+        games: Object.keys(t.rounds).length,
+        teamName: meta.name || 'Team',
+        teamTag: meta.tag || null
+      })
+    }).sort(function(a, b) {
+      if (b.total !== a.total) return b.total - a.total
+      if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement
+      if (b.top2 !== a.top2) return b.top2 - a.top2
+      return b.top4 - a.top4
+    })
   }
 
   var bracketRounds = {}
@@ -550,6 +687,74 @@ export default function TournamentDetailScreen() {
             <div className="h-full rounded-full bg-primary transition-all duration-500" style={{width: Math.min(100, regPercent) + '%'}} />
           </div>
         </div>
+
+        {/* Captain check-in panel - team events, check-in phase, captain registered */}
+        {isTeamEvent && isRegistered && myCaptainTeam && (isCheckInPhase || isAlreadyCheckedIn) && !isCompleted && (
+          <div className={"rounded border p-5 mb-6 " + (isAlreadyCheckedIn ? "bg-success/[0.06] border-success/30" : "bg-tertiary/[0.06] border-tertiary/30")}>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name={isAlreadyCheckedIn ? 'check_circle' : 'how_to_reg'} size={16} className={isAlreadyCheckedIn ? 'text-success' : 'text-tertiary'} />
+              <span className={"font-label text-[11px] font-bold tracking-[.18em] uppercase " + (isAlreadyCheckedIn ? 'text-success' : 'text-tertiary')}>
+                {isAlreadyCheckedIn ? 'Team Checked In' : 'Captain Check-In'}
+              </span>
+            </div>
+            <div className="font-display text-on-surface text-lg font-bold mb-1">
+              {myCaptainTeam.name} {myCaptainTeam.tag ? <span className="text-on-surface/40 font-mono text-sm">[{myCaptainTeam.tag}]</span> : null}
+            </div>
+            <div className="text-[11px] text-on-surface-variant/60 mb-4">
+              {isAlreadyCheckedIn
+                ? ('Lineup locked. ' + lineupSel.length + ' starters confirmed.')
+                : ('Pick exactly ' + teamSize + ' starters from your active roster, then check in. Subs cannot be swapped in mid-event.')}
+            </div>
+            <div className="space-y-1.5 mb-4">
+              {teamRoster.length === 0 ? (
+                <div className="text-sm text-on-surface/50">Loading roster...</div>
+              ) : teamRoster.map(function(m) {
+                var p = m.player || {};
+                var selected = lineupSel.indexOf(m.player_id) !== -1;
+                var locked = isAlreadyCheckedIn;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    disabled={locked}
+                    onClick={locked ? undefined : function(){ toggleLineupSel(m.player_id); }}
+                    className={'w-full flex items-center justify-between gap-2 px-3 py-2 rounded border text-sm transition-colors ' +
+                      (selected
+                        ? 'bg-primary/15 border-primary/50 text-on-surface'
+                        : locked
+                          ? 'bg-surface-container/40 border-outline-variant/10 text-on-surface/40 cursor-not-allowed'
+                          : 'bg-surface-container/40 border-outline-variant/15 text-on-surface hover:border-outline-variant/40 cursor-pointer')}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Icon name={selected ? 'check_box' : 'check_box_outline_blank'} size={16} className={selected ? 'text-primary' : 'text-on-surface/40'} />
+                      <span className="font-bold truncate">{p.username || 'Unknown'}</span>
+                      {p.riot_id ? <span className="text-[11px] font-mono text-on-surface/50 truncate">{p.riot_id}</span> : null}
+                      <span className={'text-[9px] font-label font-black uppercase tracking-widest px-1.5 py-0.5 rounded ' +
+                        (m.role === 'captain' ? 'bg-primary/15 text-primary' : m.role === 'sub' ? 'bg-tertiary/15 text-tertiary' : 'bg-secondary/15 text-secondary')}>
+                        {m.role}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {!isAlreadyCheckedIn && (
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-[11px] text-on-surface/60">
+                  Selected <span className="font-bold text-on-surface">{lineupSel.length}</span> / {teamSize}
+                </div>
+                <Btn
+                  variant="primary"
+                  size="sm"
+                  onClick={submitTeamCheckIn}
+                  disabled={checkInBusy || lineupSel.length !== teamSize}
+                >
+                  {checkInBusy ? 'Checking in...' : 'Check In Team'}
+                </Btn>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* What's next - shown to registered players on upcoming tournaments */}
         {!isCompleted && currentUser && isRegistered && (
@@ -882,7 +1087,7 @@ export default function TournamentDetailScreen() {
 
         {/* TAB: STANDINGS */}
         {detailTab === 'standings' && (
-          <div>
+          <div className="space-y-5">
             {loadingResults && (
               <div className="text-center py-16">
                 <Icon name="hourglass_empty" size={32} className="text-on-surface-variant/30 mx-auto mb-3 animate-spin" />
@@ -896,12 +1101,57 @@ export default function TournamentDetailScreen() {
                 <div className="text-on-surface-variant text-sm">Standings update as games are played.</div>
               </div>
             )}
+
+            {/* Team standings - team events only */}
+            {isTeamEvent && teamStandings.length > 0 && (
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="groups" size={18} className="text-primary" />
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
+                    {isCompleted ? 'Final Team Standings' : 'Team Standings'}
+                  </span>
+                  <span className="ml-auto text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider">
+                    {teamSize}v{teamSize} squads
+                  </span>
+                </div>
+                <div className="divide-y divide-outline-variant/5">
+                  {teamStandings.map(function(t, i) {
+                    var placeClass = PLACE_CLASSES[Math.min(i, 7)] || 'text-on-surface-variant/40'
+                    return (
+                      <div key={t.team_id} className={"flex items-center gap-3 px-5 py-3 " + (i === 0 ? 'bg-primary/5' : '')}>
+                        <span className={"font-mono text-sm font-bold min-w-[22px] text-center " + placeClass}>
+                          {i + 1}
+                        </span>
+                        <span className={"flex-1 min-w-0 text-sm " + (i === 0 ? "text-primary font-bold" : "text-on-surface")}>
+                          <span className="font-bold truncate">{t.teamName}</span>
+                          {t.teamTag ? <span className="text-on-surface/40 font-mono text-xs ml-2">[{t.teamTag}]</span> : null}
+                        </span>
+                        <span className="text-[10px] font-label text-on-surface-variant/40 uppercase tracking-wider hidden sm:inline">
+                          {t.games + " games"}
+                        </span>
+                        <span className="text-[10px] font-label text-on-surface-variant/40 uppercase tracking-wider hidden sm:inline">
+                          {t.top4 + " top4"}
+                        </span>
+                        <span className="font-mono text-sm font-bold text-tertiary min-w-[3rem] text-right">
+                          {t.total + " pts"}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="px-5 py-3 text-[11px] text-on-surface-variant/50 border-t border-outline-variant/10">
+                  Tiebreakers: total points - best individual placement - top 2 finishes - top 4 finishes.
+                </div>
+              </div>
+            )}
+
+            {/* Per-player standings - always shown when results exist */}
             {standings.length > 0 && (
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="bar_chart" size={18} className="text-tertiary" />
                   <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
-                    {isCompleted ? 'Final Results' : 'Current Standings'}
+                    {isTeamEvent ? 'Individual Performance' : (isCompleted ? 'Final Results' : 'Current Standings')}
                   </span>
                 </div>
                 <div className="divide-y divide-outline-variant/5">

@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
-import { buildFlashLobbies } from '../lib/tournament.js'
+import { buildFlashLobbies, buildTeamLobbies } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
@@ -168,6 +168,15 @@ export default function FlashTournamentScreen(props) {
   }
 
   function generateLobbies() {
+    var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+    var teamSize = Number.isFinite(ts) && ts > 0 ? ts : 1;
+    var isTeamEvent = teamSize > 1;
+
+    if (isTeamEvent) {
+      generateTeamLobbies(teamSize);
+      return;
+    }
+
     if (!confirm('Generate lobbies for ' + checkedInCount + ' checked-in players? This will create ' + Math.ceil(checkedInCount / 8) + ' lobbies.')) return;
     setActionLoading(true);
     supabase.from('registrations').select('player_id, players(id, username, rank, riot_id, region)')
@@ -205,6 +214,90 @@ export default function FlashTournamentScreen(props) {
           supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Lobby Assigned', p_body: 'Your lobby has been assigned for ' + (tournament ? tournament.name : 'the tournament') + '. Check your lobby now!', p_icon: 'trophy', p_statuses: ['checked_in']}).catch(function() {});
         }).catch(function() { setActionLoading(false); toast('Failed to generate lobbies', 'error'); });
       }).catch(function() { setActionLoading(false); toast('Failed to load players', 'error'); });
+  }
+
+  function generateTeamLobbies(teamSize) {
+    var checkedInTeams = registrations.filter(function(r) { return r.status === 'checked_in' && r.team_id; }).length;
+    if (checkedInTeams < 2) { toast('Need at least 2 checked-in teams to generate lobbies', 'error'); return; }
+    var paired = Math.floor(checkedInTeams / 2);
+    if (!confirm('Generate ' + teamSize + 'v' + teamSize + ' lobbies for ' + checkedInTeams + ' teams? This will create ' + Math.ceil(checkedInTeams / 2) + ' lobbies (' + paired + ' paired).')) return;
+    setActionLoading(true);
+
+    supabase.from('registrations')
+      .select('id, team_id, lineup_player_ids, teams!registrations_team_id_fkey(id, name, tag)')
+      .eq('tournament_id', tournamentId)
+      .eq('status', 'checked_in')
+      .not('team_id', 'is', null)
+      .then(function(regRes) {
+        if (regRes.error || !regRes.data) { toast('Failed to load team registrations', 'error'); setActionLoading(false); return; }
+        var rows = regRes.data;
+        var allPlayerIds = {};
+        rows.forEach(function(r) {
+          (r.lineup_player_ids || []).forEach(function(pid) { if (pid) allPlayerIds[pid] = true; });
+        });
+        var idList = Object.keys(allPlayerIds);
+        if (idList.length === 0) {
+          setActionLoading(false);
+          toast('No lineups submitted - captains must check in first', 'error');
+          return;
+        }
+        supabase.from('players').select('id, username, rank, riot_id, region').in('id', idList).then(function(pRes) {
+          if (pRes.error || !pRes.data) { toast('Failed to load lineup players', 'error'); setActionLoading(false); return; }
+          var byPid = {};
+          pRes.data.forEach(function(p) { byPid[p.id] = p; });
+
+          var teams = rows.map(function(r) {
+            var lineup = (r.lineup_player_ids || []).map(function(pid) { return byPid[pid]; }).filter(Boolean);
+            if (lineup.length !== teamSize) return null;
+            var seed = lineup.reduce(function(acc, p) { return acc + RANKS.indexOf(p.rank || 'Iron'); }, 0);
+            return {
+              id: r.team_id,
+              name: r.teams ? r.teams.name : 'Team',
+              tag: r.teams ? r.teams.tag : null,
+              players: lineup,
+              seed: seed
+            };
+          }).filter(Boolean);
+
+          if (teams.length < 2) {
+            setActionLoading(false);
+            toast('Not enough teams with valid lineups (need 2+)', 'error');
+            return;
+          }
+
+          var teamLobbies = buildTeamLobbies(teams, teamSize, tournament.seeding_method || 'snake');
+          var lobbyRows = teamLobbies.map(function(lobby, idx) {
+            var lobbyPlayers = lobby.players || [];
+            var host = lobbyPlayers.reduce(function(best, p) {
+              if (!best) return p;
+              return RANKS.indexOf(p.rank || 'Iron') > RANKS.indexOf(best.rank || 'Iron') ? p : best;
+            }, null);
+            return {
+              tournament_id: tournamentId,
+              round_number: 1,
+              lobby_number: idx + 1,
+              player_ids: lobbyPlayers.map(function(p) { return p.id; }),
+              host_player_id: host ? host.id : null,
+              status: 'pending',
+              game_number: 1
+            };
+          });
+
+          supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes) {
+            setActionLoading(false);
+            if (lRes.error) { toast('Failed: ' + lRes.error.message, 'error'); return; }
+            supabase.from('tournaments').update({phase: 'in_progress', started_at: new Date().toISOString(), current_round: 1})
+              .eq('id', tournamentId).then(function(tRes) {
+                if (tRes.error) { toast && toast('Error: ' + tRes.error.message, 'error'); return; }
+                setTournament(Object.assign({}, tournament, {phase: 'in_progress', current_round: 1}));
+              }).catch(function() { toast('Failed to update tournament phase', 'error'); });
+            toast(teamLobbies.length + ' team lobbies generated!', 'success');
+            broadcastUpdate('lobbies_generated');
+            loadLobbies();
+            supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Lobby Assigned', p_body: 'Your team lobby has been assigned for ' + (tournament ? tournament.name : 'the tournament') + '!', p_icon: 'trophy', p_statuses: ['checked_in']}).catch(function() {});
+          }).catch(function() { setActionLoading(false); toast('Failed to generate lobbies', 'error'); });
+        }).catch(function() { setActionLoading(false); toast('Failed to load lineup players', 'error'); });
+      }).catch(function() { setActionLoading(false); toast('Failed to load team registrations', 'error'); });
   }
 
   var myPlayer = currentUser ? (players || []).find(function(p) { return (currentUser.auth_user_id && p.authUserId === currentUser.auth_user_id) || p.id === currentUser.id; }) : null;
