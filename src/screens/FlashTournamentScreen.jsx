@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
-import { PTS, RANKS } from '../lib/constants.js'
+import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
-import { buildFlashLobbies, buildTeamLobbies } from '../lib/tournament.js'
+import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
 import { notifyTeamMembers } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -259,10 +259,14 @@ export default function FlashTournamentScreen(props) {
   function generateLobbies() {
     var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
     var teamSize = Number.isFinite(ts) && ts > 0 ? ts : 1;
+    var tplRaw = tournament && tournament.teams_per_lobby != null ? parseInt(tournament.teams_per_lobby, 10) : null;
+    var teamsPerLobby = Number.isFinite(tplRaw) && tplRaw > 0
+      ? tplRaw
+      : (teamSize === 4 ? 2 : (teamSize === 2 ? 4 : 1));
     var isTeamEvent = teamSize > 1;
 
     if (isTeamEvent) {
-      generateTeamLobbies(teamSize);
+      generateTeamLobbies(teamSize, teamsPerLobby);
       return;
     }
 
@@ -305,11 +309,13 @@ export default function FlashTournamentScreen(props) {
       }).catch(function() { setActionLoading(false); toast('Failed to load players', 'error'); });
   }
 
-  function generateTeamLobbies(teamSize) {
+  function generateTeamLobbies(teamSize, teamsPerLobby) {
+    teamsPerLobby = teamsPerLobby || (teamSize === 4 ? 2 : (teamSize === 2 ? 4 : 1));
     var checkedInTeams = registrations.filter(function(r) { return r.status === 'checked_in' && r.team_id; }).length;
-    if (checkedInTeams < 2) { toast('Need at least 2 checked-in teams to generate lobbies', 'error'); return; }
-    var paired = Math.floor(checkedInTeams / 2);
-    if (!confirm('Generate ' + teamSize + 'v' + teamSize + ' lobbies for ' + checkedInTeams + ' teams? This will create ' + Math.ceil(checkedInTeams / 2) + ' lobbies (' + paired + ' paired).')) return;
+    if (checkedInTeams < teamsPerLobby) { toast('Need at least ' + teamsPerLobby + ' checked-in teams to generate lobbies', 'error'); return; }
+    var lobbyCount = Math.ceil(checkedInTeams / teamsPerLobby);
+    var label = teamSize + 'v' + teamSize;
+    if (!confirm('Generate ' + label + ' lobbies for ' + checkedInTeams + ' teams? This will create ' + lobbyCount + ' lobbies (' + teamsPerLobby + ' teams each).')) return;
     setActionLoading(true);
 
     supabase.from('registrations')
@@ -348,13 +354,13 @@ export default function FlashTournamentScreen(props) {
             };
           }).filter(Boolean);
 
-          if (teams.length < 2) {
+          if (teams.length < teamsPerLobby) {
             setActionLoading(false);
-            toast('Not enough teams with valid lineups (need 2+)', 'error');
+            toast('Not enough teams with valid lineups (need ' + teamsPerLobby + '+)', 'error');
             return;
           }
 
-          var teamLobbies = buildTeamLobbies(teams, teamSize, tournament.seeding_method || 'snake');
+          var teamLobbies = buildTeamLobbies(teams, teamSize, teamsPerLobby, tournament.seeding_method || 'snake');
           var lobbyRows = teamLobbies.map(function(lobby, idx) {
             var lobbyPlayers = lobby.players || [];
             var host = lobbyPlayers.reduce(function(best, p) {
@@ -433,6 +439,9 @@ export default function FlashTournamentScreen(props) {
   var _teamSizeRaw = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
   var teamSizeNum = Number.isFinite(_teamSizeRaw) && _teamSizeRaw > 0 ? _teamSizeRaw : 1;
   var isTeamEvent = teamSizeNum > 1;
+  var lobbyShape = resolveLobbyShape(tournament);
+  var isDoubleUpLobby = lobbyShape.mode === 'double_up_2v2';
+  var placementSlots = isDoubleUpLobby ? 4 : ((myLobby && myLobby.player_ids) ? myLobby.player_ids.length : 8);
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
@@ -714,13 +723,46 @@ export default function FlashTournamentScreen(props) {
 
   function lockLobby(lobbyId) {
     var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobbyId; });
+    var shape = resolveLobbyShape(tournament);
+    var isDoubleUp = shape.mode === 'double_up_2v2';
+    if (isDoubleUp) {
+      var lobby = lobbies.find(function(l) { return l.id === lobbyId; });
+      var pids = (lobby && lobby.player_ids) || [];
+      var counts = {1:0, 2:0, 3:0, 4:0};
+      var outOfRange = false;
+      lobbyReports.forEach(function(r) {
+        var p = r.reported_placement;
+        if (p >= 1 && p <= 4) counts[p] += 1;
+        else outOfRange = true;
+      });
+      if (outOfRange) { toast('Double Up placements must be 1-4. Fix invalid reports first.', 'error'); return; }
+      if (lobbyReports.length !== pids.length) { toast('Cannot lock: not all players have reported.', 'error'); return; }
+      if (!(counts[1] === 2 && counts[2] === 2 && counts[3] === 2 && counts[4] === 2)) {
+        toast('Double Up requires exactly 2 players per placement (1st, 2nd, 3rd, 4th).', 'error'); return;
+      }
+      var reportByPid = {};
+      lobbyReports.forEach(function(r) { reportByPid[r.player_id] = r.reported_placement; });
+      for (var pi = 0; pi < pids.length; pi += 2) {
+        if (reportByPid[pids[pi]] !== reportByPid[pids[pi + 1]]) {
+          toast('Partners must share the same placement. Fix mismatched team report.', 'error'); return;
+        }
+      }
+    }
+    var swissMult = (isDoubleUp && shape.pointsScale === 'double_up_swiss' && DOUBLE_UP_MULTIPLIERS[currentGameNumber]) ? DOUBLE_UP_MULTIPLIERS[currentGameNumber] : 1;
     var gameRows = lobbyReports.map(function(r) {
+      var place = r.reported_placement;
+      var pts;
+      if (isDoubleUp) {
+        pts = Math.round((DOUBLE_UP_PTS[place] || 0) * swissMult);
+      } else {
+        pts = PTS[place] || 0;
+      }
       return {
         tournament_id: tournamentId,
         lobby_id: lobbyId,
         player_id: r.player_id,
-        placement: r.reported_placement,
-        points: PTS[r.reported_placement] || 0,
+        placement: place,
+        points: pts,
         round_number: currentGameNumber,
         game_number: currentGameNumber
       };
@@ -1114,24 +1156,36 @@ export default function FlashTournamentScreen(props) {
         toast('Tournament finalized!', 'success');
         broadcastUpdate('finalized');
         supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Results Finalized', p_body: (tournament ? tournament.name : 'The tournament') + ' has been finalized. Check the results screen for your placement and points.', p_icon: 'trophy', p_statuses: ['checked_in', 'registered']}).catch(function() {});
-        supabase.from('game_results').select('player_id,placement,points')
+        var finalShape = resolveLobbyShape(tournament);
+        var finalIsDoubleUp = finalShape.mode === 'double_up_2v2';
+        supabase.from('game_results').select('player_id,placement,points,round_number')
           .eq('tournament_id', tournamentId).then(function(grRes) {
             if (grRes.error || !grRes.data || !grRes.data.length) return;
             var playerAgg = {};
             grRes.data.forEach(function(g) {
-              if (!playerAgg[g.player_id]) playerAgg[g.player_id] = {pts: 0, wins: 0, top4: 0, games: 0, placeSum: 0};
+              if (!playerAgg[g.player_id]) playerAgg[g.player_id] = {pts: 0, wins: 0, top4: 0, top2: 0, fourths: 0, games: 0, placeSum: 0, lastRound: -1, lastPlacement: 9};
               var a = playerAgg[g.player_id];
               a.pts += (g.points || 0);
               a.wins += (g.placement === 1 ? 1 : 0);
               a.top4 += (g.placement >= 1 && g.placement <= 4 ? 1 : 0);
+              a.top2 += (g.placement === 1 || g.placement === 2 ? 1 : 0);
+              a.fourths += (g.placement === 4 ? 1 : 0);
               a.games += 1;
               a.placeSum += (g.placement || 0);
+              var rnd = g.round_number || 0;
+              if (rnd > a.lastRound) { a.lastRound = rnd; a.lastPlacement = g.placement || 9; }
             });
             var ranked = Object.keys(playerAgg).map(function(pid) {
               var a = playerAgg[pid];
-              return { pid: pid, pts: a.pts, wins: a.wins, top4: a.top4, games: a.games, placeSum: a.placeSum };
+              return Object.assign({pid: pid}, a);
             }).sort(function(a, b) {
               if (b.pts !== a.pts) return b.pts - a.pts;
+              if (finalIsDoubleUp) {
+                if (b.top2 !== a.top2) return b.top2 - a.top2;
+                if (a.fourths !== b.fourths) return a.fourths - b.fourths;
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                return (a.lastPlacement || 9) - (b.lastPlacement || 9);
+              }
               var aTie = a.wins * 2 + a.top4;
               var bTie = b.wins * 2 + b.top4;
               if (bTie !== aTie) return bTie - aTie;
@@ -1247,10 +1301,24 @@ export default function FlashTournamentScreen(props) {
     standings = Object.keys(_playerMap).map(function(k) {
       var _p = _playerMap[k];
       _p.avgPlace = _p.games > 0 ? (_p.placements.reduce(function(s, v) { return s + v; }, 0) / _p.games) : 0;
+      var _last = 9;
+      var _lastG = -1;
+      _p.gameDetails.forEach(function(d) { if ((d.game || 0) > _lastG) { _lastG = d.game || 0; _last = d.placement || 9; } });
+      _p.lastPlacement = _last;
       return _p;
     });
     standings.sort(function(a, b) {
       if (b.totalPts !== a.totalPts) return b.totalPts - a.totalPts;
+      if (isDoubleUpLobby) {
+        var aTop2 = a.placements.filter(function(p) { return p <= 2; }).length;
+        var bTop2 = b.placements.filter(function(p) { return p <= 2; }).length;
+        if (bTop2 !== aTop2) return bTop2 - aTop2;
+        var aFour = a.placements.filter(function(p) { return p === 4; }).length;
+        var bFour = b.placements.filter(function(p) { return p === 4; }).length;
+        if (aFour !== bFour) return aFour - bFour;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return (a.lastPlacement || 9) - (b.lastPlacement || 9);
+      }
       var aScore = a.wins * 2 + a.top4;
       var bScore = b.wins * 2 + b.top4;
       if (bScore !== aScore) return bScore - aScore;
@@ -1857,8 +1925,8 @@ export default function FlashTournamentScreen(props) {
                     {myPlacement > 0 && (
                       <div className="flex gap-2 items-center mt-2">
                         <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
-                          {(myLobby.player_ids || []).map(function(_, i) {
-                            return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
+                          {Array.from({length: placementSlots}, function(_, i) {
+                            return (<option key={"place-" + (i + 1)} value={i + 1}>{(i + 1) + (isDoubleUpLobby ? ' (team)' : '')}</option>);
                           })}
                         </Sel>
                         <Btn variant="primary" size="sm" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
@@ -1869,9 +1937,9 @@ export default function FlashTournamentScreen(props) {
                 ) : (
                   <div className="flex gap-2 items-center flex-wrap">
                     <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
-                      <option value="0">{"Select placement..."}</option>
-                      {(myLobby.player_ids || []).map(function(_, i) {
-                        return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
+                      <option value="0">{isDoubleUpLobby ? "Select team placement..." : "Select placement..."}</option>
+                      {Array.from({length: placementSlots}, function(_, i) {
+                        return (<option key={"place-" + (i + 1)} value={i + 1}>{(i + 1) + (isDoubleUpLobby ? ' (team)' : '')}</option>);
                       })}
                     </Sel>
                     <Btn
@@ -1918,8 +1986,8 @@ export default function FlashTournamentScreen(props) {
                       <label className="text-xs text-on-surface-variant min-w-[100px]">Actual placement:</label>
                       <Sel value={String(disputeForm.claimed)} onChange={function(v) { setDisputeForm(Object.assign({}, disputeForm, {claimed: parseInt(v) || 0})); }}>
                         <option value="0">Select...</option>
-                        {(myLobby.player_ids || []).map(function(_, i) {
-                          return (<option key={"d-" + (i + 1)} value={i + 1}>{i + 1}</option>);
+                        {Array.from({length: placementSlots}, function(_, i) {
+                          return (<option key={"d-" + (i + 1)} value={i + 1}>{(i + 1) + (isDoubleUpLobby ? ' (team)' : '')}</option>);
                         })}
                       </Sel>
                     </div>
@@ -2015,7 +2083,8 @@ export default function FlashTournamentScreen(props) {
                   var allReported = reportedCount === totalCount && totalCount > 0;
                   var placementCounts = {};
                   lobbyReports.forEach(function(r) { placementCounts[r.reported_placement] = (placementCounts[r.reported_placement] || 0) + 1; });
-                  var hasDuplicate = Object.keys(placementCounts).some(function(k) { return placementCounts[k] > 1; });
+                  var dupeLimit = isDoubleUpLobby ? 2 : 1;
+                  var hasDuplicate = Object.keys(placementCounts).some(function(k) { return placementCounts[k] > dupeLimit; });
                   var lobbyDisputes = disputes.filter(function(d) { return d.lobby_id === lobby.id && d.status === 'open'; });
                   var canLock = allReported && !hasDuplicate && !isLocked;
                   var iAmHost = myPlayer && hostId === myPlayer.id;
@@ -2063,7 +2132,7 @@ export default function FlashTournamentScreen(props) {
                           var isHost = p.id === hostId;
                           var isMe = myPlayer && p.id === myPlayer.id;
                           var playerReport = lobbyReports.find(function(r) { return r.player_id === p.id; });
-                          var isDupe = playerReport && placementCounts[playerReport.reported_placement] > 1;
+                          var isDupe = playerReport && placementCounts[playerReport.reported_placement] > dupeLimit;
 
                           return (
                             <div
@@ -2114,7 +2183,7 @@ export default function FlashTournamentScreen(props) {
                               {(isAdmin || iAmHost) && isLive && !isLocked && (
                                 <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-1">
                                   <option value="">{"--"}</option>
-                                  {(lobby.player_ids || []).map(function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
+                                  {Array.from({length: isDoubleUpLobby ? 4 : (lobby.player_ids || []).length}, function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
                                 </Sel>
                               )}
                             </div>

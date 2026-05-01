@@ -125,7 +125,7 @@ export default function TournamentTab() {
     if (f.seeding) setSeedAlgo(f.seeding)
   }
 
-  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
+  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
 
@@ -180,7 +180,7 @@ export default function TournamentTab() {
   }
 
   useEffect(function() {
-    supabase.from('tournaments').select('id, name, date, phase, type, team_size, subs_allowed, archived_at, round_count, cut_line, cut_after_game, format').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
+    supabase.from('tournaments').select('id, name, date, phase, type, team_size, teams_per_lobby, points_scale, subs_allowed, archived_at, round_count, cut_line, cut_after_game, format').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(40).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
   }, [])
@@ -530,14 +530,17 @@ export default function TournamentTab() {
     var flashMaxP = parseInt(flashForm.maxPlayers) || 128
     var flashGames = parseInt(flashForm.gameCount) || 3
     var teamSize = parseInt(flashForm.teamSize) || 1
+    var teamsPerLobby = parseInt(flashForm.teamsPerLobby) || (teamSize === 4 ? 2 : (teamSize === 2 ? 4 : 1))
+    var pointsScale = flashForm.pointsScale || 'standard'
     var subsAllowed = parseInt(flashForm.subsAllowed) || 0
     var cutLine = parseInt(flashForm.cutLine) || 0
     var cutAfterGame = parseInt(flashForm.cutAfterGame) || 0
     if (flashMaxP < 1 || flashMaxP > 1024) { toast('Max players must be 1-1024', 'error'); return }
     if (flashGames < 1 || flashGames > 20) { toast('Game count must be 1-20', 'error'); return }
-    if (teamSize < 1 || teamSize > 4) { toast('Team size must be 1-4', 'error'); return }
+    if (teamSize < 1 || teamSize > 4 || teamSize === 3) { toast('Team size must be 1, 2 or 4', 'error'); return }
     if (subsAllowed < 0 || subsAllowed > 4) { toast('Subs must be 0-4', 'error'); return }
-    if (teamSize === 4 && flashMaxP % 2 !== 0) { toast('4v4 needs an even player cap (2 teams per lobby).', 'error'); return }
+    if (teamSize === 4 && flashMaxP % 8 !== 0) { toast('4v4 needs a player cap divisible by 8 (2 teams of 4 per lobby).', 'error'); return }
+    if (teamSize === 2 && flashMaxP % 8 !== 0) { toast('2v2 Double Up needs a player cap divisible by 8 (4 teams of 2 per lobby).', 'error'); return }
     if (cutLine < 0 || cutAfterGame < 0) { toast('Cut values cannot be negative', 'error'); return }
     if ((cutLine > 0) !== (cutAfterGame > 0)) { toast('Set both Cut Line and Cut After, or leave both at 0', 'error'); return }
     if (cutLine > 0 && cutAfterGame >= flashGames) { toast('Cut After Game must be less than Game Count', 'error'); return }
@@ -553,8 +556,9 @@ export default function TournamentTab() {
       seeding_method: flashForm.seedingMethod || 'snake', prize_pool_json: prizePool.length > 0 ? prizePool : null,
       lobby_host_method: 'random',
       team_size: teamSize,
+      teams_per_lobby: teamsPerLobby,
       subs_allowed: subsAllowed,
-      points_scale: 'standard',
+      points_scale: pointsScale,
       region: flashRegion,
       checkin_open_at: checkinOpenIso,
       checkin_close_at: startIso,
@@ -567,7 +571,7 @@ export default function TournamentTab() {
       var cutMsg = cutLine > 0 ? ' [cut to top ' + cutLine + ' after R' + cutAfterGame + ']' : ''
       addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : '') + cutMsg)
       toast('Flash tournament created!', 'success')
-      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
+      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
@@ -1000,13 +1004,26 @@ export default function TournamentTab() {
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Team Format</label>
-            <Sel value={flashForm.teamSize} onChange={function(v) {
-              var ts = String(v)
-              var subs = ts === '4' ? '2' : '0'
-              setFlashForm(Object.assign({}, flashForm, { teamSize: ts, subsAllowed: subs }))
+            <Sel value={(function() {
+              if (flashForm.teamSize === '4') return 'squads_4v4'
+              if (flashForm.teamSize === '2' && flashForm.pointsScale === 'double_up_swiss') return 'double_up_swiss'
+              if (flashForm.teamSize === '2') return 'double_up_casual'
+              return 'solo'
+            })()} onChange={function(v) {
+              var key = String(v)
+              var nextTeamSize = '1'
+              var nextTeamsPerLobby = '1'
+              var nextPointsScale = 'standard'
+              var nextSubs = '0'
+              if (key === 'squads_4v4') { nextTeamSize = '4'; nextTeamsPerLobby = '2'; nextPointsScale = 'standard'; nextSubs = '2' }
+              else if (key === 'double_up_casual') { nextTeamSize = '2'; nextTeamsPerLobby = '4'; nextPointsScale = 'double_up'; nextSubs = '0' }
+              else if (key === 'double_up_swiss') { nextTeamSize = '2'; nextTeamsPerLobby = '4'; nextPointsScale = 'double_up_swiss'; nextSubs = '0' }
+              setFlashForm(Object.assign({}, flashForm, { teamSize: nextTeamSize, teamsPerLobby: nextTeamsPerLobby, pointsScale: nextPointsScale, subsAllowed: nextSubs }))
             }}>
-              <option value="1">Solo (1v1)</option>
-              <option value="4">4v4 Squads</option>
+              <option value="solo">Solo (1v1)</option>
+              <option value="squads_4v4">4v4 Squads</option>
+              <option value="double_up_casual">2v2 Double Up - Casual</option>
+              <option value="double_up_swiss">2v2 Double Up - Swiss (R4 1.25x, R5 1.5x)</option>
             </Sel>
           </div>
           <div>
@@ -1043,6 +1060,12 @@ export default function TournamentTab() {
           <div className="mb-3 px-3 py-2 rounded-lg bg-tertiary/[0.06] border border-tertiary/20 text-[11px] text-tertiary">
             <Icon name="groups" size={12} className="inline-block mr-1 -mt-0.5" />
             4v4 mode: only team captains may register. Each 8-player lobby pairs two teams. Player cap counts individuals (set to a multiple of 8 for clean lobbies).
+          </div>
+        )}
+        {flashForm.teamSize === '2' && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-secondary/[0.06] border border-secondary/20 text-[11px] text-secondary">
+            <Icon name="groups" size={12} className="inline-block mr-1 -mt-0.5" />
+            2v2 Double Up: only team captains may register. Each 8-player lobby seats four teams of two. Both partners share the team placement (1-4) and earn the same points{flashForm.pointsScale === 'double_up_swiss' ? '. Round 4 scores 1.25x, round 5 scores 1.5x.' : '.'}
           </div>
         )}
         <div className="mb-3">

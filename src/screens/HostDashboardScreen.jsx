@@ -424,9 +424,9 @@ export default function HostDashboardScreen() {
     }
     supabase
       .from('game_results')
-      .select('round, lobby_number, player_id, placement')
+      .select('round_number, game_number, lobby_id, player_id, placement, points, lobbies(lobby_number)')
       .eq('tournament_id', tournId)
-      .order('round', { ascending: true })
+      .order('round_number', { ascending: true })
       .order('placement', { ascending: true })
       .then(function(res) {
         if (res.error) {
@@ -438,14 +438,14 @@ export default function HostDashboardScreen() {
           toast('No results recorded for this tournament yet', 'info');
           return;
         }
-        var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
         var header = 'Player,Round,Lobby,Placement,Points';
         var lines = rows.map(function(r) {
           var player = (players || []).find(function(p) { return p.id === r.player_id; });
           var playerName = player ? (player.username || player.name || ('Player ' + r.player_id)) : ('Player ' + r.player_id);
-          var lobbyLetter = String.fromCharCode(64 + (r.lobby_number || 1));
-          var pts = PTS[r.placement] || 0;
-          return [playerName, r.round, lobbyLetter, r.placement, pts].join(',');
+          var lobbyNum = (r.lobbies && r.lobbies.lobby_number) || 1;
+          var lobbyLetter = String.fromCharCode(64 + lobbyNum);
+          var pts = (r.points != null) ? r.points : 0;
+          return [playerName, r.round_number, lobbyLetter, r.placement, pts].join(',');
         });
         var csv = [header].concat(lines).join('\n');
         var blob = new Blob([csv], { type: 'text/csv' });

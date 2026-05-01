@@ -12,6 +12,9 @@ function BroadcastOverlay(props) {
   var rawBg = params.bg || "dark";
   var bg = /^#[0-9a-fA-F]{3,6}$/.test(rawBg) || KNOWN_BG_KEYWORDS.indexOf(rawBg) !== -1 ? rawBg : "dark";
   var size = params.size || "compact";
+  var ALLOWED_SHAPES = ['solo', 'double_up', 'squads_4v4'];
+  var rawShape = params.shape || 'solo';
+  var shape = ALLOWED_SHAPES.indexOf(rawShape) !== -1 ? rawShape : 'solo';
 
   var _liveData = useState(players);
   var liveData = _liveData[0];
@@ -106,17 +109,40 @@ function BroadcastOverlay(props) {
   }
 
   if (type === "lobbies" && tournamentState.lobbies) {
+    var pairSize = shape === 'double_up' ? 2 : (shape === 'squads_4v4' ? 4 : 0);
+    var pairLabel = shape === 'double_up' ? 'Team' : (shape === 'squads_4v4' ? 'Squad' : '');
     return (
       <div className={bgClass + " p-3 font-label"}>
         <div className="text-[11px] font-bold text-amber-400 uppercase mb-2">Lobby Assignments</div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
           {(tournamentState.lobbies || []).map(function(lobby, li) {
+            var pids = (lobby.players || []);
+            var pairs = [];
+            if (pairSize > 0) {
+              for (var pi = 0; pi < pids.length; pi += pairSize) {
+                pairs.push(pids.slice(pi, pi + pairSize));
+              }
+            }
             return (
               <div key={li} className="bg-white/[.04] rounded-lg px-2.5 py-2 border border-white/[.08]">
                 <div className="text-[10px] font-bold text-primary mb-1">
                   {lobby.name || "Lobby " + (li + 1)}
                 </div>
-                {(lobby.players || []).map(function(pid) {
+                {pairSize > 0 ? pairs.map(function(pair, gi) {
+                  return (
+                    <div key={gi} className="mb-1.5 last:mb-0">
+                      <div className="text-[8px] tracking-widest uppercase text-amber-400/70 mb-0.5">{pairLabel + ' ' + (gi + 1)}</div>
+                      {pair.map(function(pid) {
+                        var p = liveData.find(function(pl) { return String(pl.id) === String(pid); });
+                        return (
+                          <div key={pid} className="text-[11px] text-on-surface-variant py-0.5 pl-1.5">
+                            {p ? p.name : "Player " + pid}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }) : pids.map(function(pid) {
                   var p = liveData.find(function(pl) { return String(pl.id) === String(pid); });
                   return (
                     <div key={pid} className="text-[11px] text-on-surface-variant py-0.5">

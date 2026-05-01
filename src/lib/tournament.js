@@ -1,4 +1,4 @@
-import { RANKS, PTS } from './constants.js';
+import { RANKS, PTS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from './constants.js';
 
 // Tournament phases  -  strict state machine
 export var T_PHASE = {
@@ -26,11 +26,19 @@ export function canTransition(from, to) {
 }
 
 // Format presets
+//
+// Each preset describes the games-per-tournament shape AND the lobby shape
+// (teamSize, teamsPerLobby, pointsScale). For solo formats teamSize/teamsPerLobby
+// stay implicit (1/1). For team modes both are explicit so the lobby builder
+// and scoring pipeline can branch deterministically.
 export var TOURNAMENT_FORMATS = {
-  casual: {name:"Casual Clash",description:"Single stage, 3 games, all players",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random"},
-  standard: {name:"Standard Clash",description:"Single stage, 5 games, seeded lobbies",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake"},
-  competitive: {name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutLine:13,cutAfterGame:4,seeding:"snake"},
-  weekly: {name:"Weekly Clash",description:"3 games, open lobby format",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"rank-based"}
+  casual: {name:"Casual Clash",description:"Single stage, 3 games, all players",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  standard: {name:"Standard Clash",description:"Single stage, 5 games, seeded lobbies",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  competitive: {name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutLine:13,cutAfterGame:4,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  weekly: {name:"Weekly Clash",description:"3 games, open lobby format",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"rank-based",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  squads_4v4: {name:"4v4 Squads",description:"2 teams per lobby, 4 starters each. Riot-standard scoring.",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake",teamSize:4,teamsPerLobby:2,pointsScale:"standard"},
+  double_up_casual: {name:"Double Up (2v2) Casual",description:"4 teams of 2 per lobby, 3 games, no cuts.",games:3,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random",teamSize:2,teamsPerLobby:4,pointsScale:"double_up"},
+  double_up_swiss: {name:"Double Up (2v2) Swiss",description:"4 teams of 2 per lobby, 5 games with reshuffles + late multipliers (R4 1.25x, R5 1.5x). Host configures cut line.",games:5,stages:2,maxPlayers:64,cutEnabled:false,cutLine:0,cutAfterGame:3,seeding:"random",teamSize:2,teamsPerLobby:4,pointsScale:"double_up_swiss"}
 };
 
 // Snake seeding: distributes players across lobbies so each has a mix of skill levels
@@ -69,17 +77,22 @@ export function buildLobbies(players, method, lobbySize) {
   return res;
 }
 
-// Build lobbies for a 4v4 (squads) tournament. Each lobby pairs 2 teams of
-// `teamSize` players (default 4 → 8 players per lobby).
+// Build lobbies for a team-based tournament. Each lobby groups `teamsPerLobby`
+// teams of `teamSize` starters each. Defaults to 4v4 squads shape (2 teams per
+// lobby, 4 starters each = 8 players) for backwards compat.
 //
 // teams: array of { id, name, tag?, players: [{id, username, ...}], seed? }
-// teamSize: number of starters per team (typically 4)
-// seedingMethod: 'snake' | 'random' | 'rank-based' (snake is the default for
-// squads — strongest team plays the weakest in each lobby pairing)
+// teamSize: starters per team (4 for squads, 2 for Double Up)
+// teamsPerLobby: how many teams play together (2 for squads, 4 for Double Up)
+// seedingMethod: 'snake' | 'random' | 'rank-based'
+//   * snake: strongest paired with weakest (only meaningful for 2-teams-per-lobby)
+//   * random: shuffle then chunk
+//   * rank-based: top seeds together, then next chunk, etc.
 //
-// Returns: [{ teams: [teamA, teamB], players: [...flattened roster...] }, ...]
-export function buildTeamLobbies(teams, teamSize, seedingMethod) {
+// Returns: [{ teams: [...], players: [...flattened roster...] }, ...]
+export function buildTeamLobbies(teams, teamSize, teamsPerLobby, seedingMethod) {
   teamSize = teamSize || 4;
+  teamsPerLobby = teamsPerLobby || 2;
   if (!teams || teams.length === 0) return [];
   var pool = [].concat(teams);
   if (seedingMethod === "random") {
@@ -87,40 +100,29 @@ export function buildTeamLobbies(teams, teamSize, seedingMethod) {
       var j = Math.floor(Math.random() * (i + 1));
       var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
     }
-  } else if (seedingMethod === "rank-based") {
-    pool.sort(function(a, b) { return (b.seed || 0) - (a.seed || 0); });
   } else {
-    // snake / default — sort by seed descending so the pairing logic below
-    // matches strongest with weakest.
+    // snake / rank-based / default: sort by seed descending
     pool.sort(function(a, b) { return (b.seed || 0) - (a.seed || 0); });
   }
   var lobbies = [];
-  if (seedingMethod === "snake" || !seedingMethod || seedingMethod === undefined) {
-    // Pair top with bottom: lobby 0 = (1st, last), lobby 1 = (2nd, 2nd-last), ...
+  // Snake-pair only makes sense when exactly 2 teams play per lobby (4v4 squads).
+  // For 4 teams per lobby (Double Up) we just chunk in order regardless of seed mode.
+  if (teamsPerLobby === 2 && (seedingMethod === "snake" || !seedingMethod)) {
     var lo = 0;
     var hi = pool.length - 1;
     while (lo < hi) {
       var lobbyTeams = [pool[lo], pool[hi]];
-      lobbies.push({
-        teams: lobbyTeams,
-        players: flattenLobbyRoster(lobbyTeams, teamSize)
-      });
+      lobbies.push({ teams: lobbyTeams, players: flattenLobbyRoster(lobbyTeams, teamSize) });
       lo += 1; hi -= 1;
     }
     if (lo === hi) {
-      lobbies.push({
-        teams: [pool[lo]],
-        players: flattenLobbyRoster([pool[lo]], teamSize)
-      });
+      lobbies.push({ teams: [pool[lo]], players: flattenLobbyRoster([pool[lo]], teamSize) });
     }
   } else {
-    // random / rank-based: pair sequentially (0-1, 2-3, ...)
-    for (var k = 0; k < pool.length; k += 2) {
-      var pair = pool.slice(k, k + 2);
-      lobbies.push({
-        teams: pair,
-        players: flattenLobbyRoster(pair, teamSize)
-      });
+    // Sequential chunks of teamsPerLobby
+    for (var k = 0; k < pool.length; k += teamsPerLobby) {
+      var chunk = pool.slice(k, k + teamsPerLobby);
+      lobbies.push({ teams: chunk, players: flattenLobbyRoster(chunk, teamSize) });
     }
   }
   return lobbies;
@@ -171,6 +173,113 @@ export function scoreTeamGame(playerPlacements) {
       if (b.top4 !== a.top4) return b.top4 - a.top4;
       return 0;
     });
+}
+
+// Scoring for a single 2v2 Double Up lobby game.
+//
+// teamPlacements: [{team_id, placement}] where placement is 1..4 (team finish).
+//   Both partners share the placement; per-player point fan-out happens at the
+//   caller (each partner gets the same score).
+// roundNumber (optional): for Swiss DU, applies DOUBLE_UP_MULTIPLIERS in
+//   late rounds. Ignored for casual.
+// pointsScale: 'double_up' (no multipliers) or 'double_up_swiss' (multipliers).
+//
+// Returns: [{team_id, score, perPartner, placement}] sorted by score desc.
+//   `perPartner` is what each of the two partners receives in season-style
+//   per-player records (currently both partners get the team's score, since
+//   custom-only).
+export function scoreDoubleUpGame(teamPlacements, roundNumber, pointsScale) {
+  var rows = (teamPlacements || []).map(function(t) {
+    var place = t.placement || 0;
+    var base = (DOUBLE_UP_PTS[place] || 0);
+    var mult = 1;
+    if (pointsScale === "double_up_swiss" && roundNumber && DOUBLE_UP_MULTIPLIERS[roundNumber]) {
+      mult = DOUBLE_UP_MULTIPLIERS[roundNumber];
+    }
+    var score = Math.round(base * mult);
+    return { team_id: t.team_id, placement: place, score: score, perPartner: score };
+  });
+  rows.sort(function(a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    return (a.placement || 9) - (b.placement || 9);
+  });
+  return rows;
+}
+
+// Convenience dispatcher. Picks the right scoring function based on
+// pointsScale. For solo, returns null (callers use computeTournamentStandings
+// path instead).
+export function scoreLobbyGame(opts) {
+  var scale = (opts && opts.pointsScale) || "standard";
+  if (scale === "double_up" || scale === "double_up_swiss") {
+    return scoreDoubleUpGame(opts.teamPlacements, opts.roundNumber, scale);
+  }
+  if (opts && opts.playerPlacements) {
+    return scoreTeamGame(opts.playerPlacements);
+  }
+  return [];
+}
+
+// Aggregate multiple Double Up game results into per-team tournament
+// standings. Applies the Discord-style tiebreaker chain (adapted to 4-team):
+//   1. Total points (with multipliers already baked in via scoreDoubleUpGame)
+//   2. Most top-2 finishes (equivalent of solo "top-4")
+//   3. Fewest 4ths (equivalent of solo "fewest bot-3s")
+//   4. Most 1sts
+//   5. Best placement in the most recent game
+//
+// gameRows: [{team_id, placement, score, round_number?}] - one row per team per game
+// Returns: [{team_id, totalPoints, top2, fourths, firsts, games, lastPlacement}]
+//   sorted by the tiebreaker chain (best team first).
+export function computeDoubleUpStandings(gameRows) {
+  var byTeam = {};
+  (gameRows || []).forEach(function(g) {
+    var tid = g.team_id;
+    if (!tid) return;
+    if (!byTeam[tid]) {
+      byTeam[tid] = {
+        team_id: tid,
+        totalPoints: 0,
+        top2: 0,
+        fourths: 0,
+        firsts: 0,
+        games: 0,
+        lastRound: -1,
+        lastPlacement: 9
+      };
+    }
+    var s = byTeam[tid];
+    var place = g.placement || 0;
+    s.totalPoints += (g.score || 0);
+    s.games += 1;
+    if (place === 1) { s.firsts += 1; s.top2 += 1; }
+    else if (place === 2) { s.top2 += 1; }
+    else if (place === 4) { s.fourths += 1; }
+    var rnd = g.round_number || 0;
+    if (rnd > s.lastRound) { s.lastRound = rnd; s.lastPlacement = place || 9; }
+  });
+  return Object.keys(byTeam).map(function(k) { return byTeam[k]; })
+    .sort(function(a, b) {
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (b.top2 !== a.top2) return b.top2 - a.top2;
+      if (a.fourths !== b.fourths) return a.fourths - b.fourths;
+      if (b.firsts !== a.firsts) return b.firsts - a.firsts;
+      return (a.lastPlacement || 9) - (b.lastPlacement || 9);
+    });
+}
+
+// Resolve the lobby shape from a tournament row. Returns
+// {teamSize, teamsPerLobby, pointsScale, mode}. Falls back to solo when
+// neither column nor format preset specifies anything.
+export function resolveLobbyShape(tournament) {
+  if (!tournament) return {teamSize:1, teamsPerLobby:1, pointsScale:"standard", mode:"solo"};
+  var teamSize = tournament.team_size || 1;
+  var teamsPerLobby = tournament.teams_per_lobby || (teamSize === 4 ? 2 : (teamSize === 2 ? 4 : 1));
+  var pointsScale = tournament.points_scale || "standard";
+  var mode = "solo";
+  if (teamSize === 4 && teamsPerLobby === 2) mode = "squads_4v4";
+  else if (teamSize === 2 && teamsPerLobby === 4) mode = "double_up_2v2";
+  return {teamSize:teamSize, teamsPerLobby:teamsPerLobby, pointsScale:pointsScale, mode:mode};
 }
 
 // Build lobbies for a flash tournament from checked-in players

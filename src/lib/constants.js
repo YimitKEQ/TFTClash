@@ -37,6 +37,27 @@ export var REGIONS = ["EU","NA"];
 // Fixed scoring - not configurable
 export var PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
 
+// 2v2 Double Up (Riot official) - team placement (1-4) maps to points each
+// partner receives. Both partners share the team's placement and both get the
+// same per-player points.
+export var DOUBLE_UP_PTS = {1:4,2:3,3:2,4:1};
+
+// Late-round multipliers for the Discord-style swiss Double Up format.
+// Round number -> score multiplier. Applied per game at score time, then
+// rounded to the nearest integer to keep standings clean.
+export var DOUBLE_UP_MULTIPLIERS = {4:1.25,5:1.5};
+
+// Lobby shape: how many teams play together in a single lobby for each mode.
+//   solo:           1 "team" of 1 player, 8 of those teams per lobby (so we
+//                   keep this as 1 to mean "no team grouping").
+//   squads_4v4:     2 teams per lobby, 4 starters each = 8 players.
+//   double_up_2v2:  4 teams per lobby, 2 starters each = 8 players.
+export var LOBBY_SHAPES = {
+  solo:          {teamSize:1, teamsPerLobby:1, playersPerLobby:8},
+  squads_4v4:    {teamSize:4, teamsPerLobby:2, playersPerLobby:8},
+  double_up_2v2: {teamSize:2, teamsPerLobby:4, playersPerLobby:8}
+};
+
 export var DEFAULT_SEASON_CONFIG = {
   dropWeeks: 0,
   finalBoost: 1.0,
