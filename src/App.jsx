@@ -644,6 +644,16 @@ function TFTClash(){
     });
   }
 
+  // Host dashboard access gate: admin OR (approved host application + active host subscription).
+  // Computed here so the JSX block stays free of IIFEs (CLAUDE.md technical rule).
+  var hostApproved=currentUser&&hostApps.some(function(a){return a.status==="approved"&&a.user_id===currentUser.auth_user_id;});
+  var hasHostAccess=isAdmin||(hostApproved&&userTier==="host");
+  var hostGateMsg=!hostApproved
+    ?"Your host application is pending review. You will be notified once approved."
+    :"Your host subscription is inactive. Renew on the Pricing page to access the dashboard.";
+  var hostGateCtaLabel=hostApproved&&userTier!=="host"?"View Pricing":"Back to Home";
+  var hostGateCtaTarget=hostApproved&&userTier!=="host"?"pricing":"home";
+
   return(
 
     <>
@@ -735,9 +745,9 @@ function TFTClash(){
 
         {screen==="host-apply" &&<HostApplyScreenNew/>}
 
-        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&a.user_id===currentUser.auth_user_id;})))&&<HostDashboardScreenNew/>}
+        {screen==="host-dashboard"&&hasHostAccess&&<HostDashboardScreenNew/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&a.user_id===currentUser.auth_user_id;})))&&<div className="page wrap text-center pt-20"><div className="text-4xl mb-4">&#128274;</div><h2 className="text-on-surface mb-2">Host Access Required</h2><p className="text-on-surface/60 text-sm mb-5">Your host application is pending review. You will be notified once approved.</p><Btn variant="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!hasHostAccess&&<div className="page wrap text-center pt-20"><div className="text-4xl mb-4">&#128274;</div><h2 className="text-on-surface mb-2">Host Access Required</h2><p className="text-on-surface/60 text-sm mb-5">{hostGateMsg}</p><Btn variant="primary" onClick={function(){navTo(hostGateCtaTarget);}}>{hostGateCtaLabel}</Btn></div>}
 
 
         {screen==="stats"      &&<StatsHubScreenNew/>}
