@@ -439,6 +439,10 @@ export default function FlashTournamentScreen(props) {
   var _teamSizeRaw = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
   var teamSizeNum = Number.isFinite(_teamSizeRaw) && _teamSizeRaw > 0 ? _teamSizeRaw : 1;
   var isTeamEvent = teamSizeNum > 1;
+  // For team events, registrations are 1 row per team - the capacity unit is teams,
+  // not individuals. Convert max_players (set as total individuals) to a team cap.
+  var effectiveCap = isTeamEvent ? Math.max(1, Math.floor(maxP / teamSizeNum)) : maxP;
+  var capUnit = isTeamEvent ? 'teams' : 'players';
   var lobbyShape = resolveLobbyShape(tournament);
   var isDoubleUpLobby = lobbyShape.mode === 'double_up_2v2';
   var placementSlots = isDoubleUpLobby ? 4 : ((myLobby && myLobby.player_ids) ? myLobby.player_ids.length : 8);
@@ -465,7 +469,7 @@ export default function FlashTournamentScreen(props) {
         navigate('/teams');
         return;
       }
-      if (regCount >= maxP) { toast('Tournament is full', 'error'); return; }
+      if (regCount >= effectiveCap) { toast('Tournament is full', 'error'); return; }
       setActionLoading(true);
       supabase.from('registrations').upsert({
         tournament_id: tournamentId,
@@ -491,7 +495,7 @@ export default function FlashTournamentScreen(props) {
       return;
     }
     setActionLoading(true);
-    if (regCount >= maxP) {
+    if (regCount >= effectiveCap) {
       var waitPos = registrations.filter(function(r) { return r.status === 'waitlisted'; }).length + 1;
       supabase.from('registrations').upsert({
         tournament_id: tournamentId,
@@ -631,7 +635,7 @@ export default function FlashTournamentScreen(props) {
       var dropIds = notCheckedIn.map(function(r) { return r.id; });
       if (dropIds.length > 0) {
         supabase.from('registrations').update({status: 'dropped'}).in('id', dropIds).then(function() {
-          var openSpots = maxP - checkedInCount;
+          var openSpots = effectiveCap - checkedInCount;
           var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted'; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
           if (toPromote.length > 0) {
@@ -1504,10 +1508,10 @@ export default function FlashTournamentScreen(props) {
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-2xl font-bold text-on-surface">{regCount}</span>
-                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + maxP}</span>
+                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + effectiveCap}</span>
               </div>
               <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
-                {"players registered" + (phase === 'check_in' ? ' - ' + checkedInCount + ' checked in' : '')}
+                {capUnit + ' registered' + (phase === 'check_in' ? ' - ' + checkedInCount + ' checked in' : '')}
               </div>
             </div>
             <div className="flex gap-2 items-center">
@@ -1533,11 +1537,11 @@ export default function FlashTournamentScreen(props) {
             </div>
           </div>
           <div className="w-full bg-surface-container-lowest rounded-full h-1.5 overflow-hidden mt-3">
-            <div className={"h-full rounded-full transition-all duration-500 " + (regCount >= maxP ? "bg-error" : "bg-primary")} style={{width: Math.min(100, Math.round((regCount / maxP) * 100)) + '%'}} />
+            <div className={"h-full rounded-full transition-all duration-500 " + (regCount >= effectiveCap ? "bg-error" : "bg-primary")} style={{width: Math.min(100, Math.round((regCount / effectiveCap) * 100)) + '%'}} />
           </div>
           <div className="flex justify-between items-center mt-1">
-            <span className="text-[10px] font-mono text-on-surface-variant/40">{regCount + "/" + maxP + " spots filled"}</span>
-            {regCount >= maxP && (
+            <span className="text-[10px] font-mono text-on-surface-variant/40">{regCount + '/' + effectiveCap + ' ' + capUnit}</span>
+            {regCount >= effectiveCap && (
               <span className="text-[10px] font-mono text-error font-bold">{registrations.filter(function(r) { return r.status === 'waitlisted'; }).length + " on waitlist"}</span>
             )}
           </div>
@@ -1630,7 +1634,7 @@ export default function FlashTournamentScreen(props) {
                   {[
                     {label: 'Format', value: tournament.seeding_method || 'snake', icon: 'shuffle'},
                     {label: 'Games', value: totalGames, icon: 'videogame_asset'},
-                    {label: 'Max Players', value: maxP, icon: 'group'},
+                    {label: isTeamEvent ? 'Max Teams' : 'Max Players', value: isTeamEvent ? (effectiveCap + ' teams (' + maxP + ' players)') : maxP, icon: 'group'},
                     {label: 'Lobby Host', value: tournament.lobby_host_method || 'highest rank', icon: 'star'}
                   ].map(function(item) {
                     return (

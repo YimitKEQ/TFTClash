@@ -60,13 +60,17 @@ function AlmostFullStrip(props) {
     var t = tournaments[i]
     if (!t) continue
     if (t.phase !== 'registration') continue
-    var max = Number(t.max_players) || 128
+    var rawMax = Number(t.max_players) || 128
+    var teamSz = Number(t.team_size) || 1
+    // Registrations are 1 row per team for team events, so cap and unit must match.
+    var max = teamSz > 1 ? Math.max(1, Math.floor(rawMax / teamSz)) : rawMax
     if (max <= 0) continue
     var count = Number(regCounts[t.id]) || 0
     var pct = Math.round((count / max) * 100)
     if (pct < FILLING_MIN_PCT) continue
     if (pct >= 100) continue
-    rows.push({ t: t, count: count, max: max, pct: pct })
+    var unit = teamSz > 1 ? 'teams' : 'registered'
+    rows.push({ t: t, count: count, max: max, pct: pct, unit: unit })
   }
   if (rows.length === 0) return null
 
@@ -103,7 +107,7 @@ function AlmostFullStrip(props) {
                     {t.name || 'Untitled clash'}
                   </div>
                   <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/50 mt-0.5">
-                    {(t.region || 'EU') + ' · ' + (row.count + '/' + row.max + ' registered')}
+                    {(t.region || 'EU') + ' · ' + row.count + '/' + row.max + ' ' + row.unit}
                   </div>
                 </div>
                 <span
@@ -127,6 +131,15 @@ function AlmostFullStrip(props) {
   )
 }
 
+function teamBadgeFor(t) {
+  var sz = parseInt(t && t.team_size, 10) || 1;
+  var ps = String((t && t.points_scale) || 'standard');
+  if (sz === 4) return { label: '4v4', className: 'bg-tertiary/15 text-tertiary border-tertiary/30' };
+  if (sz === 2 && ps === 'double_up_swiss') return { label: '2v2 DU - Swiss', className: 'bg-secondary/15 text-secondary border-secondary/30' };
+  if (sz === 2) return { label: '2v2 DU', className: 'bg-secondary/15 text-secondary border-secondary/30' };
+  return null;
+}
+
 function FeaturedSpotlight(props) {
   var t = props.tournament;
   var regCount = props.regCount || 0;
@@ -138,6 +151,7 @@ function FeaturedSpotlight(props) {
   var topPrize = getTopPrize(prizes);
   var countdown = getCountdown(t.date);
   var maxP = t.max_players || 128;
+  var teamBadge = teamBadgeFor(t);
 
   return (
     <section className="mb-10 relative overflow-hidden rounded-xl border border-outline-variant/10 shadow-2xl">
@@ -152,6 +166,9 @@ function FeaturedSpotlight(props) {
           <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-label uppercase rounded">Featured</span>
           <span className={'px-3 py-1 text-[10px] font-bold font-label uppercase rounded ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
           {t.region && <RegionBadge region={t.region} size="md" />}
+          {teamBadge && (
+            <span className={'px-3 py-1 text-[10px] font-black font-label uppercase tracking-widest rounded border ' + teamBadge.className}>{teamBadge.label}</span>
+          )}
         </div>
         <h1 className="text-4xl lg:text-6xl font-black font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
         {t.description && (
@@ -214,6 +231,7 @@ function TournamentCard(props) {
   var dateStr = t.date ? new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : 'TBD';
   var badgeClass = phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface';
   var phaseLabel = phaseLabels[t.phase] || t.phase;
+  var cardTeamBadge = teamBadgeFor(t);
 
   var fillColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF';
 
@@ -226,9 +244,12 @@ function TournamentCard(props) {
       <div className="relative h-36 mb-4 overflow-hidden rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,198,107,0.3) 0px, rgba(255,198,107,0.3) 1px, transparent 1px, transparent 10px)'}} />
         <Icon name="account_tree" className="text-on-surface-variant/20" size={48} />
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
           <span className={'text-[9px] font-bold px-2 py-1 rounded uppercase font-label ' + badgeClass}>{phaseLabel}</span>
           {t.region && <RegionBadge region={t.region} size="sm" />}
+          {cardTeamBadge && (
+            <span className={'text-[9px] font-black px-2 py-1 rounded uppercase font-label tracking-widest border ' + cardTeamBadge.className}>{cardTeamBadge.label}</span>
+          )}
           {regionMismatch && (
             <span className="text-[9px] font-bold px-2 py-1 rounded uppercase font-label bg-error/15 text-error border border-error/30">Other Region</span>
           )}

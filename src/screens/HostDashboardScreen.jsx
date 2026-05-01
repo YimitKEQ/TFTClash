@@ -426,7 +426,7 @@ export default function HostDashboardScreen() {
       toast('No database ID for this tournament', 'error');
       return;
     }
-    var teamSize = parseInt(tournament.teamSize) || 1;
+    var teamSize = parseInt(tournament.teamSize, 10) || 1;
     var isTeamEvent = teamSize > 1;
     function csvEscape(value) {
       var s = value == null ? '' : String(value);
@@ -1102,7 +1102,7 @@ export default function HostDashboardScreen() {
               var isLive = t.status === "live";
               var isDraft = t.status === "upcoming" || t.status === "pending_approval";
               var isComplete = t.status === "complete";
-              var teamSz = parseInt(t.teamSize) || 1;
+              var teamSz = parseInt(t.teamSize, 10) || 1;
               var ptsScale = String(t.pointsScale || 'standard');
               var teamBadge = null;
               if (teamSz === 4) teamBadge = <span className="px-2 py-0.5 bg-tertiary/15 text-tertiary border border-tertiary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">4v4</span>;
