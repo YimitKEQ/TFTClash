@@ -488,13 +488,27 @@ export default function TournamentDetailScreen() {
   if (tournamentResults.length > 0) {
     var playerMap = {}
     tournamentResults.forEach(function(r) {
-      if (!playerMap[r.player_id]) playerMap[r.player_id] = { player_id: r.player_id, playerName: playerNameMap[r.player_id] || 'Unknown Player', total: 0, games: [], wins: 0, top4: 0 }
-      playerMap[r.player_id].total += r.points || 0
-      playerMap[r.player_id].games.push({ round: r.round_number, placement: r.placement, points: r.points })
-      if (r.placement === 1) playerMap[r.player_id].wins += 1
-      if (r.placement <= 4) playerMap[r.player_id].top4 += 1
+      if (!playerMap[r.player_id]) playerMap[r.player_id] = { player_id: r.player_id, playerName: playerNameMap[r.player_id] || 'Unknown Player', total: 0, games: [], wins: 0, top4: 0, lastRound: -1, lastPlacement: 9 }
+      var pm = playerMap[r.player_id]
+      var place = r.placement || 0
+      pm.total += r.points || 0
+      pm.games.push({ round: r.round_number, placement: place, points: r.points })
+      if (place === 1) pm.wins += 1
+      if (place > 0 && place <= 4) pm.top4 += 1
+      var rnd = r.round_number || 0
+      if (rnd > pm.lastRound) { pm.lastRound = rnd; pm.lastPlacement = place || 9 }
     })
-    standings = Object.values(playerMap).sort(function(a, b) { return b.total - a.total; })
+    // Tiebreaker chain mirrors the canonical solo chain used at finalize:
+    // total -> wins*2 + top4 (top-cut weight) -> wins -> top4 -> last placement.
+    standings = Object.values(playerMap).sort(function(a, b) {
+      if (b.total !== a.total) return b.total - a.total
+      var aWeight = (a.wins * 2) + a.top4
+      var bWeight = (b.wins * 2) + b.top4
+      if (bWeight !== aWeight) return bWeight - aWeight
+      if (b.wins !== a.wins) return b.wins - a.wins
+      if (b.top4 !== a.top4) return b.top4 - a.top4
+      return (a.lastPlacement || 9) - (b.lastPlacement || 9)
+    })
   }
 
   var teamStandings = []

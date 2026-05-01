@@ -214,6 +214,29 @@ export async function disbandTeam(teamId, reason) {
     .eq('status', 'pending');
   if (inviteRes.error) throw inviteRes.error;
 
+  // Drop any open registrations for this team in tournaments that have not
+  // yet completed. Otherwise the row keeps consuming a slot, blocks the
+  // members from joining a different team for the same tournament (mig 100
+  // collision check), and leaves stale lineup_player_ids in the system.
+  var openRegRes = await supabase
+    .from('registrations')
+    .select('id, tournament_id, status, tournament:tournaments(phase)')
+    .eq('team_id', teamId);
+  if (openRegRes.error) throw openRegRes.error;
+  var dropIds = (openRegRes.data || [])
+    .filter(function(r) {
+      var ph = r.tournament && r.tournament.phase;
+      return ph === 'registration' || ph === 'check_in' || ph === 'upcoming';
+    })
+    .map(function(r) { return r.id; });
+  if (dropIds.length > 0) {
+    var dropRes = await supabase
+      .from('registrations')
+      .delete()
+      .in('id', dropIds);
+    if (dropRes.error) throw dropRes.error;
+  }
+
   return teamRes.data;
 }
 

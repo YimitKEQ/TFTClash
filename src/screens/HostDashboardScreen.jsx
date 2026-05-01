@@ -579,8 +579,25 @@ export default function HostDashboardScreen() {
     });
   }
 
+  function isSafeImageUrl(raw) {
+    var s = String(raw || "").trim();
+    if (!s) return true;
+    var lower = s.toLowerCase();
+    // Block javascript:, data:, file:, blob:, vbscript:, etc. Allow only https / http.
+    if (lower.indexOf('javascript:') === 0 || lower.indexOf('data:') === 0 || lower.indexOf('vbscript:') === 0 || lower.indexOf('file:') === 0 || lower.indexOf('blob:') === 0) return false;
+    try {
+      var u = new URL(s);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function saveBranding() {
     if (!supabase.from || !currentUser) { toast("Sign in required", "error"); return; }
+    if (!isSafeImageUrl(brandLogoUrl)) { toast("Logo URL must be a valid http(s) link.", "error"); return; }
+    if (!isSafeImageUrl(brandBannerUrl)) { toast("Banner URL must be a valid http(s) link.", "error"); return; }
     // Cap inputs so a misclick or a bad paste cannot bloat the row.
     var capped = {
       name: String(brandName || "").slice(0, 80),
@@ -620,6 +637,12 @@ export default function HostDashboardScreen() {
       toast(announceTo === "all" ? "No tournaments with registered players yet" : "Tournament not found", "error");
       return;
     }
+    // Estimated reach (sum of registrations across targets) for the confirm prompt.
+    var reach = targetTournaments.reduce(function(s, t) { return s + (t.registered || 0); }, 0);
+    var label = announceTo === "all"
+      ? "all registered players across " + targetTournaments.length + " tournament" + (targetTournaments.length === 1 ? "" : "s")
+      : '"' + announceTo + '"';
+    if (!confirm("Send this announcement to " + label + "? (~" + reach + " player" + (reach === 1 ? "" : "s") + " will be notified.) This cannot be undone.")) return;
     var calls = targetTournaments.map(function(t) {
       return supabase.rpc('notify_tournament_players', {
         p_tournament_id: t.dbId,
@@ -684,10 +707,11 @@ export default function HostDashboardScreen() {
             <div className="space-y-2">
               <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Date</label>
               <input
+                type="date"
                 className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
                 value={wizData.date}
+                min={new Date().toISOString().slice(0, 10)}
                 onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { date: v }); }); }}
-                placeholder="Mar 24 2026"
               />
             </div>
           </div>
@@ -702,7 +726,17 @@ export default function HostDashboardScreen() {
             <Btn
               variant="primary"
               size="md"
-              onClick={function() { if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; } setWizStep(1); }}
+              onClick={function() {
+                var name = (wizData.name || '').trim();
+                var date = (wizData.date || '').trim();
+                if (!name) { toast('Tournament name is required.', 'error'); return; }
+                if (name.length > 80) { toast('Tournament name max 80 chars.', 'error'); return; }
+                if (!date) { toast('Date is required.', 'error'); return; }
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { toast('Pick a date from the calendar.', 'error'); return; }
+                if (date < new Date().toISOString().slice(0, 10)) { toast('Date must be today or later.', 'error'); return; }
+                setWizData(function(d) { return Object.assign({}, d, { name: name, date: date }); });
+                setWizStep(1);
+              }}
             >
               Next: Format
             </Btn>
@@ -726,9 +760,8 @@ export default function HostDashboardScreen() {
               <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Format</label>
               <Sel value={wizData.type} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { type: v }); }); }}>
                 <option value="swiss">Swiss System</option>
-                <option value="standard">Single Elimination</option>
-                <option value="round_robin">Round Robin</option>
               </Sel>
+              <div className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50">Single elim and round robin coming soon.</div>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Player Limit</label>
@@ -740,7 +773,7 @@ export default function HostDashboardScreen() {
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Check-in Window</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Games per Player</label>
               <Sel value={String(wizData.totalGames)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { totalGames: parseInt(v) }); }); }}>
                 {[2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n + " games"}</option>; })}
               </Sel>
@@ -766,13 +799,14 @@ export default function HostDashboardScreen() {
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(optional, requires admin approval)</span></label>
+            <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(informational only, payment collection coming soon)</span></label>
             <input
               className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
               value={wizData.entryFee}
-              onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { entryFee: v }); }); }}
+              onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { entryFee: v.slice(0, 40) }); }); }}
               placeholder="Leave blank = free"
             />
+            <div className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50">Players are not charged through the platform yet. Display only.</div>
           </div>
           <div className="space-y-2">
             <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Custom Rules <span className="text-on-surface-variant/50 normal-case font-normal">(optional)</span></label>
@@ -794,7 +828,15 @@ export default function HostDashboardScreen() {
           </div>
           <div className="flex items-center gap-4">
             <Btn variant="secondary" size="md" onClick={function() { setWizStep(0); }}>Back</Btn>
-            <Btn variant="primary" size="md" onClick={function() { setWizStep(2); }}>Next: Branding</Btn>
+            <Btn variant="primary" size="md" onClick={function() {
+              var fmt = wizData.teamFormat;
+              var ts = fmt === 'squads_4v4' ? 4 : (fmt === 'double_up_casual' || fmt === 'double_up_swiss') ? 2 : 1;
+              if (ts > 1 && (wizData.maxPlayers % (ts === 4 ? 8 : 8)) !== 0) {
+                toast('Player Limit must be a multiple of 8 for team formats.', 'error');
+                return;
+              }
+              setWizStep(2);
+            }}>Next: Branding</Btn>
           </div>
         </div>
       );
@@ -1233,12 +1275,13 @@ export default function HostDashboardScreen() {
                     )}
                     <button
                       type="button"
-                      aria-label="Delete tournament"
+                      aria-label="Archive tournament"
+                      title="Archive tournament"
                       className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"
                       onClick={function() {
                         var stillLive = t.phase !== 'complete' && t.phase !== 'cancelled';
                         var confirmMsg = stillLive
-                          ? "This tournament is still live (" + (t.phase || 'in progress') + "). Deleting will force it to complete and players watching will see it end immediately. Proceed?"
+                          ? "This tournament is still live (" + (t.phase || 'in progress') + "). Archiving will force it to complete and players watching will see it end immediately. Proceed?"
                           : "Archive this tournament? Registrations and results are preserved.";
                         if (!confirm(confirmMsg)) return;
                         if (!t.dbId) {
@@ -1253,14 +1296,14 @@ export default function HostDashboardScreen() {
                           .eq('id', t.dbId)
                           .eq('host_id', currentUser ? currentUser.auth_user_id : null)
                           .then(function(r) {
-                            if (r.error) { toast("Delete failed: " + r.error.message, "error"); return; }
+                            if (r.error) { toast("Archive failed: " + r.error.message, "error"); return; }
                             setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
                             toast(stillLive ? "Tournament archived (forced complete)" : "Tournament archived", "info");
                           })
-                          .catch(function(err) { toast("Delete failed: " + (err && err.message ? err.message : 'unknown'), "error"); });
+                          .catch(function(err) { toast("Archive failed: " + (err && err.message ? err.message : 'unknown'), "error"); });
                       }}
                     >
-                      <Icon name="delete" size={18} aria-hidden="true" />
+                      <Icon name="archive" size={18} aria-hidden="true" />
                     </button>
                   </div>
                 </div>

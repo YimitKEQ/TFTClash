@@ -437,15 +437,26 @@ function BracketScreen(){
       return Object.assign({},ps,{[li]:lobbySubmissions});
     });
     if(supabase.from&&tournamentState.dbTournamentId){
-      supabase.from('player_reports').upsert({
-        tournament_id:tournamentState.dbTournamentId,
-        lobby_id:null,
-        game_number:round,
-        player_id:playerId,
-        reported_placement:p,
-        reported_at:new Date().toISOString()
-      },{onConflict:'tournament_id,game_number,player_id'}).then(function(r){
-      }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
+      // The DB unique key is (lobby_id, game_number, player_id) but BracketScreen does
+      // not track lobby UUIDs (season-clash flow), so lobby_id is null and NULL!=NULL
+      // means the constraint never dedupes. Delete prior null-lobby rows for this
+      // player/round before inserting to avoid stacking duplicate self-reports.
+      supabase.from('player_reports').delete()
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('player_id',playerId)
+        .eq('game_number',round)
+        .is('lobby_id',null)
+        .then(function(){
+          supabase.from('player_reports').insert({
+            tournament_id:tournamentState.dbTournamentId,
+            lobby_id:null,
+            game_number:round,
+            player_id:playerId,
+            reported_placement:p,
+            reported_at:new Date().toISOString()
+          }).then(function(r){
+          }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
+        }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
     }
     toast("Placement submitted - waiting for admin confirmation","success");
   }
@@ -585,24 +596,48 @@ function BracketScreen(){
     var doSave=function(tId){
       supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()}).eq('id',tId)
         .then(function(r){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
+      // Aggregate per-player stats from clashHistory and rank them with the canonical
+      // solo tiebreaker chain (matches FlashTournamentScreen.finalizeTournament).
+      // Uses standard competition ranking so equal rows share a placement instead
+      // of being arbitrarily ordered by Map iteration order.
       var playerTotals={};
       allPlayers.forEach(function(p){
         var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
         if(entries.length===0)return;
         var totalPts=entries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
         var wins=entries.filter(function(h){return(h.place||h.placement)===1;}).length;
-        var top4=entries.filter(function(h){return(h.place||h.placement)<=4;}).length;
-        var bestPlace=Math.min.apply(null,entries.map(function(h){return h.place||h.placement;}));
-        playerTotals[p.id]={tournament_id:tId,player_id:p.id,final_placement:bestPlace,total_points:totalPts,wins:wins,top4_count:top4};
+        var top4=entries.filter(function(h){return(h.place||h.placement)>=1&&(h.place||h.placement)<=4;}).length;
+        var placeSum=entries.reduce(function(s,h){return s+((h.place||h.placement)||0);},0);
+        var sorted=entries.slice().sort(function(a,b){return(a.round||0)-(b.round||0);});
+        var lastEntry=sorted[sorted.length-1];
+        var lastPlacement=lastEntry?(lastEntry.place||lastEntry.placement||9):9;
+        playerTotals[p.id]={tournament_id:tId,player_id:p.id,total_points:totalPts,wins:wins,top4_count:top4,_placeSum:placeSum,_lastPlacement:lastPlacement};
       });
-      var rows=Object.values(playerTotals);
+      var ranked=Object.values(playerTotals).slice().sort(function(a,b){
+        if(b.total_points!==a.total_points)return b.total_points-a.total_points;
+        var aTie=(a.wins*2)+a.top4_count;
+        var bTie=(b.wins*2)+b.top4_count;
+        if(bTie!==aTie)return bTie-aTie;
+        if(b.wins!==a.wins)return b.wins-a.wins;
+        if(b.top4_count!==a.top4_count)return b.top4_count-a.top4_count;
+        if(a._placeSum!==b._placeSum)return a._placeSum-b._placeSum;
+        return a._lastPlacement-b._lastPlacement;
+      });
+      function tieKey(r){return [r.total_points,(r.wins*2)+r.top4_count,r.wins,r.top4_count,-r._placeSum,-r._lastPlacement].join('|');}
+      var lastKey=null;
+      var lastRank=0;
+      var rows=ranked.map(function(r,idx){
+        var k=tieKey(r);
+        if(k!==lastKey){lastRank=idx+1;lastKey=k;}
+        return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:lastRank};
+      });
       if(rows.length>0){
-        supabase.from('tournament_results').insert(rows).then(function(r){
+        supabase.from('tournament_results').upsert(rows,{onConflict:'tournament_id,player_id'}).then(function(r){
           if(r.error){toast("Failed to save player results","error");return;}
           allPlayers.forEach(function(p){
             if(p.authUserId){createNotification(p.authUserId,"Results Finalized",clashName+" results are in! Check the Results screen to see your placement and points.","trophy");}
           });
-          var winnerRow=rows.reduce(function(best,row){return row.final_placement<best.final_placement?row:best;},rows[0]);
+          var winnerRow=rows.find(function(row){return row.final_placement===1;});
           if(winnerRow){
             var winnerPlayer=allPlayers.find(function(p){return p.id===winnerRow.player_id;});
             if(winnerPlayer)writeActivityEvent("result",winnerPlayer.id,winnerPlayer.name+" won "+clashName);

@@ -679,18 +679,28 @@ export default function FlashTournamentScreen(props) {
           var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted'; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
           if (toPromote.length > 0) {
-            var promoteIds = toPromote.map(function(r) { return r.id; });
-            supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() {
-              // Notify promoted players (and all team members for team events)
+            // Solo regs can be promoted straight to checked_in. Team regs may
+            // not have a lineup yet (lineup is set on captain check-in), and
+            // the lineup-validation trigger will reject a checked_in update
+            // without one. Promote teams to 'registered' and ask the captain
+            // to check in manually so the lineup picker fires.
+            var soloPromoteIds = toPromote.filter(function(r) { return !r.team_id; }).map(function(r) { return r.id; });
+            var teamPromoteIds = toPromote.filter(function(r) { return !!r.team_id; }).map(function(r) { return r.id; });
+            var promoteSolo = soloPromoteIds.length > 0
+              ? supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', soloPromoteIds)
+              : Promise.resolve({error: null});
+            var promoteTeam = teamPromoteIds.length > 0
+              ? supabase.from('registrations').update({status: 'registered'}).in('id', teamPromoteIds)
+              : Promise.resolve({error: null});
+            Promise.all([promoteSolo, promoteTeam]).then(function() {
               var promoteTitle = 'Spot Opened!';
-              var promoteBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!';
               toPromote.forEach(function(r) {
                 if (r.team_id) {
-                  try {
-                    notifyTeamMembers(r.team_id, promoteTitle, promoteBody, 'celebration');
-                  } catch (e) {}
+                  var teamBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + '. Your team has been moved off the waitlist - the captain must complete check-in.';
+                  try { notifyTeamMembers(r.team_id, promoteTitle, teamBody, 'celebration'); } catch (e) {}
                 } else if (r.player_id) {
-                  createNotification(r.player_id, promoteTitle, promoteBody, 'celebration');
+                  var soloBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!';
+                  createNotification(r.player_id, promoteTitle, soloBody, 'celebration');
                 }
               });
               loadRegistrations();
@@ -887,18 +897,32 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminOverridePlacement(lobbyId, playerId, placement) {
+    var p = parseInt(placement, 10);
+    var shape = resolveLobbyShape(tournament);
+    var maxPlace = shape.mode === 'double_up_2v2' ? 4 : 8;
+    if (!p || p < 1 || p > maxPlace) {
+      toast('Placement must be 1-' + maxPlace + ' for this lobby type.', 'error');
+      return;
+    }
+    var lobby = lobbies.find(function(l) { return l.id === lobbyId; });
+    var lobbyLocked = !!(lobby && lobby.status === 'locked');
+    if (lobbyLocked) {
+      if (!confirm('This lobby is locked. Override will rewrite the report; you must Unlock and Lock the lobby again to refresh standings. Continue?')) {
+        return;
+      }
+    }
     supabase.from('player_reports').upsert({
       tournament_id: tournamentId,
       lobby_id: lobbyId,
       game_number: currentGameNumber,
       player_id: playerId,
-      reported_placement: placement,
+      reported_placement: p,
       reported_at: new Date().toISOString()
     }, {onConflict: 'lobby_id,game_number,player_id'})
       .then(function(res) {
         if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
-        writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: placement });
-        toast('Placement overridden', 'success');
+        writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: p });
+        toast('Placement overridden' + (lobbyLocked ? ' - re-lock the lobby to update standings.' : ''), 'success');
         broadcastUpdate('report_submitted');
         loadReports();
       }).catch(function() { toast('Override failed', 'error'); });
@@ -917,6 +941,10 @@ export default function FlashTournamentScreen(props) {
   function resolveDispute(disputeId, accept) {
     var d = disputes.find(function(x) { return x.id === disputeId; });
     if (!d) return;
+    if (accept && tournament && (tournament.phase === 'complete' || tournament.phase === 'completed')) {
+      toast('This tournament is already finalized. Re-open it before accepting a dispute.', 'error');
+      return;
+    }
     var note = window.prompt((accept ? 'Accepting' : 'Rejecting') + ' dispute - add a resolution note (shown to the player):', '');
     if (note === null) return;
     note = String(note).replace(/[<>]/g, '').slice(0, 500).trim();
@@ -929,16 +957,34 @@ export default function FlashTournamentScreen(props) {
     supabase.from('disputes').update(updates).eq('id', disputeId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       if (accept && d.claimed_placement) {
+        var gameNum = d.game_number || currentGameNumber;
+        var shape = resolveLobbyShape(tournament);
+        var isDU = shape.mode === 'double_up_2v2';
+        var swissMult = (isDU && shape.pointsScale === 'double_up_swiss' && DOUBLE_UP_MULTIPLIERS[gameNum]) ? DOUBLE_UP_MULTIPLIERS[gameNum] : 1;
+        var newPts = isDU
+          ? Math.round((DOUBLE_UP_PTS[d.claimed_placement] || 0) * swissMult)
+          : (PTS[d.claimed_placement] || 0);
         supabase.from('player_reports').upsert({
           tournament_id: tournamentId,
           lobby_id: d.lobby_id,
-          game_number: d.game_number || currentGameNumber,
+          game_number: gameNum,
           player_id: d.player_id,
           reported_placement: d.claimed_placement,
           reported_at: new Date().toISOString()
         }, {onConflict: 'lobby_id,game_number,player_id'}).then(function() {
-          broadcastUpdate('report_submitted');
-          loadReports();
+          // Also patch the existing locked game_results row so standings reflect
+          // the dispute outcome immediately (without forcing the admin to
+          // unlock + re-lock the lobby).
+          supabase.from('game_results')
+            .update({ placement: d.claimed_placement, points: newPts })
+            .eq('tournament_id', tournamentId)
+            .eq('game_number', gameNum)
+            .eq('player_id', d.player_id)
+            .then(function() {
+              broadcastUpdate('report_submitted');
+              loadReports();
+              loadResults();
+            }).catch(function() {});
         }).catch(function() {});
       }
       writeAuditLog('dispute.resolve', actorContext(), { type: 'dispute', id: disputeId }, { tournament_id: tournamentId, player_id: d.player_id, lobby_id: d.lobby_id, accepted: !!accept, note: note || null, claimed: d.claimed_placement, reported: d.reported_placement });
@@ -1061,9 +1107,30 @@ export default function FlashTournamentScreen(props) {
           );
         } catch (e) {}
       }
+      // Promote head of waitlist to fill the freed slot.
+      var waitlist = registrations
+        .filter(function(w) { return w.status === 'waitlisted'; })
+        .sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
+      var head = waitlist[0];
+      if (head) {
+        supabase.from('registrations')
+          .update({status: 'registered', waitlist_position: null})
+          .eq('id', head.id)
+          .then(function() {
+            var promoteTitle = 'Spot Opened!';
+            if (head.team_id) {
+              var teamBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + '. Your team has been moved off the waitlist - the captain must complete check-in.';
+              try { notifyTeamMembers(head.team_id, promoteTitle, teamBody, 'celebration'); } catch (e) {}
+            } else if (head.player_id) {
+              createNotification(head.player_id, promoteTitle, 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been moved off the waitlist.', 'celebration');
+            }
+            loadRegistrations();
+          }).catch(function() { loadRegistrations(); });
+      } else {
+        loadRegistrations();
+      }
       toast('Withdrawn', 'success');
       broadcastUpdate('admin_force_withdraw');
-      loadRegistrations();
     }).catch(function() { toast('Network error', 'error'); });
   }
 
