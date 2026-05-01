@@ -86,7 +86,7 @@ function EmbedTab(props) {
   var hostQuery = slug ? '?host=' + encodeURIComponent(slug) : ''
   var widgetUrl = origin + '/api/widget' + (hostQuery || '?') + (hostQuery ? '&' : '') + 'theme=' + theme
   var calendarUrl = origin + '/api/calendar' + hostQuery
-  var tournamentsJson = origin + '/api/public-tournaments?status=upcoming' + (slug ? '' : '')
+  var tournamentsJson = origin + '/api/public-tournaments?status=upcoming' + (slug ? '&host=' + encodeURIComponent(slug) : '')
   var leaderboardJson = origin + '/api/public-players?limit=100'
 
   var markdown = '![TFT Clash next event](' + widgetUrl + ')\n[tftclash.com' + (slug ? '/?host=' + slug : '') + '](' + origin + ')'
@@ -181,7 +181,8 @@ function EmbedTab(props) {
 
 function TemplatesTab(props) {
   var toast = props.toast
-  var _list = useState(function() { return readTemplates() })
+  // Wrapped: localStorage can throw in private browsing or when storage is full.
+  var _list = useState(function() { try { return readTemplates() } catch (e) { return [] } })
   var list = _list[0]
   var setList = _list[1]
   var _showForm = useState(false)
@@ -397,6 +398,8 @@ export default function HostDashboardScreen() {
 
   function uploadImage(file, type) {
     if (!file || !supabase.storage) return;
+    if (!/^image\//.test(file.type || "")) { toast("Please select an image file", "error"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast("Image must be under 5MB", "error"); return; }
     var setUploading = type === "logo" ? setUploadingLogo : setUploadingBanner;
     var setUrl = type === "logo" ? setBrandLogoUrl : setBrandBannerUrl;
     setUploading(true);
@@ -518,37 +521,67 @@ export default function HostDashboardScreen() {
   }
 
   function saveBranding() {
-    if (setHostBranding) setHostBranding({ name: brandName, logo: brandLogo, color: brandColor, bio: brandBio, logoUrl: brandLogoUrl, bannerUrl: brandBannerUrl });
-    if (supabase.from && currentUser) {
-      supabase.from("host_profiles").update({
-        org_name: brandName,
-        brand_color: brandColor,
-        bio: brandBio,
-        logo_url: brandLogoUrl || brandLogo,
-        banner_url: brandBannerUrl || ""
-      }).eq("user_id", currentUser.auth_user_id).then(function(res) {
-      }).catch(function() {});
-    }
-    setBrandSaved(true);
-    toast("Branding saved!", "success");
-    setTimeout(function() { setBrandSaved(false); }, 3000);
+    if (!supabase.from || !currentUser) { toast("Sign in required", "error"); return; }
+    // Cap inputs so a misclick or a bad paste cannot bloat the row.
+    var capped = {
+      name: String(brandName || "").slice(0, 80),
+      logo: brandLogo,
+      color: String(brandColor || "").slice(0, 20),
+      bio: String(brandBio || "").slice(0, 1000),
+      logoUrl: String(brandLogoUrl || "").slice(0, 500),
+      bannerUrl: String(brandBannerUrl || "").slice(0, 500)
+    };
+    supabase.from("host_profiles").update({
+      org_name: capped.name,
+      brand_color: capped.color,
+      bio: capped.bio,
+      logo_url: capped.logoUrl || capped.logo,
+      banner_url: capped.bannerUrl
+    }).eq("user_id", currentUser.auth_user_id).then(function(res) {
+      if (res && res.error) { toast("Save failed: " + res.error.message, "error"); return; }
+      if (setHostBranding) setHostBranding(capped);
+      setBrandSaved(true);
+      toast("Branding saved!", "success");
+      setTimeout(function() { setBrandSaved(false); }, 3000);
+    }).catch(function(err) {
+      toast("Save failed: " + (err && err.message ? err.message : "unknown"), "error");
+    });
   }
 
   function sendAnnouncement() {
     if (!announceMsg.trim()) { toast("Write a message first", "error"); return; }
-    var msg = announceMsg.trim();
-    var a = { id: Date.now(), to: announceTo, msg: msg, sentAt: new Date().toLocaleString() };
-    var newArr = [a].concat(announcements);
-    setAnnouncements(function() { return newArr; });
-    if (setHostAnnouncements) setHostAnnouncements(newArr);
-    setAnnounceMsg("");
-    if (supabase.from) {
-      supabase.from('site_settings').upsert(
-        { key: 'announcement', value: msg },
-        { onConflict: 'key' }
-      ).then(function(r) { }).catch(function() {})
+    if (!supabase || !supabase.rpc) { toast("Notifications unavailable", "error"); return; }
+    var msg = announceMsg.trim().slice(0, 500);
+    // Resolve target tournaments. "all" = every host tournament with registrations;
+    // otherwise = the single tournament whose name matches the dropdown value.
+    var targetTournaments = announceTo === "all"
+      ? tournaments.filter(function(t) { return t.dbId && (t.registered || 0) > 0; })
+      : tournaments.filter(function(t) { return t.dbId && t.name === announceTo; });
+    if (targetTournaments.length === 0) {
+      toast(announceTo === "all" ? "No tournaments with registered players yet" : "Tournament not found", "error");
+      return;
     }
-    toast("Announcement sent to " + (announceTo === "all" ? "all players" : announceTo + " players"), "success");
+    var calls = targetTournaments.map(function(t) {
+      return supabase.rpc('notify_tournament_players', {
+        p_tournament_id: t.dbId,
+        p_title: t.name + ' - Announcement',
+        p_body: msg,
+        p_icon: 'campaign'
+      });
+    });
+    Promise.all(calls).then(function(results) {
+      var totalNotified = results.reduce(function(s, r) { return s + (r && typeof r.data === 'number' ? r.data : 0); }, 0);
+      var anyError = results.find(function(r) { return r && r.error; });
+      if (anyError) { toast("Send failed: " + anyError.error.message, "error"); return; }
+      var a = { id: Date.now(), to: announceTo, msg: msg, sentAt: new Date().toLocaleString(), notified: totalNotified };
+      var newArr = [a].concat(announcements);
+      setAnnouncements(function() { return newArr; });
+      if (setHostAnnouncements) setHostAnnouncements(newArr);
+      setAnnounceMsg("");
+      toast("Announcement sent to " + totalNotified + " player" + (totalNotified === 1 ? "" : "s"), "success");
+    }).catch(function(err) {
+      toast("Send failed: " + (err && err.message ? err.message : "unknown"), "error");
+    });
   }
 
   var liveTournaments = tournaments.filter(function(t) { return t.status === "live"; });
@@ -1103,19 +1136,26 @@ export default function HostDashboardScreen() {
                       aria-label="Delete tournament"
                       className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"
                       onClick={function() {
-                        if (!confirm("Delete this tournament?\n\nIt will be archived. Registrations and results are preserved.")) return;
+                        var stillLive = t.phase !== 'complete' && t.phase !== 'cancelled';
+                        var confirmMsg = stillLive
+                          ? "This tournament is still live (" + (t.phase || 'in progress') + "). Deleting will force it to complete and players watching will see it end immediately. Proceed?"
+                          : "Archive this tournament? Registrations and results are preserved.";
+                        if (!confirm(confirmMsg)) return;
                         if (!t.dbId) {
                           setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
                           toast("Tournament removed", "info");
                           return;
                         }
+                        var nowIso = new Date().toISOString();
+                        var patch = stillLive ? { phase: 'complete', archived_at: nowIso } : { archived_at: nowIso };
                         supabase.from('tournaments')
-                          .update({ phase: 'complete', archived_at: new Date().toISOString() })
+                          .update(patch)
                           .eq('id', t.dbId)
+                          .eq('host_id', currentUser ? currentUser.auth_user_id : null)
                           .then(function(r) {
                             if (r.error) { toast("Delete failed: " + r.error.message, "error"); return; }
                             setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
-                            toast("Tournament deleted", "info");
+                            toast(stillLive ? "Tournament archived (forced complete)" : "Tournament archived", "info");
                           })
                           .catch(function(err) { toast("Delete failed: " + (err && err.message ? err.message : 'unknown'), "error"); });
                       }}

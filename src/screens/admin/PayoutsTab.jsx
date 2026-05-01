@@ -199,13 +199,13 @@ export default function PayoutsTab() {
         <Panel className="p-3">
           <div className="text-[10px] font-label uppercase tracking-widest text-on-surface/50">Outstanding $</div>
           <div className="font-mono text-sm text-tertiary mt-2">
-            {Object.keys(totalOutstandingByCur).length === 0 ? <span className="text-on-surface/40">—</span> : Object.keys(totalOutstandingByCur).map(function(c) { return c + ' ' + totalOutstandingByCur[c].toFixed(2) }).join(' / ')}
+            {Object.keys(totalOutstandingByCur).length === 0 ? <span className="text-on-surface/40">-</span> : Object.keys(totalOutstandingByCur).map(function(c) { return c + ' ' + totalOutstandingByCur[c].toFixed(2) }).join(' / ')}
           </div>
         </Panel>
         <Panel className="p-3">
           <div className="text-[10px] font-label uppercase tracking-widest text-on-surface/50">Paid out</div>
           <div className="font-mono text-sm text-success mt-2">
-            {Object.keys(totalPaidByCur).length === 0 ? <span className="text-on-surface/40">—</span> : Object.keys(totalPaidByCur).map(function(c) { return c + ' ' + totalPaidByCur[c].toFixed(2) }).join(' / ')}
+            {Object.keys(totalPaidByCur).length === 0 ? <span className="text-on-surface/40">-</span> : Object.keys(totalPaidByCur).map(function(c) { return c + ' ' + totalPaidByCur[c].toFixed(2) }).join(' / ')}
           </div>
         </Panel>
       </div>

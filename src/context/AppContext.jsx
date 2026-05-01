@@ -743,18 +743,26 @@ export function AppProvider(props) {
       })
       .subscribe();
 
-    // Realtime on players table
-    var playersCh=supabase.channel('players_realtime')
-      .on('postgres_changes',{event:'*',schema:'public',table:'players'},function(){
+    // Realtime on players + game_results.
+    // CRITICAL: every event used to fire loadPlayersFromTable() which runs a
+    // 3-query waterfall (players + tournaments + up to 50k game_results).
+    // During lobby lock that's 24+ writes in a few seconds, so every connected
+    // browser was hammering the DB. Trailing debounce collapses bursts into
+    // one refetch ~600ms after the last event.
+    var loadDebounceTimer=null;
+    function scheduleLoadPlayers(){
+      if(loadDebounceTimer)clearTimeout(loadDebounceTimer);
+      loadDebounceTimer=setTimeout(function(){
+        loadDebounceTimer=null;
         loadPlayersFromTable();
-      })
+      },600);
+    }
+    var playersCh=supabase.channel('players_realtime')
+      .on('postgres_changes',{event:'*',schema:'public',table:'players'},scheduleLoadPlayers)
       .subscribe();
 
-    // Realtime on game_results
     var gameResultsCh=supabase.channel('game_results_realtime')
-      .on('postgres_changes',{event:'*',schema:'public',table:'game_results'},function(){
-        loadPlayersFromTable();
-      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'game_results'},scheduleLoadPlayers)
       .subscribe();
 
     // Realtime on registrations.
@@ -820,7 +828,7 @@ export function AppProvider(props) {
       })
       .subscribe();
 
-    return function(){supabase.removeChannel(ch);supabase.removeChannel(playersCh);supabase.removeChannel(gameResultsCh);supabase.removeChannel(regCh);};
+    return function(){if(loadDebounceTimer)clearTimeout(loadDebounceTimer);supabase.removeChannel(ch);supabase.removeChannel(playersCh);supabase.removeChannel(gameResultsCh);supabase.removeChannel(regCh);};
 
   },[]);
 

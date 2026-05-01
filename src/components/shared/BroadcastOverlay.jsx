@@ -21,28 +21,32 @@ function BroadcastOverlay(props) {
   var setLastUpdate = _lastUpdate[1];
 
   useEffect(function() {
-    var interval = setInterval(function() {
+    function refreshFromDb() {
       supabase.from("players").select("*").order("season_pts", { ascending: false }).then(function(res) {
         if (res.data) {
           setLiveData(res.data);
           setLastUpdate(new Date());
         }
       });
-    }, 10000);
-
+    }
+    // Initial load so the overlay shows fresh data on mount.
+    refreshFromDb();
+    // Realtime is the source of truth; only fall back to polling if the
+    // channel fails to subscribe.
+    var fallbackTimer = null;
     var channel = supabase.channel("broadcast-live")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_results" }, function() {
-        supabase.from("players").select("*").order("season_pts", { ascending: false }).then(function(res) {
-          if (res.data) {
-            setLiveData(res.data);
-            setLastUpdate(new Date());
-          }
-        });
-      })
-      .subscribe();
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_results" }, refreshFromDb)
+      .subscribe(function(status) {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          if (!fallbackTimer) fallbackTimer = setInterval(refreshFromDb, 30000);
+        } else if (fallbackTimer) {
+          clearInterval(fallbackTimer);
+          fallbackTimer = null;
+        }
+      });
 
     return function() {
-      clearInterval(interval);
+      if (fallbackTimer) clearInterval(fallbackTimer);
       supabase.removeChannel(channel);
     };
   }, []);

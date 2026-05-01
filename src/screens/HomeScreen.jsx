@@ -210,8 +210,8 @@ function RegionCommandCard(props) {
 function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig }) {
   var phase = tournamentState && tournamentState.phase
   var isLive = phase === 'live' || phase === 'inprogress'
-  var playerCount = players && players.length > 0 ? players.length.toLocaleString() : '\u2014'
-  var clashCount = pastClashes && pastClashes.length > 0 ? String(pastClashes.length) : '\u2014'
+  var playerCount = players && players.length > 0 ? players.length.toLocaleString() : '-'
+  var clashCount = pastClashes && pastClashes.length > 0 ? String(pastClashes.length) : '-'
   var seasonName = (seasonConfig && seasonConfig.seasonName) || 'Season 1'
 
   var weekLabel = null
@@ -917,7 +917,7 @@ export default function HomeScreen() {
         className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all motion-reduce:transition-none motion-reduce:active:scale-100 group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim cta-glow-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         onClick={function() {
           if (currentUser) {
-            navigate('/');
+            navigate('/dashboard');
           } else {
             handleSignUp();
           }

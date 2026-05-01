@@ -95,7 +95,7 @@ export default function RecentMatchesStrip(props) {
             >
               <Icon name={cls.icon} size={dense ? 14 : 16} className={cls.text} />
               <div className={'font-mono font-bold ' + cls.text + ' ' + (dense ? 'text-sm' : 'text-base')}>
-                {place ? ordinal(place) : '\u2014'}
+                {place ? ordinal(place) : '-'}
               </div>
               <div className="text-[9px] font-mono text-on-surface-variant/40 truncate max-w-full">
                 {rel || ''}

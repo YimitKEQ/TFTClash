@@ -1186,25 +1186,25 @@ function ClashCard() {
         <div className="grid grid-cols-4 gap-2">
           <div className="bg-white/[0.04] rounded-lg p-2.5">
             <div className="font-mono text-base font-bold text-primary leading-none">
-              {linkedPlayer ? (linkedPlayer.pts || 0).toLocaleString() : '\u2014'}
+              {linkedPlayer ? (linkedPlayer.pts || 0).toLocaleString() : '-'}
             </div>
             <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Season PTS</div>
           </div>
           <div className="bg-white/[0.04] rounded-lg p-2.5">
             <div className="font-mono text-base font-bold text-on-surface leading-none">
-              {linkedPlayer ? (linkedPlayer.wins || 0) : '\u2014'}
+              {linkedPlayer ? (linkedPlayer.wins || 0) : '-'}
             </div>
             <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Wins</div>
           </div>
           <div className="bg-white/[0.04] rounded-lg p-2.5">
             <div className="font-mono text-base font-bold text-tertiary leading-none">
-              {myRank ? ('#' + myRank) : '\u2014'}
+              {myRank ? ('#' + myRank) : '-'}
             </div>
             <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Standing</div>
           </div>
           <div className="bg-white/[0.04] rounded-lg p-2.5">
             <div className="font-mono text-base font-bold text-on-surface leading-none">
-              {linkedPlayer ? (linkedPlayer.games || 0) : '\u2014'}
+              {linkedPlayer ? (linkedPlayer.games || 0) : '-'}
             </div>
             <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Clashes</div>
           </div>
