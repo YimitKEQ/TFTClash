@@ -83,6 +83,10 @@ export default function FlashTournamentScreen(props) {
   var setCaptainLineupSel = _captainLineupSel[1];
   var channelRef = useRef(null);
 
+  // Derived management gate: admins always; tournament host on their own non-season tournament.
+  var iAmTournamentHost = !!(currentUser && currentUser.auth_user_id && tournament && tournament.host_id === currentUser.auth_user_id);
+  var canManage = isAdmin || (iAmTournamentHost && tournament && tournament.type !== 'season_clash');
+
   function loadTournament() {
     return supabase.from('tournaments').select('*').eq('id', tournamentId).single().then(function(res) {
       if (res.error) { return res; }
@@ -805,7 +809,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminForceCheckIn(regId) {
-    if (!isAdmin) return;
+    if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
     if (isTeamEvent) {
@@ -841,7 +845,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminUnCheckIn(regId) {
-    if (!isAdmin) return;
+    if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
     if (!confirm('Revert this ' + (isTeamEvent ? 'team\'s' : 'player\'s') + ' check-in?')) return;
@@ -866,7 +870,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminForceWithdraw(regId) {
-    if (!isAdmin) return;
+    if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
     if (!confirm('Force withdraw this ' + (isTeamEvent ? 'team' : 'player') + '? This deletes the registration.')) return;
@@ -894,12 +898,12 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminBroadcastAnnouncement() {
-    if (!isAdmin) return;
+    if (!canManage) return;
     setBroadcastModal({open: true, message: '', sending: false});
   }
 
   function sendBroadcastMessage() {
-    if (!isAdmin) return;
+    if (!canManage) return;
     var msg = String(broadcastModal.message || '').replace(/[<>]/g, '').slice(0, 200).trim();
     if (!msg) { toast('Message is empty', 'error'); return; }
     setBroadcastModal(Object.assign({}, broadcastModal, {sending: true}));
@@ -926,7 +930,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function runPreflightCheck() {
-    if (!isAdmin) return;
+    if (!canManage) return;
     setPreflightModal({open: true, loading: true, issues: [], checkedCount: 0});
     supabase.from('registrations')
       .select('id, status, players(id, username, riot_id, region, banned)')
@@ -961,7 +965,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function openAdminLineupModal(reg) {
-    if (!isAdmin || !isTeamEvent || !reg || !reg.team_id) return;
+    if (!canManage || !isTeamEvent || !reg || !reg.team_id) return;
     Promise.all([
       supabase.from('team_members')
         .select('id, player_id, role, players(id, username, riot_id, rank)')
@@ -997,7 +1001,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function adminSubmitLineupEdit() {
-    if (!isAdmin || !adminLineupModal.open || !adminLineupModal.regId) return;
+    if (!canManage || !adminLineupModal.open || !adminLineupModal.regId) return;
     var newLineup = adminLineupModal.sel || [];
     if (newLineup.length !== teamSizeNum) {
       toast('Lineup must have exactly ' + teamSizeNum + ' players', 'error');
@@ -1271,7 +1275,7 @@ export default function FlashTournamentScreen(props) {
   if (phase === 'in_progress') {
     tabs.push({id: 'live', label: 'Live', icon: 'bolt'});
   }
-  if (phase === 'in_progress' || phase === 'complete' || (phase === 'check_in' && isAdmin)) {
+  if (phase === 'in_progress' || phase === 'complete' || (phase === 'check_in' && canManage)) {
     tabs.push({id: 'bracket', label: 'Lobbies' + (lobbies.length > 0 ? ' (' + currentGameLobbies.length + ')' : ''), icon: 'groups'});
   }
   if (phase === 'in_progress' || phase === 'complete') {
@@ -1381,8 +1385,8 @@ export default function FlashTournamentScreen(props) {
           </div>
         )}
 
-        {/* ── Admin quick actions (top of page, only when advancing) ── */}
-        {isAdmin && phase !== 'complete' && (
+        {/* ── Manager quick actions (admin or tournament host) ── */}
+        {canManage && phase !== 'complete' && (
           <div className="mb-6 bg-error/5 border border-error/25 rounded px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Icon name="admin_panel_settings" size={16} className="text-error" />
@@ -1661,7 +1665,7 @@ export default function FlashTournamentScreen(props) {
            ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'players' && (
           <div className="space-y-4">
-            {isAdmin && phase !== 'complete' && (
+            {canManage && phase !== 'complete' && (
               <div className="bg-error/5 rounded border border-error/30 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Icon name="admin_panel_settings" size={16} className="text-error" />
@@ -1725,7 +1729,7 @@ export default function FlashTournamentScreen(props) {
                             {r.status === 'checked_in' ? 'Checked In' : r.status}
                           </span>
                         </div>
-                        {isAdmin && phase !== 'complete' && (
+                        {canManage && phase !== 'complete' && (
                           <div className="flex flex-wrap gap-1.5 pl-10">
                             {!isCheckedIn && !isDropped && (
                               <button onClick={function(){ adminForceCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-tertiary/40 text-tertiary bg-tertiary/5 hover:bg-tertiary/10">Force Check-in</button>
@@ -1768,7 +1772,7 @@ export default function FlashTournamentScreen(props) {
                             {r.status === 'checked_in' ? 'Checked In' : r.status}
                           </span>
                         </div>
-                        {isAdmin && phase !== 'complete' && (
+                        {canManage && phase !== 'complete' && (
                           <div className="flex flex-wrap gap-1.5 pl-10 pt-2">
                             {!isCheckedIn && !isDropped && !isWait && (
                               <button onClick={function(){ adminForceCheckIn(r.id); }} className="text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-tertiary/40 text-tertiary bg-tertiary/5 hover:bg-tertiary/10">Force Check-in</button>
@@ -1973,9 +1977,9 @@ export default function FlashTournamentScreen(props) {
                 <Icon name="groups" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
                 <div className="font-bold text-base text-on-surface mb-1">Lobbies</div>
                 <div className="text-sm text-on-surface-variant">
-                  {isAdmin
-                    ? 'Use the Admin bar above to open check-in and generate lobbies once players have checked in.'
-                    : 'Lobbies will appear once the admin generates them.'}
+                  {canManage
+                    ? 'Use the Manage bar above to open check-in and generate lobbies once players have checked in.'
+                    : 'Lobbies will appear once the host generates them.'}
                 </div>
               </div>
             ) : (
@@ -2322,9 +2326,9 @@ export default function FlashTournamentScreen(props) {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            ADMIN: Disputes panel
+            MANAGER: Disputes panel (admin or tournament host)
            ══════════════════════════════════════════════════════════════════════ */}
-        {isAdmin && disputes.length > 0 && (
+        {canManage && disputes.length > 0 && (
           <div className="bg-surface-container-low rounded border border-primary/15 overflow-hidden mt-6">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
               <Icon name="gavel" size={18} className="text-primary" />
@@ -2373,9 +2377,9 @@ export default function FlashTournamentScreen(props) {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            ADMIN: Controls
+            MANAGER: Controls (admin or tournament host)
            ══════════════════════════════════════════════════════════════════════ */}
-        {isAdmin && (
+        {canManage && (
           <div className="bg-surface-container-lowest rounded border border-error/15 overflow-hidden mt-6">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
               <Icon name="admin_panel_settings" size={18} className="text-error" />

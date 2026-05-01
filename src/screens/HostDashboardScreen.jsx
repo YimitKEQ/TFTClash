@@ -5,7 +5,6 @@ import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Inp, Icon, Tag, Divider, PillTab } from '../components/ui'
 import { Sel, Bar, StatusPill, ACCENT_COLORS, WIZ_STEPS } from './host-dashboard/HostComponents'
-import { RoundControl } from './host-dashboard/CommandCenter'
 import { readTemplates, saveTemplate, deleteTemplate } from '../lib/tournamentTemplates.js'
 
 function slugify(s) {
@@ -14,6 +13,16 @@ function slugify(s) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60)
+}
+
+// Map DB phase + archived_at to the local status taxonomy used by the host UI.
+function phaseToStatus(phase, archivedAt) {
+  if (archivedAt) return 'archived';
+  if (phase === 'complete') return 'complete';
+  if (phase === 'in_progress') return 'live';
+  if (phase === 'check_in') return 'live';
+  if (phase === 'registration') return 'upcoming';
+  return 'upcoming'; // draft, null, etc.
 }
 
 function CopyableSnippet(props) {
@@ -281,15 +290,12 @@ export default function HostDashboardScreen() {
   var currentUser = ctx.currentUser;
   var players = ctx.players;
   var toast = ctx.toast;
-  var setScreen = ctx.setScreen;
   var hostTournaments = ctx.hostTournaments;
   var setHostTournaments = ctx.setHostTournaments;
   var hostBranding = ctx.hostBranding;
   var setHostBranding = ctx.setHostBranding;
   var hostAnnouncements = ctx.hostAnnouncements;
   var setHostAnnouncements = ctx.setHostAnnouncements;
-  var featuredEvents = ctx.featuredEvents;
-  var setFeaturedEvents = ctx.setFeaturedEvents;
   var navigate = useNavigate();
 
   // Active section: "overview" | "tournaments" | "analytics" | "game-flow" | "registrations" | "announce" | "branding"
@@ -322,121 +328,6 @@ export default function HostDashboardScreen() {
   var tournaments = hostTournaments || [];
   var setTournaments = setHostTournaments || function() {};
 
-  // Command Center state
-  var _selEvt = useState(tournaments.length > 0 ? tournaments[0].id : null)
-  var selectedEventId = _selEvt[0]
-  var setSelectedEventId = _selEvt[1]
-
-  var _ar = useState(1)
-  var activeRound = _ar[0]
-  var setActiveRound = _ar[1]
-
-  var _pending = useState({})
-  var pendingPlacements = _pending[0]
-  var setPendingPlacements = _pending[1]
-
-  var _selP = useState(null)
-  var selectedPlayer = _selP[0]
-  var setSelectedPlayer = _selP[1]
-
-  var _stack = useState([])
-  var placementStack = _stack[0]
-  var setPlacementStack = _stack[1]
-
-  var _regs = useState([])
-  var eventRegistrants = _regs[0]
-  var setEventRegistrants = _regs[1]
-
-  var _regsLoading = useState(false)
-  var setEventRegistrantsLoading = _regsLoading[1]
-
-  var _teamEventData = useState({})
-  var teamEventData = _teamEventData[0]
-  var setTeamEventData = _teamEventData[1]
-
-  useEffect(function() {
-    if (!supabase || !supabase.from) return
-    var liveDbIds = (hostTournaments || []).filter(function(t) {
-      return t && t.dbId && (t.status === 'live' || t.status === 'closed')
-    }).map(function(t) { return t.dbId })
-    if (liveDbIds.length === 0) { setTeamEventData({}); return }
-    var cancelled = false
-    supabase.from('tournaments').select('id, team_size').in('id', liveDbIds)
-      .then(function(tRes) {
-        if (cancelled || !tRes.data) return
-        var teamIds = tRes.data.filter(function(t) { return (t.team_size || 1) > 1 }).map(function(t) { return t.id })
-        if (teamIds.length === 0) { setTeamEventData({}); return }
-        supabase.from('registrations')
-          .select('id, tournament_id, team_id, lineup_player_ids, status, teams!registrations_team_id_fkey(id, name, tag)')
-          .in('tournament_id', teamIds)
-          .not('team_id', 'is', null)
-          .in('status', ['registered','checked_in'])
-          .then(function(rRes) {
-            if (cancelled || !rRes.data) return
-            var allPids = {}
-            rRes.data.forEach(function(r) { (r.lineup_player_ids || []).forEach(function(pid) { if (pid) allPids[pid] = true }) })
-            var pidList = Object.keys(allPids)
-            var fetchPlayers = pidList.length > 0
-              ? supabase.from('players').select('id, username, riot_id').in('id', pidList)
-              : Promise.resolve({ data: [] })
-            fetchPlayers.then(function(pRes) {
-              if (cancelled) return
-              var byPid = {}
-              ;((pRes && pRes.data) || []).forEach(function(p) { byPid[p.id] = p })
-              var byTournament = {}
-              tRes.data.forEach(function(t) {
-                if ((t.team_size || 1) > 1) byTournament[t.id] = { teamSize: t.team_size, teams: [] }
-              })
-              rRes.data.forEach(function(r) {
-                var bucket = byTournament[r.tournament_id]
-                if (!bucket) return
-                var lineup = (r.lineup_player_ids || []).map(function(pid) { return byPid[pid] || { id: pid, username: 'Player ' + pid } })
-                bucket.teams.push({
-                  reg_id: r.id,
-                  team_id: r.team_id,
-                  status: r.status,
-                  team_name: r.teams ? r.teams.name : 'Team',
-                  team_tag: r.teams ? r.teams.tag : null,
-                  lineup: lineup
-                })
-              })
-              setTeamEventData(byTournament)
-            }).catch(function() {})
-          }).catch(function() {})
-      }).catch(function() {})
-    return function() { cancelled = true }
-  }, [(hostTournaments || []).map(function(t){ return t.dbId + ':' + t.status }).join(',')])
-
-  var setTournamentState = ctx.setTournamentState
-  var tournamentState = ctx.tournamentState || {}
-
-  var activeEvent = tournaments.find(function(e) { return e.id === selectedEventId }) || null
-  var activeRoundLobbyPlayers = eventRegistrants.length > 0 ? eventRegistrants : (players || []).slice(0, 8)
-  var totalRounds = activeEvent ? (activeEvent.totalGames || 3) : 3
-
-  // Compute live standings from locked rounds
-  var CC_PTS = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1}
-  var lockedLobbies = tournamentState.lockedLobbies || []
-  var standingsMap = {}
-  activeRoundLobbyPlayers.forEach(function(p) { standingsMap[p.id] = 0; })
-  lockedLobbies.forEach(function(lobby) {
-    var pls = lobby.placements || {}
-    Object.keys(pls).forEach(function(rank) {
-      var pid = pls[rank]
-      standingsMap[pid] = (standingsMap[pid] || 0) + (CC_PTS[parseInt(rank)] || 0)
-    })
-  })
-  var liveStandings = activeRoundLobbyPlayers.map(function(p) {
-    return Object.assign({}, p, { ccPts: standingsMap[p.id] || 0 })
-  }).sort(function(a, b) { return b.ccPts - a.ccPts })
-
-  // Activity feed from real locked rounds
-  var activityItems = lockedLobbies.slice().reverse().map(function(lb) {
-    return { label: 'Round ' + lb.round + ' confirmed', dot: 'bg-secondary' }
-  })
-  if (activeEvent) { activityItems = activityItems.concat([{ label: 'Event created', dot: 'bg-on-surface/15' }]) }
-  if (activityItems.length === 0) { activityItems = [{ label: 'Waiting for round 1...', dot: 'bg-on-surface/10' }] }
-
   // Load host profile from DB on mount
   useEffect(function() {
     if (!currentUser || !supabase.from || dbProfileLoaded) return;
@@ -455,48 +346,54 @@ export default function HostDashboardScreen() {
     }).catch(function() {});
   }, [currentUser]);
 
-  // Load registrants for the selected event from DB
+  // Load host tournaments from DB. DB is the only source of truth - replace local state on every load.
   useEffect(function() {
-    if (!selectedEventId || !supabase.from) { setEventRegistrants([]); return; }
-    var activeEvt = (hostTournaments || []).find(function(t) { return t.id === selectedEventId; });
-    var dbId = activeEvt ? (activeEvt.dbId || null) : null;
-    if (!dbId) { setEventRegistrants([]); return; }
-    setEventRegistrantsLoading(true);
-    supabase.from('registrations')
-      .select('player_id, status')
-      .eq('tournament_id', dbId)
-      .in('status', ['confirmed', 'registered', 'checked_in'])
-      .then(function(res) {
-        setEventRegistrantsLoading(false);
-        if (res.error || !res.data || res.data.length === 0) { setEventRegistrants([]); return; }
-        var regIds = res.data.map(function(r) { return r.player_id; });
-        var matched = (players || []).filter(function(p) { return regIds.indexOf(p.id) !== -1; });
-        setEventRegistrants(matched);
-      }).catch(function() { setEventRegistrantsLoading(false); });
-  }, [selectedEventId, (hostTournaments || []).length]);
-
-  // Load host tournaments from DB
-  useEffect(function() {
-    if (!currentUser || !supabase.from) return;
-    supabase.from("tournaments").select("id, name, date, max_players, host_id")
-      .eq("host_id", currentUser.auth_user_id || currentUser.id)
+    if (!currentUser || !supabase.from || !currentUser.auth_user_id) return;
+    var aid = currentUser.auth_user_id;
+    if (typeof aid !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(aid)) return;
+    supabase.from("tournaments")
+      .select("id, name, date, max_players, host_id, phase, type, archived_at, champion, invite_only, entry_fee, rules_text, region, branding_json, max_rounds, round_count, format")
+      .eq("host_id", aid)
+      .neq("type", "season_clash")
       .order("date", { ascending: false })
       .then(function(res) {
-        if (res.data && setHostTournaments) {
-          var merged = res.data.map(function(dbT) {
-            var existing = (hostTournaments || []).find(function(t) { return t.dbId === dbT.id || t.name === dbT.name; });
-            return existing
-              ? Object.assign({}, existing, { dbId: dbT.id, max_players: dbT.max_players })
-              : Object.assign({}, dbT, { dbId: dbT.id, status: "upcoming", registered: 0, size: dbT.max_players || 32 });
+        if (res.error) { return; }
+        var rows = res.data || [];
+        // Fetch registration counts in one round-trip
+        var ids = rows.map(function(r) { return r.id; });
+        var fetchCounts = ids.length === 0
+          ? Promise.resolve({ data: [] })
+          : supabase.from('registrations').select('tournament_id, status').in('tournament_id', ids);
+        fetchCounts.then(function(rRes) {
+          var counts = {};
+          ((rRes && rRes.data) || []).forEach(function(r) {
+            if (!counts[r.tournament_id]) counts[r.tournament_id] = 0;
+            if (r.status === 'registered' || r.status === 'checked_in') counts[r.tournament_id]++;
           });
-          setHostTournaments(function(prev) {
-            var prevIds = (prev || []).map(function(t) { return t.dbId || t.id; });
-            var newFromDb = merged.filter(function(t) { return prevIds.indexOf(t.dbId || t.id) === -1; });
-            return (prev || []).concat(newFromDb);
+          var mapped = rows.map(function(dbT) {
+            return {
+              id: dbT.id,
+              dbId: dbT.id,
+              name: dbT.name,
+              date: dbT.date,
+              size: dbT.max_players || 32,
+              invite: !!dbT.invite_only,
+              entryFee: dbT.entry_fee || "",
+              rules: dbT.rules_text || "",
+              phase: dbT.phase,
+              status: phaseToStatus(dbT.phase, dbT.archived_at),
+              archived_at: dbT.archived_at || null,
+              registered: counts[dbT.id] || 0,
+              type: dbT.type,
+              champion: dbT.champion || null,
+              region: dbT.region || 'EU',
+              totalGames: dbT.max_rounds || dbT.round_count || 4
+            };
           });
-        }
+          if (setHostTournaments) setHostTournaments(mapped);
+        }).catch(function() {});
       }).catch(function() {});
-  }, [currentUser ? currentUser.id : null]);
+  }, [currentUser ? currentUser.auth_user_id : null]);
 
   function uploadImage(file, type) {
     if (!file || !supabase.storage) return;
@@ -515,26 +412,6 @@ export default function HostDashboardScreen() {
     }).catch(function() { setUploading(false); toast("Upload failed", "error"); });
   }
 
-  function updateTournamentAndFeatured(tournamentId, updates) {
-    setTournaments(function(ts) { return ts.map(function(t) { return t.id === tournamentId ? Object.assign({}, t, updates) : t; }); });
-    if (setFeaturedEvents) {
-      setFeaturedEvents(function(evts) {
-        return evts.map(function(ev) {
-          if (ev.hostTournamentId !== tournamentId) return ev;
-          var feUpdates = {};
-          if (updates.status === "upcoming") feUpdates.status = "upcoming";
-          if (updates.status === "checkin" || updates.status === "live") feUpdates.status = "live";
-          if (updates.status === "closed") feUpdates.status = "upcoming";
-          if (updates.status === "complete") {
-            feUpdates.status = "complete";
-            if (updates.champion) feUpdates.champion = updates.champion;
-            if (updates.top4) feUpdates.top4 = updates.top4;
-          }
-          return Object.assign({}, ev, feUpdates);
-        });
-      });
-    }
-  }
 
   function exportTournamentCSV(tournament) {
     var tournId = tournament.dbId || tournament.id;
@@ -562,7 +439,7 @@ export default function HostDashboardScreen() {
         var header = 'Player,Round,Lobby,Placement,Points';
         var lines = rows.map(function(r) {
           var player = (players || []).find(function(p) { return p.id === r.player_id; });
-          var playerName = player ? player.name : ('Player ' + r.player_id);
+          var playerName = player ? (player.username || player.name || ('Player ' + r.player_id)) : ('Player ' + r.player_id);
           var lobbyLetter = String.fromCharCode(64 + (r.lobby_number || 1));
           var pts = PTS[r.placement] || 0;
           return [playerName, r.round, lobbyLetter, r.placement, pts].join(',');
@@ -581,85 +458,63 @@ export default function HostDashboardScreen() {
 
   function submitWizard() {
     if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; }
+    if (!currentUser || !currentUser.auth_user_id) { toast("Sign in required", "error"); return; }
+    if (!supabase || !supabase.from) { toast("Database unavailable", "error"); return; }
     setWizCreating(true);
-    var newT = {
-      id: Date.now(),
-      name: wizData.name,
-      date: wizData.date,
-      size: wizData.maxPlayers,
-      invite: wizData.inviteOnly,
-      entryFee: wizData.entryFee,
-      rules: wizData.rules,
-      status: wizData.entryFee ? "pending_approval" : "upcoming",
-      registered: 0,
-      approved: !wizData.entryFee
-    };
-    setTournaments(function(ts) { return ts.concat([newT]); });
-    if (setFeaturedEvents) {
-      setFeaturedEvents(function(evts) {
-        return evts.concat([{
-          id: "host-" + newT.id,
-          name: wizData.name,
-          host: brandName,
-          sponsor: null,
-          status: "upcoming",
-          date: wizData.date,
-          time: "TBD",
-          format: wizData.type === "swiss" ? "Swiss" : "Standard",
-          size: wizData.maxPlayers,
-          registered: 0,
-          registeredIds: [],
-          prizePool: null,
-          region: wizData.region || "EU",
-          description: wizData.rules || "Tournament hosted by " + brandName,
-          tags: wizData.inviteOnly ? ["Invite Only"] : ["Open"],
-          logo: brandLogo,
-          screen: "tournament-host-" + newT.id,
-          hostTournamentId: newT.id
-        }]);
-      });
-    }
     var savedWizData = Object.assign({}, wizData);
-    if (supabase.from) {
-      supabase.from("tournaments").insert({
-        name: savedWizData.name,
-        date: savedWizData.date,
-        type: "flash_tournament",
-        format: savedWizData.type,
-        round_count: savedWizData.totalGames,
-        max_players: savedWizData.maxPlayers,
-        phase: "draft",
-        host_id: currentUser ? currentUser.auth_user_id : null,
-        invite_only: !!savedWizData.inviteOnly,
-        entry_fee: savedWizData.entryFee || null,
-        rules_text: savedWizData.rules || null,
-        region: savedWizData.region === 'NA' ? 'NA' : 'EU',
-        branding_json: { accent_color: savedWizData.accentColor }
-      }).select().single().then(function(res) {
-        setWizCreating(false);
-        if (res && res.error) {
-          toast("Failed to create tournament: " + res.error.message, "error");
-          return;
-        }
-        if (res && res.data) {
-          var dbId = res.data.id;
-          setTournaments(function(ts) { return ts.map(function(t) { return t.name === savedWizData.name && !t.dbId ? Object.assign({}, t, { dbId: dbId }) : t; }); });
-          if (setFeaturedEvents) {
-            setFeaturedEvents(function(evts) { return evts.map(function(ev) { return ev.name === savedWizData.name && !ev.dbTournamentId ? Object.assign({}, ev, { dbTournamentId: dbId }) : ev; }); });
-          }
-        }
-        setShowCreate(false);
-        setWizStep(0);
-        setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
-        toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
-      }).catch(function() { setWizCreating(false); toast("Failed to create tournament", "error"); });
-    } else {
+    supabase.from("tournaments").insert({
+      name: savedWizData.name,
+      date: savedWizData.date,
+      type: "flash_tournament",
+      format: savedWizData.type,
+      round_count: savedWizData.totalGames,
+      max_rounds: savedWizData.totalGames,
+      max_players: savedWizData.maxPlayers,
+      phase: "draft",
+      host_id: currentUser.auth_user_id,
+      invite_only: !!savedWizData.inviteOnly,
+      entry_fee: savedWizData.entryFee || null,
+      rules_text: savedWizData.rules || null,
+      region: savedWizData.region === 'NA' ? 'NA' : 'EU',
+      branding_json: { accent_color: savedWizData.accentColor }
+    }).select().single().then(function(res) {
       setWizCreating(false);
+      if (res && res.error) {
+        toast("Failed to create tournament: " + res.error.message, "error");
+        return;
+      }
+      if (!res || !res.data) {
+        toast("Tournament created but no ID returned", "error");
+        return;
+      }
+      var dbT = res.data;
+      var newT = {
+        id: dbT.id,
+        dbId: dbT.id,
+        name: dbT.name,
+        date: dbT.date,
+        size: dbT.max_players || savedWizData.maxPlayers,
+        invite: !!dbT.invite_only,
+        entryFee: dbT.entry_fee || "",
+        rules: dbT.rules_text || "",
+        phase: dbT.phase,
+        status: phaseToStatus(dbT.phase, dbT.archived_at),
+        registered: 0,
+        archived_at: dbT.archived_at || null,
+        type: dbT.type
+      };
+      setTournaments(function(ts) { return ts.concat([newT]); });
       setShowCreate(false);
       setWizStep(0);
-      setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
-      toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
-    }
+      setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
+      toast("Tournament created!", "success");
+      // Brief delay so the row is replicated to read replicas before FlashTournamentScreen
+      // mounts and queries it. Without this the manage page can flash 'Tournament Not Found'.
+      setTimeout(function() { navigate("/tournament/" + dbT.id); }, 350);
+    }).catch(function(err) {
+      setWizCreating(false);
+      toast("Failed to create tournament: " + (err && err.message ? err.message : 'unknown'), "error");
+    });
   }
 
   function saveBranding() {
@@ -1180,86 +1035,64 @@ export default function HostDashboardScreen() {
 
                   {/* Actions */}
                   <div className="flex gap-2 shrink-0 items-center">
-                    {t.status === "upcoming" && (
+                    {/* Publish: draft -> registration */}
+                    {t.phase === 'draft' && t.dbId && (
+                      <button
+                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors disabled:opacity-50"
+                        onClick={function() {
+                          supabase.from('tournaments')
+                            .update({ phase: 'registration', registration_open_at: new Date().toISOString() })
+                            .eq('id', t.dbId)
+                            .then(function(r) {
+                              if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); return; }
+                              setTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'registration', status: 'upcoming' }) : x; }); });
+                              toast('Registration opened!', 'success');
+                            });
+                        }}
+                      >
+                        Publish
+                      </button>
+                    )}
+                    {/* Open check-in: registration -> check_in */}
+                    {t.phase === 'registration' && t.dbId && (
                       <button
                         className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
                         onClick={function() {
-                          updateTournamentAndFeatured(t.id, { status: "live" });
-                          if (supabase.from) {
-                            supabase.from('tournaments').update({ status: 'live' }).eq('id', t.id || t.dbId);
-                          }
-                          toast("Check-in opened! Tournament is now LIVE", "success");
+                          supabase.from('tournaments')
+                            .update({ phase: 'check_in', checkin_open_at: new Date().toISOString() })
+                            .eq('id', t.dbId)
+                            .then(function(r) {
+                              if (r.error) { toast('Open check-in failed: ' + r.error.message, 'error'); return; }
+                              setTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'check_in', status: 'live' }) : x; }); });
+                              toast('Check-in opened!', 'success');
+                            });
                         }}
                       >
-                        Publish Event
+                        Open Check-In
                       </button>
                     )}
-                    {t.status === "pending_approval" && (
-                      <span className="text-xs text-primary font-label font-bold uppercase tracking-wider">Awaiting Approval</span>
-                    )}
-                    {t.status === "live" && (
+                    {/* Manage: links into FlashTournamentScreen for full live management */}
+                    {t.dbId && t.phase !== 'complete' && (
                       <button
-                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
-                        onClick={function() {
-                          updateTournamentAndFeatured(t.id, { status: "closed" });
-                          if (supabase.from && (t.dbId || t.id)) {
-                            supabase.from('tournaments').update({ registration_close_at: new Date().toISOString() }).eq('id', t.dbId || t.id);
-                          }
-                          toast("Registration closed", "info");
-                        }}
+                        className="px-4 py-2 bg-primary text-on-primary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:brightness-110 transition-all"
+                        onClick={function() { navigate('/tournament/' + t.dbId); }}
                       >
-                        Close Reg
+                        Manage
                       </button>
                     )}
-                    {(t.status === "live" || t.status === "closed") && (
+                    {t.dbId && t.phase === 'complete' && (
                       <button
-                        className="px-4 py-2 bg-primary/10 text-primary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-primary/20 transition-colors"
-                        onClick={function() {
-                          var champ = prompt("Enter champion name:");
-                          if (champ && champ.trim()) {
-                            updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
-                            if (supabase.from) {
-                              supabase.from('tournaments').update({ status: 'complete', champion: champ.trim() }).eq('id', t.id || t.dbId);
-                            }
-                            toast("Tournament completed! Champion: " + champ.trim(), "success");
-                          }
-                        }}
+                        className="px-4 py-2 bg-surface-container-high text-on-surface text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-surface-container-high/80 transition-colors"
+                        onClick={function() { navigate('/tournament/' + t.dbId); }}
                       >
-                        Complete
+                        View
                       </button>
                     )}
-                    <button
-                      type="button"
-                      aria-label="View tournament analytics"
-                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-                      onClick={function() { setTab("analytics"); }}
-                    >
-                      <Icon name="analytics" size={18} aria-hidden="true" />
-                    </button>
-                    {!isComplete && (
-                      <button
-                        type="button"
-                        aria-label="Edit tournament"
-                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-                        onClick={function() { setTab("game-flow"); }}
-                      >
-                        <Icon name="edit" size={18} aria-hidden="true" />
-                      </button>
-                    )}
-                    {isComplete && (
-                      <button
-                        type="button"
-                        aria-label="View tournament results"
-                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-                        onClick={function() { navigate("/results"); }}
-                      >
-                        <Icon name="history_edu" size={18} aria-hidden="true" />
-                      </button>
-                    )}
-                    {t.status === 'complete' && (
+                    {t.phase === 'complete' && (
                       <button
                         onClick={function() { exportTournamentCSV(t); }}
                         className="flex items-center gap-1 text-[10px] cond font-bold uppercase tracking-wide text-secondary hover:text-secondary/80 transition-colors bg-transparent border-0 cursor-pointer p-0"
+                        title="Export results CSV"
                       >
                         <Icon name="file_download" size={12} />
                         CSV
@@ -1270,41 +1103,24 @@ export default function HostDashboardScreen() {
                       aria-label="Delete tournament"
                       className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"
                       onClick={function() {
-                        if (!confirm("Delete this tournament?\n\nIt will be archived from upcoming/live feeds. Registrations and results are preserved.")) return;
-                        var uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-                        var dbId = (t.dbId && uuidRe.test(String(t.dbId))) ? t.dbId
-                          : (t.id && uuidRe.test(String(t.id))) ? t.id
-                          : null;
-                        function clearLocal() {
+                        if (!confirm("Delete this tournament?\n\nIt will be archived. Registrations and results are preserved.")) return;
+                        if (!t.dbId) {
                           setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
-                          if (setFeaturedEvents) {
-                            setFeaturedEvents(function(evts) {
-                              return evts.filter(function(ev) {
-                                if (ev.hostTournamentId === t.id) return false;
-                                if (dbId && ev.dbTournamentId === dbId) return false;
-                                if (ev.id === ('host-' + t.id)) return false;
-                                return true;
-                              });
-                            });
-                          }
-                        }
-                        if (!supabase || !supabase.from || !dbId) {
-                          clearLocal();
                           toast("Tournament removed", "info");
                           return;
                         }
                         supabase.from('tournaments')
                           .update({ phase: 'complete', archived_at: new Date().toISOString() })
-                          .eq('id', dbId)
+                          .eq('id', t.dbId)
                           .then(function(r) {
                             if (r.error) { toast("Delete failed: " + r.error.message, "error"); return; }
-                            clearLocal();
+                            setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
                             toast("Tournament deleted", "info");
                           })
                           .catch(function(err) { toast("Delete failed: " + (err && err.message ? err.message : 'unknown'), "error"); });
                       }}
                     >
-                      <Icon name="more_vert" size={18} aria-hidden="true" />
+                      <Icon name="delete" size={18} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -1480,274 +1296,6 @@ export default function HostDashboardScreen() {
           </div>
         )}
 
-        {/* Game Flow tab */}
-        {tab === "game-flow" && (
-          <div className="space-y-5">
-            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Game Flow</h2>
-            {tournaments.filter(function(t) { return t.status === "live" || t.status === "closed"; }).length === 0 && (
-              <div className="bg-surface-container-low p-12 rounded-lg text-center">
-                <Icon name="sports_esports" size={40} className="text-slate-500 mx-auto mb-3" />
-                <h3 className="font-editorial text-lg text-on-surface mb-2">No Live Tournaments</h3>
-                <p className="text-slate-500 text-sm">Open check-in on a tournament to start the game flow.</p>
-              </div>
-            )}
-            {tournaments.filter(function(t) { return t.status === "live" || t.status === "closed"; }).map(function(t) {
-              var matchingEvent = (featuredEvents || []).find(function(ev) { return ev.hostTournamentId === t.id; });
-              var regIds = matchingEvent ? (matchingEvent.registeredIds || []) : [];
-              var roundCount = t.roundCount || 3;
-              var currentRound = t.currentRound || 1;
-              var teamData = t.dbId ? teamEventData[t.dbId] : null;
-              var isTeamEvent = !!teamData;
-              var teamCount = isTeamEvent ? teamData.teams.length : 0;
-              return (
-                <div key={t.id} className="bg-surface-container-low p-6 rounded-lg border border-tertiary/20">
-                  <div className="flex items-center gap-3 mb-5">
-                    <h3 className="font-editorial text-lg text-on-surface flex-1">{t.name}</h3>
-                    {isTeamEvent && (
-                      <span className="px-2 py-0.5 bg-tertiary/15 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">{teamData.teamSize}v{teamData.teamSize}</span>
-                    )}
-                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">Round {currentRound}/{roundCount}</span>
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-tighter rounded">
-                      {isTeamEvent ? (teamCount + ' team' + (teamCount === 1 ? '' : 's')) : (regIds.length + ' players')}
-                    </span>
-                  </div>
-
-                  {isTeamEvent && teamCount === 0 && (
-                    <div className="text-center py-8">
-                      <Icon name="groups" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
-                      <p className="text-on-surface/50 text-sm">No teams checked in yet.</p>
-                    </div>
-                  )}
-
-                  {isTeamEvent && teamCount > 0 && (
-                    <div className="space-y-4">
-                      <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
-                      <div className="space-y-4">
-                        {teamData.teams.map(function(tm) {
-                          var lineup = tm.lineup || [];
-                          var notCheckedIn = tm.status !== 'checked_in';
-                          return (
-                            <div key={tm.team_id} className="rounded border border-outline-variant/15 overflow-hidden bg-surface-container/40">
-                              <div className="flex items-center gap-2 px-3 py-2 bg-surface-container-high border-b border-outline-variant/10">
-                                <Icon name="groups" size={14} className="text-tertiary" />
-                                <span className="font-bold text-sm text-on-surface flex-1 truncate">{tm.team_name}{tm.team_tag ? <span className="text-on-surface/40 font-mono text-xs ml-2">[{tm.team_tag}]</span> : null}</span>
-                                {notCheckedIn ? (
-                                  <span className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50">Not checked in</span>
-                                ) : (
-                                  <span className="text-[10px] font-label uppercase tracking-wider text-success">Checked in - {lineup.length} starters</span>
-                                )}
-                              </div>
-                              <div className="divide-y divide-outline-variant/5">
-                                {lineup.length === 0 ? (
-                                  <div className="px-3 py-3 text-xs text-on-surface/50">Lineup not submitted yet.</div>
-                                ) : lineup.map(function(p) {
-                                  return (
-                                    <div key={p.id} className="flex items-center gap-3 p-3">
-                                      <span className="text-sm font-mono text-on-surface flex-1 truncate">{p.username || 'Player'}</span>
-                                      {p.riot_id ? <span className="text-[11px] font-mono text-on-surface/50 truncate hidden sm:inline">{p.riot_id}</span> : null}
-                                      <Sel value="" onChange={function(val) {
-                                        if (!val) return;
-                                        var placement = parseInt(val);
-                                        var pts = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 }[placement] || 0;
-                                        if (!supabase.from || !t.dbId) {
-                                          toast(p.username + ' placed ' + placement + 'th (' + pts + 'pts)', 'success');
-                                          return;
-                                        }
-                                        supabase.from('game_results').insert({
-                                          tournament_id: t.dbId,
-                                          round_number: currentRound,
-                                          game_number: currentRound,
-                                          player_id: p.id,
-                                          placement: placement,
-                                          points: pts
-                                        }).then(function(res) {
-                                          if (res.error) toast('Failed to save: ' + res.error.message, 'error');
-                                          else toast(p.username + ' placed ' + placement + (placement === 1 ? 'st' : placement === 2 ? 'nd' : placement === 3 ? 'rd' : 'th') + ' (' + pts + 'pts)', 'success');
-                                        }).catch(function() { toast('Failed to save result', 'error'); });
-                                      }} className="w-28">
-                                        <option value="">Place</option>
-                                        {[1, 2, 3, 4, 5, 6, 7, 8].map(function(pl) {
-                                          return <option key={pl} value={pl}>{pl}{pl === 1 ? 'st' : pl === 2 ? 'nd' : pl === 3 ? 'rd' : 'th'} ({({ 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 })[pl]}pts)</option>;
-                                        })}
-                                      </Sel>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex gap-3 pt-2">
-                        <Btn
-                          variant="primary"
-                          size="sm"
-                          onClick={function() {
-                            if (currentRound < roundCount) {
-                              updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
-                              toast('Advanced to Round ' + (currentRound + 1), 'success');
-                            } else {
-                              var champ = prompt('Enter winning team name:');
-                              if (champ && champ.trim()) {
-                                updateTournamentAndFeatured(t.id, { status: 'complete', champion: champ.trim(), top4: [champ.trim()] });
-                                toast('Tournament completed! Winner: ' + champ.trim(), 'success');
-                              }
-                            }
-                          }}
-                        >
-                          {currentRound < roundCount ? 'Advance to Round ' + (currentRound + 1) : 'Finalize Tournament'}
-                        </Btn>
-                        <Btn
-                          variant="secondary"
-                          size="sm"
-                          onClick={function() { setScreen('tournament-host-' + t.id); }}
-                        >
-                          View Public Page
-                        </Btn>
-                      </div>
-                    </div>
-                  )}
-
-                  {!isTeamEvent && regIds.length === 0 && (
-                    <div className="text-center py-8">
-                      <Icon name="person_add" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
-                      <p className="text-on-surface/50 text-sm">No players registered yet.</p>
-                    </div>
-                  )}
-                  {!isTeamEvent && regIds.length > 0 && (
-                    <div className="space-y-4">
-                      <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
-                      <div className="space-y-2">
-                        {regIds.map(function(username) {
-                          return (
-                            <div key={username} className="flex items-center gap-3 p-3 bg-surface-container rounded">
-                              <span className="text-sm font-mono text-on-surface flex-1">{username}</span>
-                              <Sel value="" onChange={function(val) {
-                                if (!val) return;
-                                var placement = parseInt(val);
-                                var pts = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 }[placement] || 0;
-                                if (supabase.from && t.dbId) {
-                                  var matchedPlayer = (players || []).find(function(p) { return p.username === username || p.name === username; });
-                                  var playerId = matchedPlayer ? matchedPlayer.dbId || matchedPlayer.id : null;
-                                  if (!playerId) { toast("Player " + username + " not found in roster", "error"); return; }
-                                  supabase.from("game_results").insert({
-                                    tournament_id: t.dbId,
-                                    round_number: currentRound,
-                                    game_number: currentRound,
-                                    player_id: playerId,
-                                    placement: placement,
-                                    points: pts
-                                  }).then(function(res) {
-                                    if (res.error) toast("Failed to save: " + res.error.message, "error");
-                                    else toast(username + " placed " + placement + (placement === 1 ? "st" : placement === 2 ? "nd" : placement === 3 ? "rd" : "th") + " (" + pts + "pts)", "success");
-                                  }).catch(function() { toast("Failed to save result", "error"); });
-                                } else {
-                                  toast(username + " placed " + placement + (placement === 1 ? "st" : placement === 2 ? "nd" : placement === 3 ? "rd" : "th") + " (" + pts + "pts)", "success");
-                                }
-                              }} className="w-28">
-                                <option value="">Place</option>
-                                {[1, 2, 3, 4, 5, 6, 7, 8].map(function(p) {
-                                  return <option key={p} value={p}>{p}{p === 1 ? "st" : p === 2 ? "nd" : p === 3 ? "rd" : "th"} ({({ 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 })[p]}pts)</option>;
-                                })}
-                              </Sel>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex gap-3 pt-2">
-                        <Btn
-                          variant="primary"
-                          size="sm"
-                          onClick={function() {
-                            if (currentRound < roundCount) {
-                              updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
-                              toast("Advanced to Round " + (currentRound + 1), "success");
-                            } else {
-                              var champ = prompt("Enter champion name:");
-                              if (champ && champ.trim()) {
-                                updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
-                                toast("Tournament completed! Champion: " + champ.trim(), "success");
-                              }
-                            }
-                          }}
-                        >
-                          {currentRound < roundCount ? "Advance to Round " + (currentRound + 1) : "Finalize Tournament"}
-                        </Btn>
-                        <Btn
-                          variant="secondary"
-                          size="sm"
-                          onClick={function() { setScreen("tournament-host-" + t.id); }}
-                        >
-                          View Public Page
-                        </Btn>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Registrations tab */}
-        {tab === "registrations" && (
-          <div className="space-y-5">
-            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Player Registrations</h2>
-            {tournaments.filter(function(t) { return t.status !== "complete"; }).map(function(t) {
-              var matchingEvent = (featuredEvents || []).find(function(ev) { return ev.hostTournamentId === t.id; });
-              var regIds = matchingEvent ? (matchingEvent.registeredIds || []) : [];
-              return (
-                <div key={t.id} className="bg-surface-container-low p-5 rounded-lg">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="font-editorial text-base text-on-surface flex-1">{t.name}</h3>
-                    <span className={"px-2 py-0.5 font-label text-[10px] uppercase tracking-tighter rounded " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
-                      {regIds.length + "/" + t.size}
-                    </span>
-                  </div>
-                  {regIds.length === 0 && (
-                    <div className="text-center py-8">
-                      <Icon name="person_add" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
-                      <p className="text-on-surface/50 text-sm">No players registered yet.</p>
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    {regIds.map(function(username, i) {
-                      return (
-                        <div key={username} className="flex items-center gap-3 py-2.5 border-b border-outline-variant/5 last:border-0">
-                          <span className="text-xs font-mono text-slate-500 w-5">{i + 1}</span>
-                          <span className="flex-1 text-sm font-mono text-on-surface">{username}</span>
-                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">Registered</span>
-                          <button
-                            onClick={function() {
-                              if (confirm("Remove " + username + "?")) {
-                                if (setFeaturedEvents) {
-                                  setFeaturedEvents(function(evts) {
-                                    return evts.map(function(ev) {
-                                      if (ev.hostTournamentId !== t.id) return ev;
-                                      return Object.assign({}, ev, {
-                                        registeredIds: (ev.registeredIds || []).filter(function(u) { return u !== username; }),
-                                        registered: Math.max(0, (ev.registered || 0) - 1)
-                                      });
-                                    });
-                                  });
-                                }
-                                toast(username + " removed", "info");
-                              }
-                            }}
-                            className="text-xs font-label uppercase text-error/70 hover:text-error transition-colors"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         {/* Templates tab */}
         {tab === "templates" && (
           <TemplatesTab toast={toast} />
@@ -1758,213 +1306,12 @@ export default function HostDashboardScreen() {
           <EmbedTab brandName={brandName} toast={toast} />
         )}
 
-        {/* Command Center tab */}
-        {tab === "commandcenter" && (
-          <div className="flex flex-col gap-4 lg:flex-row lg:gap-4 lg:items-start">
-
-            {/* Left column - event list + live stats */}
-            <div className="w-full lg:w-48 flex-shrink-0 flex flex-col gap-3">
-              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
-                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Your Events</span>
-                  {tournaments.some(function(e) { return e.status === 'live' }) && (
-                    <span className="cond text-[8px] font-bold uppercase text-red-400 px-1.5 py-0.5 bg-red-400/10 rounded">Live</span>
-                  )}
-                </div>
-                <div className="p-2 flex flex-col gap-1">
-                  {tournaments.length === 0 && (
-                    <div className="text-[11px] text-on-surface/30 text-center py-4">No events yet</div>
-                  )}
-                  {tournaments.map(function(ev) {
-                    var isActive = ev.id === selectedEventId
-                    return (
-                      <div
-                        key={ev.id}
-                        onClick={function() {
-                          setSelectedEventId(ev.id)
-                          setPendingPlacements({})
-                          setSelectedPlayer(null)
-                          setPlacementStack([])
-                          setActiveRound(1)
-                        }}
-                        className={'rounded-lg p-2 cursor-pointer border transition-colors ' +
-                          (isActive ? 'bg-primary/8 border-primary/25' : 'bg-white/[0.02] border-on-surface/8 hover:border-on-surface/15')}
-                      >
-                        <div className={'text-xs font-bold ' + (isActive ? 'text-primary' : 'text-on-surface/70')}>{ev.name}</div>
-                        <div className="text-[10px] text-on-surface/35 mt-0.5">{isActive ? (activeRoundLobbyPlayers.length + ' registered') : (ev.registered || ev.players || 0) + ' registered'}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
-                <div className="px-3 py-2 border-b border-on-surface/8">
-                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Live Stats</span>
-                </div>
-                <div className="p-3 flex flex-col gap-2">
-                  {[
-                    ['Players', activeRoundLobbyPlayers.length + ' / ' + (activeEvent ? (activeEvent.size || activeEvent.max_players || activeRoundLobbyPlayers.length) : 0), 'text-primary'],
-                    ['Round', activeRound + ' / ' + totalRounds, 'text-secondary'],
-                    ['Lobbies', Math.max(1, Math.ceil(activeRoundLobbyPlayers.length / 8)) + ' active', 'text-on-surface/50'],
-                    ['Rounds done', lockedLobbies.length + ' / ' + totalRounds, 'text-tertiary'],
-                  ].map(function(row) {
-                    return (
-                      <div key={row[0]} className="flex items-center justify-between">
-                        <span className="text-[10px] text-on-surface/35">{row[0]}</span>
-                        <span className={'cond text-[10px] font-bold ' + row[2]}>{row[1]}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Center column - round control + standings */}
-            <div className="flex-1 flex flex-col gap-3">
-              {activeEvent ? (
-                <RoundControl
-                  players={activeRoundLobbyPlayers}
-                  round={activeRound}
-                  totalRounds={totalRounds}
-                  pendingPlacements={pendingPlacements}
-                  selectedPlayer={selectedPlayer}
-                  placementStack={placementStack}
-                  onSelect={function(p) { setSelectedPlayer(p) }}
-                  onPlace={function(rank) {
-                    if (selectedPlayer) {
-                      var existing = pendingPlacements[rank]
-                      if (existing) {
-                        setPendingPlacements(function(prev) {
-                          var next = Object.assign({}, prev)
-                          delete next[rank]
-                          return next
-                        })
-                        setPlacementStack(function(s) { return s.filter(function(item) { return item.rank !== rank }) })
-                      } else {
-                        setPendingPlacements(function(prev) { return Object.assign({}, prev, { [rank]: selectedPlayer.id }) })
-                        setPlacementStack(function(s) { return s.concat([{ rank: rank, playerId: selectedPlayer.id }]) })
-                        setSelectedPlayer(null)
-                      }
-                    } else {
-                      var pid = pendingPlacements[rank]
-                      if (pid) {
-                        setPendingPlacements(function(prev) {
-                          var next = Object.assign({}, prev)
-                          delete next[rank]
-                          return next
-                        })
-                        setPlacementStack(function(s) { return s.filter(function(item) { return item.rank !== rank }) })
-                      }
-                    }
-                  }}
-                  onUndo={function() {
-                    if (placementStack.length === 0) return
-                    var last = placementStack[placementStack.length - 1]
-                    setPendingPlacements(function(prev) {
-                      var next = Object.assign({}, prev)
-                      delete next[last.rank]
-                      return next
-                    })
-                    setPlacementStack(function(s) { return s.slice(0, s.length - 1) })
-                  }}
-                  onConfirm={function() {
-                    setTournamentState(Object.assign({}, tournamentState, {
-                      lockedLobbies: (tournamentState.lockedLobbies || []).concat([{ round: activeRound, placements: pendingPlacements }])
-                    }))
-                    if (activeRound < totalRounds) { setActiveRound(activeRound + 1) }
-                    setPendingPlacements({})
-                    setPlacementStack([])
-                    setSelectedPlayer(null)
-                    toast('Round ' + activeRound + ' confirmed!', 'success')
-                  }}
-                  onSaveDraft={function() {
-                    localStorage.setItem('tft-round-draft-' + (selectedEventId || 'default'), JSON.stringify(pendingPlacements))
-                    toast('Draft saved', 'success')
-                  }}
-                />
-              ) : (
-                <div className="bg-surface-container rounded-xl border border-on-surface/10 p-8 text-center">
-                  <Icon name="sports_esports" size={32} className="text-primary/30 mb-3" />
-                  <div className="text-sm text-on-surface/40 font-semibold">No event selected</div>
-                  <div className="text-xs text-on-surface/25 mt-1">Create an event first to use round control</div>
-                </div>
-              )}
-
-              {/* Live Standings */}
-              {activeEvent && (
-                <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
-                  <div className="px-3 py-2 border-b border-on-surface/8 flex items-center justify-between">
-                    <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Live Standings</span>
-                    <span className="text-[9px] text-on-surface/20">Updates after confirm</span>
-                  </div>
-                  <div className="p-3 flex flex-col gap-1">
-                    {lockedLobbies.length === 0 && (
-                      <div className="text-[10px] text-on-surface/25 text-center py-2">Waiting for round 1...</div>
-                    )}
-                    {liveStandings.slice(0, 5).map(function(p, i) {
-                      return (
-                        <div key={p.id} className="flex items-center gap-2.5 py-1.5">
-                          <span className="cond text-xs font-bold w-5 text-center text-on-surface/40">{'#' + (i+1)}</span>
-                          <span className="flex-1 text-xs text-on-surface/70">{p.name || p.username}</span>
-                          <span className="font-mono text-xs font-bold text-on-surface/50">{p.ccPts} pts</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right column - players + activity */}
-            <div className="w-full lg:w-44 flex-shrink-0 flex flex-col gap-3">
-              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
-                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Players</span>
-                  <span className="cond text-[8px] font-bold text-secondary">{activeRoundLobbyPlayers.length}/{activeEvent ? (activeEvent.size || activeEvent.max_players || 8) : 8}</span>
-                </div>
-                <div className="p-2 flex flex-col">
-                  {activeRoundLobbyPlayers.map(function(p) {
-                    return (
-                      <div key={p.id} className="flex items-center gap-2 py-1.5 border-b border-on-surface/[0.04] last:border-0">
-                        <div className="w-4 h-4 rounded-full bg-secondary/20 border border-secondary/30 flex-shrink-0"></div>
-                        <span className="flex-1 text-[10px] text-on-surface/70">{p.name}</span>
-                        <span className="cond text-[8px] font-bold uppercase text-secondary/70 bg-secondary/8 px-1.5 rounded">In</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
-                <div className="px-3 py-2 border-b border-on-surface/8">
-                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Activity</span>
-                </div>
-                <div className="p-3 flex flex-col gap-2">
-                  {activityItems.map(function(item, i) {
-                    return (
-                      <div key={item.label} className="flex gap-2 items-start">
-                        <div className={'w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ' + item.dot}></div>
-                        <div className="flex-1 text-[9px] text-on-surface/40 leading-relaxed">{item.label}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
         {/* Secondary nav for sub-sections */}
         {tab !== "overview" && (
           <div className="flex flex-wrap gap-2 pt-4 border-t border-outline-variant/10">
             {[
-              ["commandcenter", "Round Control", "tune"],
               ["announce", "Announce", "campaign"],
               ["branding", "Branding", "palette"],
-              ["game-flow", "Game Flow", "shuffle"],
-              ["registrations", "Players", "group"],
               ["templates", "Templates", "bookmark"],
               ["embed", "Embed", "code"]
             ].map(function(arr) {
@@ -1992,13 +1339,13 @@ export default function HostDashboardScreen() {
         {/* Footer */}
         <footer className="pt-8 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[10px] font-label uppercase tracking-[0.3em] text-slate-500">
-            TFT Clash Engine | Host Dashboard | System Status: Optimal
+            TFT Clash | Host Dashboard
           </p>
           <div className="flex gap-8">
             <button onClick={function() { setTab("announce"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Announce</button>
             <button onClick={function() { setTab("branding"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Branding</button>
-            <button onClick={function() { setTab("game-flow"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Game Flow</button>
-            <button onClick={function() { navigate("/bracket"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">View Bracket</button>
+            <button onClick={function() { setTab("templates"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Templates</button>
+            <button onClick={function() { setTab("embed"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Embed</button>
           </div>
         </footer>
 
