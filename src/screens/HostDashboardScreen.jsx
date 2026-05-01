@@ -306,7 +306,7 @@ export default function HostDashboardScreen() {
 
   // Tournament wizard state
   var [wizStep, setWizStep] = useState(0);
-  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
+  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU", teamFormat: "solo" });
   var [wizCreating, setWizCreating] = useState(false);
 
   // Branding state
@@ -353,7 +353,7 @@ export default function HostDashboardScreen() {
     var aid = currentUser.auth_user_id;
     if (typeof aid !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(aid)) return;
     supabase.from("tournaments")
-      .select("id, name, date, max_players, host_id, phase, type, archived_at, champion, invite_only, entry_fee, rules_text, region, branding_json, max_rounds, round_count, format")
+      .select("id, name, date, max_players, host_id, phase, type, archived_at, champion, invite_only, entry_fee, rules_text, region, branding_json, max_rounds, round_count, format, team_size, teams_per_lobby, points_scale, subs_allowed")
       .eq("host_id", aid)
       .neq("type", "season_clash")
       .order("date", { ascending: false })
@@ -388,7 +388,11 @@ export default function HostDashboardScreen() {
               type: dbT.type,
               champion: dbT.champion || null,
               region: dbT.region || 'EU',
-              totalGames: dbT.max_rounds || dbT.round_count || 4
+              totalGames: dbT.max_rounds || dbT.round_count || 4,
+              teamSize: dbT.team_size || 1,
+              teamsPerLobby: dbT.teams_per_lobby || 1,
+              pointsScale: dbT.points_scale || 'standard',
+              subsAllowed: dbT.subs_allowed != null ? dbT.subs_allowed : 0
             };
           });
           if (setHostTournaments) setHostTournaments(mapped);
@@ -422,41 +426,80 @@ export default function HostDashboardScreen() {
       toast('No database ID for this tournament', 'error');
       return;
     }
-    supabase
+    var teamSize = parseInt(tournament.teamSize) || 1;
+    var isTeamEvent = teamSize > 1;
+    function csvEscape(value) {
+      var s = value == null ? '' : String(value);
+      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }
+    var resultsPromise = supabase
       .from('game_results')
       .select('round_number, game_number, lobby_id, player_id, placement, points, lobbies(lobby_number)')
       .eq('tournament_id', tournId)
       .order('round_number', { ascending: true })
-      .order('placement', { ascending: true })
-      .then(function(res) {
-        if (res.error) {
-          toast('Export failed: ' + res.error.message, 'error');
-          return;
-        }
-        var rows = res.data || [];
-        if (rows.length === 0) {
-          toast('No results recorded for this tournament yet', 'info');
-          return;
-        }
-        var header = 'Player,Round,Lobby,Placement,Points';
-        var lines = rows.map(function(r) {
-          var player = (players || []).find(function(p) { return p.id === r.player_id; });
-          var playerName = player ? (player.username || player.name || ('Player ' + r.player_id)) : ('Player ' + r.player_id);
-          var lobbyNum = (r.lobbies && r.lobbies.lobby_number) || 1;
-          var lobbyLetter = String.fromCharCode(64 + lobbyNum);
-          var pts = (r.points != null) ? r.points : 0;
-          return [playerName, r.round_number, lobbyLetter, r.placement, pts].join(',');
-        });
-        var csv = [header].concat(lines).join('\n');
-        var blob = new Blob([csv], { type: 'text/csv' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = tournament.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-results.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-        toast('CSV exported!', 'success');
+      .order('placement', { ascending: true });
+    var regsPromise = isTeamEvent
+      ? supabase.from('registrations')
+          .select('player_id, team_id, lineup_player_ids, teams!registrations_team_id_fkey(name, tag)')
+          .eq('tournament_id', tournId)
+          .not('team_id', 'is', null)
+      : Promise.resolve({ data: [] });
+    Promise.all([resultsPromise, regsPromise]).then(function(both) {
+      var res = both[0];
+      var regsRes = both[1];
+      if (res.error) {
+        toast('Export failed: ' + res.error.message, 'error');
+        return;
+      }
+      if (isTeamEvent && regsRes && regsRes.error) {
+        toast('Export failed (team lookup): ' + regsRes.error.message, 'error');
+        return;
+      }
+      var rows = res.data || [];
+      if (rows.length === 0) {
+        toast('No results recorded for this tournament yet', 'info');
+        return;
+      }
+      var playerToTeam = {};
+      ((regsRes && regsRes.data) || []).forEach(function(reg) {
+        var rawName = reg.teams && reg.teams.name ? String(reg.teams.name).trim() : '';
+        var rawTag = reg.teams && reg.teams.tag ? String(reg.teams.tag).trim() : '';
+        var teamName = rawName || rawTag || 'Team';
+        // Captain always belongs to the team even if not in the lineup array.
+        if (reg.player_id != null) playerToTeam[String(reg.player_id)] = teamName;
+        var lineup = Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
+        lineup.forEach(function(pid) { playerToTeam[String(pid)] = teamName; });
       });
+      var header = isTeamEvent
+        ? 'Team,Player,Round,Lobby,Placement,Points'
+        : 'Player,Round,Lobby,Placement,Points';
+      var lines = rows.map(function(r) {
+        var player = (players || []).find(function(p) { return p.id === r.player_id; });
+        var playerName = player ? (player.username || player.name || ('Player ' + r.player_id)) : ('Player ' + r.player_id);
+        var lobbyNum = (r.lobbies && r.lobbies.lobby_number) || 1;
+        var lobbyLetter = String.fromCharCode(64 + lobbyNum);
+        var pts = (r.points != null) ? r.points : 0;
+        if (isTeamEvent) {
+          var teamName = playerToTeam[String(r.player_id)] || '';
+          return [csvEscape(teamName), csvEscape(playerName), r.round_number, lobbyLetter, r.placement, pts].join(',');
+        }
+        return [csvEscape(playerName), r.round_number, lobbyLetter, r.placement, pts].join(',');
+      });
+      var csv = [header].concat(lines).join('\n');
+      var blob = new Blob([csv], { type: 'text/csv' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = tournament.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-results.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('CSV exported!', 'success');
+    }).catch(function(err) {
+      toast('Export failed: ' + (err && err.message ? err.message : 'unknown'), 'error');
+    });
   }
 
   function submitWizard() {
@@ -465,6 +508,14 @@ export default function HostDashboardScreen() {
     if (!supabase || !supabase.from) { toast("Database unavailable", "error"); return; }
     setWizCreating(true);
     var savedWizData = Object.assign({}, wizData);
+    var teamFormat = savedWizData.teamFormat || 'solo';
+    var teamSize = 1;
+    var teamsPerLobby = 1;
+    var pointsScale = 'standard';
+    var subsAllowed = 0;
+    if (teamFormat === 'squads_4v4') { teamSize = 4; teamsPerLobby = 2; subsAllowed = 2; }
+    else if (teamFormat === 'double_up_casual') { teamSize = 2; teamsPerLobby = 4; pointsScale = 'double_up'; }
+    else if (teamFormat === 'double_up_swiss') { teamSize = 2; teamsPerLobby = 4; pointsScale = 'double_up_swiss'; }
     supabase.from("tournaments").insert({
       name: savedWizData.name,
       date: savedWizData.date,
@@ -479,6 +530,10 @@ export default function HostDashboardScreen() {
       entry_fee: savedWizData.entryFee || null,
       rules_text: savedWizData.rules || null,
       region: savedWizData.region === 'NA' ? 'NA' : 'EU',
+      team_size: teamSize,
+      teams_per_lobby: teamsPerLobby,
+      points_scale: pointsScale,
+      subs_allowed: subsAllowed,
       branding_json: { accent_color: savedWizData.accentColor }
     }).select().single().then(function(res) {
       setWizCreating(false);
@@ -504,12 +559,16 @@ export default function HostDashboardScreen() {
         status: phaseToStatus(dbT.phase, dbT.archived_at),
         registered: 0,
         archived_at: dbT.archived_at || null,
-        type: dbT.type
+        type: dbT.type,
+        teamSize: dbT.team_size || teamSize,
+        teamsPerLobby: dbT.teams_per_lobby || teamsPerLobby,
+        pointsScale: dbT.points_scale || pointsScale,
+        subsAllowed: dbT.subs_allowed != null ? dbT.subs_allowed : subsAllowed
       };
       setTournaments(function(ts) { return ts.concat([newT]); });
       setShowCreate(false);
       setWizStep(0);
-      setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
+      setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU", teamFormat: "solo" });
       toast("Tournament created!", "success");
       // Brief delay so the row is replicated to read replicas before FlashTournamentScreen
       // mounts and queries it. Without this the manage page can flash 'Tournament Not Found'.
@@ -676,6 +735,25 @@ export default function HostDashboardScreen() {
             </div>
           </div>
           <div className="space-y-2">
+            <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Team Format</label>
+            <Sel value={wizData.teamFormat} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { teamFormat: String(v) }); }); }}>
+              <option value="solo">Solo (1v1)</option>
+              <option value="squads_4v4">4v4 Squads</option>
+              <option value="double_up_casual">2v2 Double Up - Casual</option>
+              <option value="double_up_swiss">2v2 Double Up - Swiss (R4 1.25x, R5 1.5x)</option>
+            </Sel>
+            {wizData.teamFormat === 'squads_4v4' && (
+              <div className="text-[10px] font-label uppercase tracking-wider text-tertiary/80">
+                Only team captains register. Each 8-player lobby pairs two teams. Set Player Limit in multiples of 8.
+              </div>
+            )}
+            {(wizData.teamFormat === 'double_up_casual' || wizData.teamFormat === 'double_up_swiss') && (
+              <div className="text-[10px] font-label uppercase tracking-wider text-secondary/80">
+                Only team captains register. Each lobby seats four teams of two. Both partners share placement (1-4){wizData.teamFormat === 'double_up_swiss' ? '. Round 4 scores 1.25x, round 5 scores 1.5x.' : '.'}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
             <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(optional, requires admin approval)</span></label>
             <input
               className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
@@ -750,6 +828,7 @@ export default function HostDashboardScreen() {
               ["Date", wizData.date],
               ["Region", wizData.region === 'NA' ? 'NA' : 'EU'],
               ["Format", wizData.type === "swiss" ? "Swiss" : "Standard"],
+              ["Team Format", wizData.teamFormat === 'squads_4v4' ? '4v4 Squads' : wizData.teamFormat === 'double_up_casual' ? '2v2 Double Up' : wizData.teamFormat === 'double_up_swiss' ? '2v2 DU - Swiss' : 'Solo'],
               ["Games", wizData.totalGames + " per player"],
               ["Max Players", String(wizData.maxPlayers)],
               ["Entry Fee", wizData.entryFee || "Free"],
@@ -1023,6 +1102,12 @@ export default function HostDashboardScreen() {
               var isLive = t.status === "live";
               var isDraft = t.status === "upcoming" || t.status === "pending_approval";
               var isComplete = t.status === "complete";
+              var teamSz = parseInt(t.teamSize) || 1;
+              var ptsScale = String(t.pointsScale || 'standard');
+              var teamBadge = null;
+              if (teamSz === 4) teamBadge = <span className="px-2 py-0.5 bg-tertiary/15 text-tertiary border border-tertiary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">4v4</span>;
+              else if (teamSz === 2 && ptsScale === 'double_up_swiss') teamBadge = <span className="px-2 py-0.5 bg-secondary/15 text-secondary border border-secondary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">2v2 DU - Swiss</span>;
+              else if (teamSz === 2) teamBadge = <span className="px-2 py-0.5 bg-secondary/15 text-secondary border border-secondary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">2v2 DU</span>;
               return (
                 <div key={t.id} className="bg-surface-container-low p-5 rounded-lg flex items-center gap-6 hover:bg-surface-container transition-all group">
                   {/* Icon block */}
@@ -1041,6 +1126,7 @@ export default function HostDashboardScreen() {
                       <h4 className={"font-editorial text-lg " + (isComplete ? "text-slate-400" : isDraft ? "text-slate-300" : "text-on-background")}>
                         {t.name}
                       </h4>
+                      {teamBadge}
                       {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-label text-[10px] uppercase rounded">Invite Only</span>}
                     </div>
                     <div className="flex gap-6 flex-wrap">
