@@ -360,6 +360,18 @@ export default function FlashTournamentScreen(props) {
             return;
           }
 
+          // Warn the admin about an odd team count BEFORE generating lobbies.
+          // buildTeamLobbies will absorb the bye into the closest lobby for
+          // 4v4, but DU (4 per lobby) leaves a short lobby that can't run a
+          // valid game.
+          var remainder = teams.length % teamsPerLobby;
+          if (remainder !== 0) {
+            var msg = teamsPerLobby === 2
+              ? ('Odd team count (' + teams.length + '). The lowest-seeded team will be folded into the closest lobby as a 3rd team. Continue?')
+              : ('Team count (' + teams.length + ') is not a multiple of ' + teamsPerLobby + '. The last lobby will be short ' + (teamsPerLobby - remainder) + ' team(s) and will not produce valid Double Up scoring. Continue anyway?');
+            if (!confirm(msg)) { setActionLoading(false); return; }
+          }
+
           var teamLobbies = buildTeamLobbies(teams, teamSize, teamsPerLobby, tournament.seeding_method || 'snake');
           var lobbyRows = teamLobbies.map(function(lobby, idx) {
             var lobbyPlayers = lobby.players || [];
@@ -446,6 +458,10 @@ export default function FlashTournamentScreen(props) {
   var lobbyShape = resolveLobbyShape(tournament);
   var isDoubleUpLobby = lobbyShape.mode === 'double_up_2v2';
   var placementSlots = isDoubleUpLobby ? 4 : ((myLobby && myLobby.player_ids) ? myLobby.player_ids.length : 8);
+  // Minimum check-ins required to generate at least one lobby. checkedInCount
+  // counts registration rows (one per team for team events, one per player for
+  // solo). DU 2v2 needs 4 teams to fill a lobby; 4v4 needs 2; solo needs 2.
+  var minCheckedInForLobbies = isDoubleUpLobby ? 4 : (isTeamEvent ? 2 : 2);
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
@@ -532,15 +548,34 @@ export default function FlashTournamentScreen(props) {
     supabase.from('registrations').delete().eq('id', myReg.id).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Failed to unregister: ' + res.error.message, 'error'); return; }
-      // Promote first waitlisted player if spot opened
+      // Promote first waitlisted entry whose player is not banned. Skipping
+      // banned entries means a banned waitlisted player cannot be promoted
+      // into an active spot through another player's unregister action.
       var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted' && r.id !== myReg.id; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
       if (waitlisted.length > 0 && myReg.status === 'registered') {
-        var next = waitlisted[0];
-        supabase.from('registrations').update({status: 'registered', waitlist_position: null}).eq('id', next.id).then(function() {
-          if (next.player_id) {
-            createNotification(next.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist!', 'celebration');
-          }
-          loadRegistrations();
+        var promoteCandidate = null;
+        var promotePromise = Promise.resolve(null);
+        // Check ban status for the head of the waitlist before promoting.
+        var head = waitlisted[0];
+        if (head.player_id) {
+          promotePromise = supabase.from('players').select('banned').eq('id', head.player_id).maybeSingle().then(function(banRes) {
+            if (banRes && banRes.data && banRes.data.banned) return null;
+            return head;
+          }).catch(function() { return head; });
+        } else {
+          promotePromise = Promise.resolve(head);
+        }
+        promotePromise.then(function(next) {
+          if (!next) { loadRegistrations(); return; }
+          promoteCandidate = next;
+          return supabase.from('registrations').update({status: 'registered', waitlist_position: null}).eq('id', next.id).then(function() {
+            if (next.team_id) {
+              try { notifyTeamMembers(next.team_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and your team has been promoted from the waitlist!', 'celebration'); } catch (e) {}
+            } else if (next.player_id) {
+              createNotification(next.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist!', 'celebration');
+            }
+            loadRegistrations();
+          });
         }).catch(function() { loadRegistrations(); });
       } else {
         loadRegistrations();
@@ -627,7 +662,8 @@ export default function FlashTournamentScreen(props) {
   function adminCloseCheckIn() {
     var unchecked = registrations.filter(function(r) { return r.status === 'registered'; }).length;
     if (unchecked > 0) {
-      if (!window.confirm('This will drop ' + unchecked + ' player' + (unchecked !== 1 ? 's' : '') + ' who haven\'t checked in. Continue?')) return;
+      var unit = isTeamEvent ? ('team' + (unchecked !== 1 ? 's' : '')) : ('player' + (unchecked !== 1 ? 's' : ''));
+      if (!window.confirm('This will drop ' + unchecked + ' ' + unit + ' who haven\'t checked in. Continue?')) return;
     }
     supabase.from('tournaments').update({checkin_close_at: new Date().toISOString()}).eq('id', tournamentId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
@@ -635,16 +671,26 @@ export default function FlashTournamentScreen(props) {
       var dropIds = notCheckedIn.map(function(r) { return r.id; });
       if (dropIds.length > 0) {
         supabase.from('registrations').update({status: 'dropped'}).in('id', dropIds).then(function() {
-          var openSpots = effectiveCap - checkedInCount;
+          // openSpots is the number of seats freed by dropping no-show registrations,
+          // bounded by remaining capacity. Use dropIds.length (server-confirmed drop)
+          // rather than re-deriving from the stale local checkedInCount snapshot.
+          var capRoom = Math.max(0, effectiveCap - checkedInCount);
+          var openSpots = Math.min(dropIds.length, capRoom);
           var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted'; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
           if (toPromote.length > 0) {
             var promoteIds = toPromote.map(function(r) { return r.id; });
             supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() {
-              // Notify promoted players
+              // Notify promoted players (and all team members for team events)
+              var promoteTitle = 'Spot Opened!';
+              var promoteBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!';
               toPromote.forEach(function(r) {
-                if (r.player_id) {
-                  createNotification(r.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!', 'celebration');
+                if (r.team_id) {
+                  try {
+                    notifyTeamMembers(r.team_id, promoteTitle, promoteBody, 'celebration');
+                  } catch (e) {}
+                } else if (r.player_id) {
+                  createNotification(r.player_id, promoteTitle, promoteBody, 'celebration');
                 }
               });
               loadRegistrations();
@@ -741,18 +787,68 @@ export default function FlashTournamentScreen(props) {
       });
       if (outOfRange) { toast('Double Up placements must be 1-4. Fix invalid reports first.', 'error'); return; }
       if (lobbyReports.length !== pids.length) { toast('Cannot lock: not all players have reported.', 'error'); return; }
-      if (!(counts[1] === 2 && counts[2] === 2 && counts[3] === 2 && counts[4] === 2)) {
-        toast('Double Up requires exactly 2 players per placement (1st, 2nd, 3rd, 4th).', 'error'); return;
-      }
-      var reportByPid = {};
-      lobbyReports.forEach(function(r) { reportByPid[r.player_id] = r.reported_placement; });
-      for (var pi = 0; pi < pids.length; pi += 2) {
-        if (reportByPid[pids[pi]] !== reportByPid[pids[pi + 1]]) {
-          toast('Partners must share the same placement. Fix mismatched team report.', 'error'); return;
+      // Build player -> team_id map from registration lineups (NOT positional
+      // order) so partner-pairing validation is robust against mid-event sub
+      // swaps or any future change to lobby.player_ids ordering.
+      var playerTeamMap = {};
+      (registrations || []).forEach(function(r) {
+        if (!r.team_id) return;
+        var lineup = Array.isArray(r.lineup_player_ids) ? r.lineup_player_ids : [];
+        lineup.forEach(function(pid) { if (pid) playerTeamMap[String(pid)] = r.team_id; });
+      });
+      var teamPlacements = {};
+      var unmappedPlayer = false;
+      var hasMixedTeam = false;
+      lobbyReports.forEach(function(r) {
+        var tid = playerTeamMap[String(r.player_id)];
+        if (!tid) { unmappedPlayer = true; return; }
+        var key = String(tid);
+        if (teamPlacements[key] == null) {
+          teamPlacements[key] = r.reported_placement;
+        } else if (teamPlacements[key] !== r.reported_placement) {
+          hasMixedTeam = true;
         }
+      });
+      if (unmappedPlayer) {
+        toast('A player in this lobby is not on any team lineup. Fix lineups before locking.', 'error');
+        return;
+      }
+      if (hasMixedTeam) {
+        toast('Partners must share the same placement. Fix mismatched team report.', 'error');
+        return;
+      }
+      // After grouping by team, expect exactly the configured number of teams
+      // (DU = 4) and each placement 1-4 should be claimed by exactly one team.
+      var teamIds = Object.keys(teamPlacements);
+      if (teamIds.length !== 4) {
+        toast('Double Up lobby must have exactly 4 teams reporting (got ' + teamIds.length + ').', 'error');
+        return;
+      }
+      var placementsClaimed = {};
+      var dupePlacement = false;
+      teamIds.forEach(function(k) {
+        var p = teamPlacements[k];
+        if (placementsClaimed[p]) dupePlacement = true;
+        placementsClaimed[p] = true;
+      });
+      if (dupePlacement || !(placementsClaimed[1] && placementsClaimed[2] && placementsClaimed[3] && placementsClaimed[4])) {
+        toast('Each Double Up team must finish 1st through 4th exactly once.', 'error');
+        return;
       }
     }
     var swissMult = (isDoubleUp && shape.pointsScale === 'double_up_swiss' && DOUBLE_UP_MULTIPLIERS[currentGameNumber]) ? DOUBLE_UP_MULTIPLIERS[currentGameNumber] : 1;
+    // Build a registration-derived team_id map for ALL team-event modes (DU and
+    // squads). Stamping team_id client-side is defense in depth so standings do
+    // not silently drift if the stamp_game_result_team_id trigger ever fails to
+    // resolve a player (eg. lineup edited mid-event, or trigger disabled).
+    var resultTeamMap = {};
+    if (isTeamEvent) {
+      (registrations || []).forEach(function(reg) {
+        if (!reg.team_id) return;
+        var lineup = Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
+        lineup.forEach(function(pid) { if (pid) resultTeamMap[String(pid)] = reg.team_id; });
+      });
+    }
     var gameRows = lobbyReports.map(function(r) {
       var place = r.reported_placement;
       var pts;
@@ -761,7 +857,7 @@ export default function FlashTournamentScreen(props) {
       } else {
         pts = PTS[place] || 0;
       }
-      return {
+      var row = {
         tournament_id: tournamentId,
         lobby_id: lobbyId,
         player_id: r.player_id,
@@ -770,6 +866,11 @@ export default function FlashTournamentScreen(props) {
         round_number: currentGameNumber,
         game_number: currentGameNumber
       };
+      if (isTeamEvent) {
+        var resolvedTid = resultTeamMap[String(r.player_id)] || null;
+        if (resolvedTid) row.team_id = resolvedTid;
+      }
+      return row;
     });
     supabase.from('game_results').upsert(gameRows, {onConflict: 'tournament_id,game_number,player_id'}).then(function(res) {
       if (res.error) { toast('Failed to lock: ' + res.error.message, 'error'); return; }
@@ -858,36 +959,59 @@ export default function FlashTournamentScreen(props) {
     if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
+    var doForceCheckIn = function() {
+      if (!confirm('Force check-in this ' + (isTeamEvent ? 'team' : 'player') + '?')) return;
+      var patch = {status: 'checked_in', checked_in_at: new Date().toISOString()};
+      supabase.from('registrations').update(patch).eq('id', regId).then(function(res) {
+        if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
+        writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+        if (reg.player_id) {
+          createNotification(reg.player_id, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
+        }
+        if (reg.team_id) {
+          var tName = (reg.teams && reg.teams.name) || 'Your team';
+          try {
+            notifyTeamMembers(
+              reg.team_id,
+              'Team Checked In',
+              tName + ' was checked in to ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
+              'checkmark'
+            );
+          } catch (e) {}
+        }
+        toast('Checked in', 'success');
+        broadcastUpdate('admin_force_checkin');
+        loadRegistrations();
+      }).catch(function() { toast('Network error', 'error'); });
+    };
     if (isTeamEvent) {
       var lineup = Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
       if (lineup.length !== teamSizeNum) {
         toast('Set the team lineup first using Edit Lineup, then check in.', 'error');
         return;
       }
+      if (!reg.team_id) {
+        toast('Team registration is missing a team_id.', 'error');
+        return;
+      }
+      supabase.from('team_members')
+        .select('player_id')
+        .eq('team_id', reg.team_id)
+        .is('removed_at', null)
+        .in('player_id', lineup)
+        .then(function(memRes) {
+          if (memRes.error) { toast('Lineup validation failed: ' + memRes.error.message, 'error'); return; }
+          var memberIds = (memRes.data || []).map(function(m) { return m.player_id; });
+          var allActive = lineup.every(function(pid) { return memberIds.indexOf(pid) !== -1; });
+          if (!allActive) {
+            toast('Lineup includes a player who is not an active member of this team.', 'error');
+            return;
+          }
+          doForceCheckIn();
+        });
+      return;
     }
-    if (!confirm('Force check-in this ' + (isTeamEvent ? 'team' : 'player') + '?')) return;
-    var patch = {status: 'checked_in', checked_in_at: new Date().toISOString()};
-    supabase.from('registrations').update(patch).eq('id', regId).then(function(res) {
-      if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
-      writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
-      if (reg.player_id) {
-        createNotification(reg.player_id, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
-      }
-      if (reg.team_id) {
-        var tName = (reg.teams && reg.teams.name) || 'Your team';
-        try {
-          notifyTeamMembers(
-            reg.team_id,
-            'Team Checked In',
-            tName + ' was checked in to ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
-            'checkmark'
-          );
-        } catch (e) {}
-      }
-      toast('Checked in', 'success');
-      broadcastUpdate('admin_force_checkin');
-      loadRegistrations();
-    }).catch(function() { toast('Network error', 'error'); });
+    doForceCheckIn();
   }
 
   function adminUnCheckIn(regId) {
@@ -1195,8 +1319,22 @@ export default function FlashTournamentScreen(props) {
               if (bTie !== aTie) return bTie - aTie;
               return a.placeSum - b.placeSum;
             });
+            // Standard competition ranking: rows that compare equal share a placement.
+            // Critical for Double Up where partners tie on every key (same placement
+            // every game). Without this both partners get distinct placements (1, 2)
+            // instead of tying at 1.
+            function tieKey(r) {
+              if (finalIsDoubleUp) {
+                return [r.pts, r.top2, -r.fourths, r.wins, -(r.lastPlacement || 9)].join('|');
+              }
+              return [r.pts, r.wins * 2 + r.top4, -r.placeSum].join('|');
+            }
+            var lastKey = null;
+            var lastRank = 0;
             var tRows = ranked.map(function(r, idx) {
-              return { tournament_id: tournamentId, player_id: r.pid, total_points: r.pts, wins: r.wins, top4_count: r.top4, final_placement: idx + 1 };
+              var k = tieKey(r);
+              if (k !== lastKey) { lastRank = idx + 1; lastKey = k; }
+              return { tournament_id: tournamentId, player_id: r.pid, total_points: r.pts, wins: r.wins, top4_count: r.top4, final_placement: lastRank };
             });
             if (tRows.length > 0) {
               supabase.from('tournament_results').upsert(tRows, { onConflict: 'tournament_id,player_id' }).then(function() {}).catch(function() {});
@@ -1478,7 +1616,7 @@ export default function FlashTournamentScreen(props) {
                   Open Check-In
                 </Btn>
               )}
-              {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
+              {phase === 'check_in' && checkedInCount >= minCheckedInForLobbies && lobbies.length === 0 && (
                 <Btn variant="tertiary" size="sm" onClick={generateLobbies} disabled={actionLoading} loading={actionLoading}>
                   {actionLoading ? 'Generating...' : 'Generate Lobbies'}
                 </Btn>
@@ -2475,7 +2613,7 @@ export default function FlashTournamentScreen(props) {
                     Close Check-In
                   </Btn>
                 )}
-                {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
+                {phase === 'check_in' && checkedInCount >= minCheckedInForLobbies && lobbies.length === 0 && (
                   <Btn variant="tertiary" size="sm" onClick={generateLobbies} disabled={actionLoading} loading={actionLoading}>
                     {actionLoading ? 'Generating...' : 'Generate Lobbies'}
                   </Btn>

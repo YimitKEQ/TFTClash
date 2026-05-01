@@ -659,6 +659,15 @@ export default function HostDashboardScreen() {
 
   // --- Wizard steps ---
   function renderWizardStep() {
+    var wizardTeamSize = wizData.teamFormat === 'squads_4v4' ? 4 : ((wizData.teamFormat === 'double_up_casual' || wizData.teamFormat === 'double_up_swiss') ? 2 : 1);
+    var wizardTeamCapacityHint = '';
+    if (wizardTeamSize > 1) {
+      var wizardMpRaw = parseInt(wizData.maxPlayers, 10);
+      if (Number.isFinite(wizardMpRaw) && wizardMpRaw >= wizardTeamSize) {
+        var wizardTeamCount = Math.floor(wizardMpRaw / wizardTeamSize);
+        wizardTeamCapacityHint = wizardTeamCount + ' teams of ' + wizardTeamSize;
+      }
+    }
     if (wizStep === 0) {
       return (
         <div className="space-y-8">
@@ -723,9 +732,12 @@ export default function HostDashboardScreen() {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Player Limit</label>
-              <Sel value={String(wizData.maxPlayers)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { maxPlayers: parseInt(v) }); }); }}>
+              <Sel value={String(wizData.maxPlayers)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { maxPlayers: parseInt(v, 10) }); }); }}>
                 {[8, 16, 24, 32, 48, 64, 96, 128].map(function(n) { return <option key={n} value={n}>{n + " Players"}</option>; })}
               </Sel>
+              {wizardTeamCapacityHint && (
+                <div className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/60">{wizardTeamCapacityHint}</div>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Check-in Window</label>
@@ -819,6 +831,8 @@ export default function HostDashboardScreen() {
       );
     }
     // Step 3: Review
+    var reviewMaxPlayersLabel = wizardTeamSize > 1 ? ('Capacity (' + wizardTeamCapacityHint + ')') : 'Max Players';
+    var reviewMaxPlayersValue = String(wizData.maxPlayers);
     return (
       <div className="space-y-8">
         <div className="bg-surface-container p-5 rounded space-y-4">
@@ -830,7 +844,7 @@ export default function HostDashboardScreen() {
               ["Format", wizData.type === "swiss" ? "Swiss" : "Standard"],
               ["Team Format", wizData.teamFormat === 'squads_4v4' ? '4v4 Squads' : wizData.teamFormat === 'double_up_casual' ? '2v2 Double Up' : wizData.teamFormat === 'double_up_swiss' ? '2v2 DU - Swiss' : 'Solo'],
               ["Games", wizData.totalGames + " per player"],
-              ["Max Players", String(wizData.maxPlayers)],
+              [reviewMaxPlayersLabel, reviewMaxPlayersValue],
               ["Entry Fee", wizData.entryFee || "Free"],
               ["Invite Only", wizData.inviteOnly ? "Yes" : "No"]
             ].map(function(arr) {

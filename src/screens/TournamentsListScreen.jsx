@@ -150,7 +150,12 @@ function FeaturedSpotlight(props) {
   var prizes = Array.isArray(t.prize_pool_json) ? t.prize_pool_json : [];
   var topPrize = getTopPrize(prizes);
   var countdown = getCountdown(t.date);
-  var maxP = t.max_players || 128;
+  var rawMaxP = t.max_players || 128;
+  var teamSzRaw = t && t.team_size != null ? parseInt(t.team_size, 10) : 1;
+  var teamSzNum = Number.isFinite(teamSzRaw) && teamSzRaw > 0 ? teamSzRaw : 1;
+  var isTeamEvt = teamSzNum > 1;
+  var maxP = isTeamEvt ? Math.max(1, Math.floor(rawMaxP / teamSzNum)) : rawMaxP;
+  var capUnitSpot = isTeamEvt ? 'teams' : null;
   var teamBadge = teamBadgeFor(t);
 
   return (
@@ -202,7 +207,7 @@ function FeaturedSpotlight(props) {
               <Icon name="group" className="text-primary" size={20} />
             </div>
             <div>
-              <p className="text-[10px] font-label text-on-surface-variant uppercase">Capacity</p>
+              <p className="text-[10px] font-label text-on-surface-variant uppercase">{capUnitSpot ? 'Teams' : 'Capacity'}</p>
               <p className="font-mono font-bold text-lg">{regCount + ' / ' + maxP}</p>
             </div>
           </div>
@@ -225,7 +230,12 @@ function TournamentCard(props) {
 
   var prizes = Array.isArray(t.prize_pool_json) ? t.prize_pool_json : [];
   var topPrize = getTopPrize(prizes);
-  var maxP = t.max_players || 128;
+  var rawMaxPCard = t.max_players || 128;
+  var teamSzCardRaw = t && t.team_size != null ? parseInt(t.team_size, 10) : 1;
+  var teamSzCardNum = Number.isFinite(teamSzCardRaw) && teamSzCardRaw > 0 ? teamSzCardRaw : 1;
+  var isTeamEvtCard = teamSzCardNum > 1;
+  var maxP = isTeamEvtCard ? Math.max(1, Math.floor(rawMaxPCard / teamSzCardNum)) : rawMaxPCard;
+  var capUnitCard = isTeamEvtCard ? 'teams' : null;
   var pct = Math.min(100, Math.round((regCount / maxP) * 100));
   var countdown = getCountdown(t.date);
   var dateStr = t.date ? new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : 'TBD';
@@ -279,7 +289,7 @@ function TournamentCard(props) {
             <p className="text-xs font-medium">{(t.round_count || 3) + ' rounds'}</p>
           </div>
           <div>
-            <p className="text-[9px] font-label uppercase text-on-surface-variant/50 mb-0.5">Slots</p>
+            <p className="text-[9px] font-label uppercase text-on-surface-variant/50 mb-0.5">{capUnitCard ? 'Teams' : 'Slots'}</p>
             <p className="text-xs font-medium">{regCount + ' / ' + maxP}</p>
           </div>
           <div>

@@ -503,15 +503,19 @@ export default function TournamentDetailScreen() {
     tournamentResults.forEach(function(r) {
       if (!r.team_id) return
       if (!teamMap[r.team_id]) {
-        teamMap[r.team_id] = { team_id: r.team_id, total: 0, top4: 0, top2: 0, wins: 0, rounds: {}, bestPlacement: 99 }
+        teamMap[r.team_id] = { team_id: r.team_id, total: 0, top4: 0, top2: 0, fourths: 0, firsts: 0, wins: 0, rounds: {}, bestPlacement: 99, lastRound: -1, lastPlacement: 9 }
       }
       var t = teamMap[r.team_id]
+      var place = r.placement || 0
       t.total += r.points || 0
       t.rounds[r.round_number] = true
-      if (r.placement === 1) t.wins += 1
-      if (r.placement <= 2) t.top2 += 1
-      if (r.placement <= 4) t.top4 += 1
-      if (r.placement < t.bestPlacement) t.bestPlacement = r.placement
+      if (place === 1) { t.wins += 1; t.firsts += 1; t.top2 += 1 }
+      else if (place === 2) { t.top2 += 1 }
+      else if (place === 4) { t.fourths += 1 }
+      if (place > 0 && place <= 4) t.top4 += 1
+      if (place > 0 && place < t.bestPlacement) t.bestPlacement = place
+      var rnd = r.round_number || 0
+      if (rnd > t.lastRound) { t.lastRound = rnd; t.lastPlacement = place || 9 }
     })
     teamStandings = Object.values(teamMap).map(function(t) {
       var meta = eventTeams[t.team_id] || {}
@@ -522,9 +526,10 @@ export default function TournamentDetailScreen() {
       })
     }).sort(function(a, b) {
       if (b.total !== a.total) return b.total - a.total
-      if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement
       if (b.top2 !== a.top2) return b.top2 - a.top2
-      return b.top4 - a.top4
+      if (a.fourths !== b.fourths) return a.fourths - b.fourths
+      if (b.firsts !== a.firsts) return b.firsts - a.firsts
+      return (a.lastPlacement || 9) - (b.lastPlacement || 9)
     })
   }
 
@@ -1101,18 +1106,22 @@ export default function TournamentDetailScreen() {
                     var byTeam = {}
                     roundResults.forEach(function(r) {
                       if (!r.team_id) return
-                      if (!byTeam[r.team_id]) byTeam[r.team_id] = { team_id: r.team_id, score: 0, top4: 0, top2: 0, bestPlacement: 9 }
+                      if (!byTeam[r.team_id]) byTeam[r.team_id] = { team_id: r.team_id, score: 0, top4: 0, top2: 0, fourths: 0, firsts: 0, lastPlacement: 9 }
                       var s = byTeam[r.team_id]
+                      var place = r.placement || 0
                       s.score += r.points || 0
-                      if (r.placement <= 4) s.top4 += 1
-                      if (r.placement <= 2) s.top2 += 1
-                      if (r.placement < s.bestPlacement) s.bestPlacement = r.placement
+                      if (place === 1) { s.firsts += 1; s.top2 += 1 }
+                      else if (place === 2) { s.top2 += 1 }
+                      else if (place === 4) { s.fourths += 1 }
+                      if (place > 0 && place <= 4) s.top4 += 1
+                      if (place > 0 && place < s.lastPlacement) s.lastPlacement = place
                     })
                     teamScores = Object.values(byTeam).sort(function(a, b) {
                       if (b.score !== a.score) return b.score - a.score
-                      if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement
                       if (b.top2 !== a.top2) return b.top2 - a.top2
-                      return b.top4 - a.top4
+                      if (a.fourths !== b.fourths) return a.fourths - b.fourths
+                      if (b.firsts !== a.firsts) return b.firsts - a.firsts
+                      return (a.lastPlacement || 9) - (b.lastPlacement || 9)
                     })
                   }
                   return (

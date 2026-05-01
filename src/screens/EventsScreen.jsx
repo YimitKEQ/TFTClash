@@ -922,7 +922,12 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hi
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {tournaments.map(function(t) {
           var regCount = regCounts[t.id] || 0
-          var maxP = t.max_players || 128
+          var rawMaxP = t.max_players || 128
+          var teamSzRaw = t && t.team_size != null ? parseInt(t.team_size, 10) : 1
+          var teamSzNum = Number.isFinite(teamSzRaw) && teamSzRaw > 0 ? teamSzRaw : 1
+          var isTeamEvt = teamSzNum > 1
+          var maxP = isTeamEvt ? Math.max(1, Math.floor(rawMaxP / teamSzNum)) : rawMaxP
+          var capUnit = isTeamEvt ? 'teams' : 'players'
           var pct = Math.min(100, Math.round((regCount / maxP) * 100))
           var barColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF'
           var _startTs = t.started_at || t.checkin_close_at || t.checkin_open_at || t.registration_close_at || null
@@ -995,7 +1000,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hi
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-on-surface-variant text-xs">
                     <Icon name="group" size={14} className="mr-2" />
-                    <span className="font-label uppercase tracking-wider">{regCount + ' / ' + maxP + ' players'}</span>
+                    <span className="font-label uppercase tracking-wider">{regCount + ' / ' + maxP + ' ' + capUnit}</span>
                   </div>
                   <div className="flex items-center text-on-surface-variant text-xs">
                     <Icon name="event" size={14} className="mr-2" />

@@ -266,7 +266,8 @@ export async function respondInvite(inviteId, action, playerId) {
       .single();
     if (inv.error) throw inv.error;
     if (inv.data.status !== 'pending') throw new Error('Invite is no longer pending.');
-    if (playerId && inv.data.invitee_player_id !== playerId) {
+    if (!playerId) throw new Error('playerId is required to accept an invite.');
+    if (inv.data.invitee_player_id !== playerId) {
       throw new Error('Only the invitee can accept.');
     }
 
@@ -310,9 +311,30 @@ export async function respondInvite(inviteId, action, playerId) {
 
 // ─── Writes: roster management ──────────────────────────────────────────────
 
-export async function setMemberRole(memberId, role) {
+export async function setMemberRole(memberId, role, callerPlayerId) {
   if (['captain', 'main', 'sub'].indexOf(role) === -1) {
     throw new Error('Invalid role: ' + role);
+  }
+  // Client-side captain gate. The DB also rejects non-captain role changes
+  // via trg_team_members_role_guard (migration 100), but failing fast here
+  // gives a cleaner UX and avoids a roundtrip.
+  if (callerPlayerId) {
+    var memberRow = await supabase
+      .from('team_members')
+      .select('id, team_id')
+      .eq('id', memberId)
+      .maybeSingle();
+    if (memberRow.error) throw memberRow.error;
+    if (!memberRow.data) throw new Error('Member not found.');
+    var teamRow = await supabase
+      .from('teams')
+      .select('captain_player_id')
+      .eq('id', memberRow.data.team_id)
+      .maybeSingle();
+    if (teamRow.error) throw teamRow.error;
+    if (!teamRow.data || String(teamRow.data.captain_player_id) !== String(callerPlayerId)) {
+      throw new Error('Only the team captain can change member roles.');
+    }
   }
   var res = await supabase
     .from('team_members')
@@ -401,7 +423,26 @@ export async function notifyTeamMembers(teamId, title, body, icon, options) {
   if (!teamId || !title) return;
   options = options || {};
   var exclude = (options.excludePlayerIds || []).map(String);
+  // Optional caller-membership gate. When the caller passes their player_id
+  // (or is_admin/is_service), we restrict broadcasting to teams the caller
+  // belongs to. Defaults to "open" only when the call is server-trusted
+  // (e.g. webhook) by passing options.allowAnyTeam = true.
+  var callerPlayerId = options.callerPlayerId ? String(options.callerPlayerId) : null;
+  var allowAnyTeam = options.allowAnyTeam === true;
   try {
+    if (callerPlayerId && !allowAnyTeam) {
+      var membership = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('player_id', callerPlayerId)
+        .is('removed_at', null)
+        .maybeSingle();
+      if (membership.error || !membership.data) {
+        console.warn('notifyTeamMembers: caller is not a member of', teamId);
+        return;
+      }
+    }
     var memRes = await supabase
       .from('team_members')
       .select('player_id, players(auth_user_id)')

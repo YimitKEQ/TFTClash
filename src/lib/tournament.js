@@ -115,14 +115,28 @@ export function buildTeamLobbies(teams, teamSize, teamsPerLobby, seedingMethod) 
       lobbies.push({ teams: lobbyTeams, players: flattenLobbyRoster(lobbyTeams, teamSize) });
       lo += 1; hi -= 1;
     }
+    // Odd team count: drop a one-team "bye" lobby into the closest lobby as a
+    // third team rather than booking an opponent-less game. Caller surfaces
+    // the bye via the returned `byes` array so the admin can warn the host.
     if (lo === hi) {
-      lobbies.push({ teams: [pool[lo]], players: flattenLobbyRoster([pool[lo]], teamSize) });
+      if (lobbies.length > 0) {
+        var lastLobby = lobbies[lobbies.length - 1];
+        lastLobby.teams.push(pool[lo]);
+        lastLobby.players = flattenLobbyRoster(lastLobby.teams, teamSize);
+        lastLobby.bye_team_id = pool[lo].id;
+      } else {
+        lobbies.push({ teams: [pool[lo]], players: flattenLobbyRoster([pool[lo]], teamSize), bye_team_id: pool[lo].id });
+      }
     }
   } else {
     // Sequential chunks of teamsPerLobby
     for (var k = 0; k < pool.length; k += teamsPerLobby) {
       var chunk = pool.slice(k, k + teamsPerLobby);
-      lobbies.push({ teams: chunk, players: flattenLobbyRoster(chunk, teamSize) });
+      var lob = { teams: chunk, players: flattenLobbyRoster(chunk, teamSize) };
+      if (chunk.length < teamsPerLobby) {
+        lob.short_lobby = true;
+      }
+      lobbies.push(lob);
     }
   }
   return lobbies;

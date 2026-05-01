@@ -674,6 +674,18 @@ export default function TournamentTab() {
   var flashArchivedCount = (flashTournaments || []).filter(function(t) { return !!t.archived_at }).length
   var flashVisibleCount = flashVisibleList.length
 
+  // Hint string for flash wizard "Max Players" field when team format is active.
+  var _flashTeamSizeRaw = parseInt(flashForm.teamSize, 10)
+  var _flashTeamSizeNum = Number.isFinite(_flashTeamSizeRaw) && _flashTeamSizeRaw > 1 ? _flashTeamSizeRaw : 0
+  var flashTeamHint = ''
+  if (_flashTeamSizeNum > 0) {
+    var _flashMpNum = parseInt(flashForm.maxPlayers, 10)
+    if (Number.isFinite(_flashMpNum) && _flashMpNum >= _flashTeamSizeNum) {
+      var _flashTeams = Math.floor(_flashMpNum / _flashTeamSizeNum)
+      flashTeamHint = _flashTeams + ' teams of ' + _flashTeamSizeNum + ' (' + (_flashTeams * _flashTeamSizeNum) + ' player slots)'
+    }
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6">
 
@@ -977,8 +989,11 @@ export default function TournamentTab() {
             <Inp type="datetime-local" value={flashForm.date} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { date: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Max Players</label>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">{flashTeamHint ? 'Max Players (individuals)' : 'Max Players'}</label>
             <Inp type="number" min="2" step="1" value={flashForm.maxPlayers} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { maxPlayers: typeof v === 'string' ? v : v.target.value })) }} />
+            {flashTeamHint && (
+              <div className="text-[10px] text-on-surface/40 mt-1">{flashTeamHint}</div>
+            )}
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Game Count</label>
