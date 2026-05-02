@@ -22,7 +22,9 @@ import {
   listTeams, getMyTeam, listMyInvites, listTeamSentInvites, getTeamTournamentHistory,
   createTeam, disbandTeam, sendInvite, respondInvite,
   setMemberRole, transferCaptaincy, leaveTeam, kickMember,
-  acceptInviteByCode, saveLineupPreset, listMyPendingRsvps, respondTeamEventRsvp
+  acceptInviteByCode, saveLineupPreset, listMyPendingRsvps, respondTeamEventRsvp,
+  listLftPosts, getMyLftPost, upsertLftPost, archiveMyLftPost,
+  listMyRingerInvites, respondTeamRingerInvite
 } from '../lib/teams.js';
 
 var REGIONS = ['EUW', 'NA', 'KR', 'EUNE', 'OCE', 'BR', 'JP', 'LAN', 'LAS', 'TR', 'RU'];
@@ -678,6 +680,167 @@ function LineupPresetPanel(props) {
   );
 }
 
+function MyRingerInvitesPanel(props) {
+  var ringers = props.ringers || [];
+  var onRespond = props.onRespond;
+  var navigate = props.navigate;
+  if (!ringers.length) return null;
+  return (
+    <Panel padding="default" className="space-y-3" accent="primary">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Ringer invites</h3>
+        <p className="text-sm text-on-surface/60 mt-1">A captain wants you to play one tournament for their team.</p>
+      </div>
+      <div className="space-y-2">
+        {ringers.map(function(r){
+          var t = r.tournaments || {};
+          var team = r.teams || {};
+          var fmt = t.team_size === 2 ? '2v2' : t.team_size === 4 ? '4v4' : '';
+          return (
+            <div key={r.id} className="bg-surface-container-low/60 border border-outline-variant/10 rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <button type="button" onClick={function(){ if (navigate && t.id) navigate('/tournament/' + t.id); }} className="font-bold text-on-surface truncate hover:text-primary text-left">{team.name || 'A team'}</button>
+                  {fmt ? <Tag variant="secondary">{fmt}</Tag> : null}
+                </div>
+                <div className="text-xs text-on-surface/50 mt-1">{t.name || 'a tournament'}{r.message ? ' - ' + r.message : ''}</div>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <Btn size="sm" v="ghost" onClick={function(){ onRespond(r.id, 'declined'); }}>Decline</Btn>
+                <Btn size="sm" icon="check" onClick={function(){ onRespond(r.id, 'accepted'); }}>Accept</Btn>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
+function MyLftPostPanel(props) {
+  var post = props.post;
+  var toast = props.toast;
+  var onSaved = props.onSaved;
+  var [region, setRegion] = useState((post && post.region) || 'EUW');
+  var [doFour, setDoFour] = useState(post ? (post.formats || []).indexOf('4v4') !== -1 : true);
+  var [doDuo, setDoDuo] = useState(post ? (post.formats || []).indexOf('2v2') !== -1 : true);
+  var [message, setMessage] = useState((post && post.message) || '');
+  var [busy, setBusy] = useState(false);
+
+  function submit(e) {
+    e.preventDefault();
+    var formats = [];
+    if (doFour) formats.push('4v4');
+    if (doDuo) formats.push('2v2');
+    if (!formats.length) { if (toast) toast('Pick at least one format.'); return; }
+    setBusy(true);
+    upsertLftPost({ region: region, formats: formats, message: message })
+      .then(function(){ setBusy(false); if (toast) toast(post ? 'LFT post updated.' : 'Posted to the LFT board.'); if (onSaved) onSaved(); })
+      .catch(function(err){ setBusy(false); if (toast) toast('Save failed: ' + (err.message || 'unknown error')); });
+  }
+
+  function archive() {
+    if (!post) return;
+    if (!window.confirm('Take down your LFT post?')) return;
+    setBusy(true);
+    archiveMyLftPost(post.id)
+      .then(function(){ setBusy(false); if (toast) toast('LFT post taken down.'); if (onSaved) onSaved(); })
+      .catch(function(err){ setBusy(false); if (toast) toast('Archive failed: ' + (err.message || 'unknown error')); });
+  }
+
+  return (
+    <Panel padding="default" className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-display text-xl text-on-surface">{post ? 'Your LFT listing' : 'Looking for a team?'}</h3>
+          <p className="text-sm text-on-surface/60 mt-1">{post ? 'Captains can browse and recruit you.' : 'Post here so captains can find you.'}</p>
+        </div>
+        {post ? <Tag variant="success">Live</Tag> : null}
+      </div>
+      <form onSubmit={submit} className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="block">
+            <div className="text-xs uppercase tracking-wider font-label text-on-surface/60 mb-1">Region</div>
+            <select value={region} onChange={function(e){ setRegion(e.target.value); }} className="w-full bg-surface-container border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface">
+              {REGIONS.map(function(r){ return <option key={r} value={r}>{r}</option>; })}
+            </select>
+          </label>
+          <div className="flex flex-col gap-1">
+            <div className="text-xs uppercase tracking-wider font-label text-on-surface/60 mb-1">Formats</div>
+            <div className="flex gap-2">
+              <button type="button" onClick={function(){ setDoFour(!doFour); }} className={'px-3 py-2 rounded border text-sm ' + (doFour ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/20 text-on-surface/60')}>4v4 Squads</button>
+              <button type="button" onClick={function(){ setDoDuo(!doDuo); }} className={'px-3 py-2 rounded border text-sm ' + (doDuo ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/20 text-on-surface/60')}>2v2 Double Up</button>
+            </div>
+          </div>
+        </div>
+        <label className="block">
+          <div className="text-xs uppercase tracking-wider font-label text-on-surface/60 mb-1">Pitch (optional)</div>
+          <textarea value={message} onChange={function(e){ setMessage(e.target.value); }} maxLength={240} rows={2} placeholder="Diamond IV, EU evenings, voice on Discord..." className="w-full bg-surface-container border border-outline-variant/20 rounded-lg px-3 py-2 text-sm text-on-surface" />
+        </label>
+        <div className="flex gap-2">
+          <Btn type="submit" disabled={busy} icon={post ? 'save' : 'campaign'}>{busy ? 'Saving...' : (post ? 'Update post' : 'Post LFT')}</Btn>
+          {post ? <Btn type="button" v="ghost" onClick={archive} disabled={busy} icon="visibility_off">Take down</Btn> : null}
+        </div>
+      </form>
+    </Panel>
+  );
+}
+
+function LftBrowsePanel(props) {
+  var posts = props.posts || [];
+  var amCaptain = props.amCaptain;
+  var teamId = props.teamId;
+  var captainPlayerId = props.captainPlayerId;
+  var toast = props.toast;
+  var onInvite = props.onInvite;
+  if (!posts.length) {
+    return (
+      <Panel padding="default" className="space-y-2">
+        <h3 className="font-display text-xl text-on-surface">LFT board</h3>
+        <p className="text-sm text-on-surface/60">No players are looking right now. Check back later.</p>
+      </Panel>
+    );
+  }
+  function fmtDate(s){ try { var d = new Date(s); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch(e){ return ''; } }
+  function inviteFromPost(post) {
+    if (!amCaptain || !teamId || !captainPlayerId) { if (toast) toast('Captains only.'); return; }
+    var pid = post.player_id;
+    sendInvite({ teamId: teamId, inviteePlayerId: pid, inviterPlayerId: captainPlayerId, message: 'Saw your LFT post.' })
+      .then(function(){ if (toast) toast('Invite sent.'); if (onInvite) onInvite(); })
+      .catch(function(err){ if (toast) toast('Invite failed: ' + (err.message || 'unknown error')); });
+  }
+  return (
+    <Panel padding="default" className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-xl text-on-surface">LFT board</h3>
+        <Tag variant="secondary">{posts.length}</Tag>
+      </div>
+      <div className="space-y-2">
+        {posts.map(function(p){
+          var pl = p.players || {};
+          return (
+            <div key={p.id} className="bg-surface-container-low/60 border border-outline-variant/10 rounded-lg p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden flex-shrink-0">
+                {pl.profile_pic_url ? <img src={pl.profile_pic_url} alt="" className="w-full h-full object-cover"/> : <Icon name="person" className="text-on-surface/40" size={16}/>}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold text-on-surface truncate">{pl.username || 'Player'}</span>
+                  <Tag variant="secondary">{p.region || pl.region || 'EUW'}</Tag>
+                  {(p.formats || []).map(function(f){ return <Tag key={f} variant="tertiary">{f}</Tag>; })}
+                </div>
+                {p.message ? <div className="text-xs text-on-surface/60 mt-0.5 truncate">{p.message}</div> : null}
+                <div className="text-[10px] text-on-surface/40 mt-0.5 font-mono">{'posted ' + fmtDate(p.created_at)}</div>
+              </div>
+              {amCaptain ? <Btn size="sm" icon="person_add" onClick={function(){ inviteFromPost(p); }}>Invite</Btn> : null}
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
 function MyRsvpsPanel(props) {
   var rsvps = props.rsvps || [];
   var onRespond = props.onRespond;
@@ -734,6 +897,9 @@ export default function TeamsScreen() {
   var [sentInvites, setSentInvites] = useState([]);
   var [history, setHistory] = useState([]);
   var [pendingRsvps, setPendingRsvps] = useState([]);
+  var [pendingRingers, setPendingRingers] = useState([]);
+  var [myLftPost, setMyLftPost] = useState(null);
+  var [lftPosts, setLftPosts] = useState([]);
   var [reload, setReload] = useState(0);
   var [joiningCode, setJoiningCode] = useState(false);
   var navigate = useNavigate();
@@ -769,13 +935,19 @@ export default function TeamsScreen() {
       playerId ? getMyTeam(playerId) : Promise.resolve(null),
       playerId ? listMyInvites(playerId) : Promise.resolve([]),
       listTeams({ includeArchived: false }),
-      playerId ? listMyPendingRsvps(playerId).catch(function(){ return []; }) : Promise.resolve([])
+      playerId ? listMyPendingRsvps(playerId).catch(function(){ return []; }) : Promise.resolve([]),
+      playerId ? listMyRingerInvites(playerId).catch(function(){ return []; }) : Promise.resolve([]),
+      playerId ? getMyLftPost(playerId).catch(function(){ return null; }) : Promise.resolve(null),
+      listLftPosts().catch(function(){ return []; })
     ]).then(function(out) {
       if (cancelled) return;
       var team = out[0];
       var invs = out[1];
       var all = out[2];
       setPendingRsvps(out[3] || []);
+      setPendingRingers(out[4] || []);
+      setMyLftPost(out[5] || null);
+      setLftPosts(out[6] || []);
       if (invs && invs.length) {
         var byId = {};
         all.forEach(function(t) { byId[t.id] = t; });
@@ -825,6 +997,15 @@ export default function TeamsScreen() {
         refresh();
       })
       .catch(function(err){ if (toast) toast('RSVP failed: ' + (err.message || 'unknown error')); });
+  }
+
+  function handleRingerRespond(ringerId, status) {
+    respondTeamRingerInvite(ringerId, status)
+      .then(function(){
+        if (toast) toast(status === 'accepted' ? 'Accepted ringer slot.' : 'Declined ringer invite.');
+        refresh();
+      })
+      .catch(function(err){ if (toast) toast('Could not respond: ' + (err.message || 'unknown error')); });
   }
 
   function handleRespond(inviteId, action) {
@@ -924,6 +1105,7 @@ export default function TeamsScreen() {
         </div>
 
         <MyRsvpsPanel rsvps={pendingRsvps} onRespond={handleRsvp} navigate={navigate} />
+        <MyRingerInvitesPanel ringers={pendingRingers} onRespond={handleRingerRespond} navigate={navigate} />
         <InviteList invites={invites} onRespond={handleRespond} />
 
         {myTeam ? (
@@ -945,11 +1127,22 @@ export default function TeamsScreen() {
             {amCaptain ? (
               <SentInvitesPanel sent={sentInvites} onCancel={handleCancelSent} />
             ) : null}
+            {amCaptain ? (
+              <LftBrowsePanel
+                posts={lftPosts}
+                amCaptain={amCaptain}
+                teamId={myTeam.id}
+                captainPlayerId={currentUser.id}
+                toast={toast}
+                onInvite={refresh}
+              />
+            ) : null}
             <TeamHistoryPanel history={history} onOpen={function(tid){ navigate('/tournament/' + tid); }} />
           </>
         ) : (
           <>
             <JoinByCodeCard toast={toast} onJoined={refresh} />
+            <MyLftPostPanel post={myLftPost} toast={toast} onSaved={refresh} />
             <CreateTeamForm
               captainPlayerId={currentUser.id}
               toast={toast}

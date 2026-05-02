@@ -6,7 +6,7 @@ import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from '../lib/constan
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
-import { notifyTeamMembers, registerTeamWithRosterRsvps } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamWithRosterRsvps, listTeamRingers, inviteTeamRinger } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
@@ -83,6 +83,18 @@ export default function FlashTournamentScreen(props) {
   var _captainLineupSel = useState([]);
   var captainLineupSel = _captainLineupSel[0];
   var setCaptainLineupSel = _captainLineupSel[1];
+  var _eventRingers = useState([]);
+  var eventRingers = _eventRingers[0];
+  var setEventRingers = _eventRingers[1];
+  var _ringerInviteName = useState('');
+  var ringerInviteName = _ringerInviteName[0];
+  var setRingerInviteName = _ringerInviteName[1];
+  var _ringerBusy = useState(false);
+  var ringerBusy = _ringerBusy[0];
+  var setRingerBusy = _ringerBusy[1];
+  var _ringerReload = useState(0);
+  var ringerReload = _ringerReload[0];
+  var setRingerReload = _ringerReload[1];
   var channelRef = useRef(null);
 
   // Derived management gate: admins always; tournament host on their own non-season tournament.
@@ -217,6 +229,18 @@ export default function FlashTournamentScreen(props) {
       .catch(function() {});
     return function() { cancelled = true; };
   }, [myCaptainTeam && myCaptainTeam.id]);
+
+  useEffect(function() {
+    var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
+    var teamLive = Number.isFinite(ts) && ts > 1;
+    if (!teamLive || !myCaptainTeam || !tournamentId) { setEventRingers([]); return; }
+    var cancelled = false;
+    listTeamRingers(myCaptainTeam.id, tournamentId).then(function(rows){
+      if (cancelled) return;
+      setEventRingers(rows || []);
+    }).catch(function(){ setEventRingers([]); });
+    return function(){ cancelled = true; };
+  }, [tournament && tournament.team_size, myCaptainTeam && myCaptainTeam.id, tournamentId, ringerReload]);
 
   useEffect(function() {
     var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
@@ -1823,8 +1847,53 @@ export default function FlashTournamentScreen(props) {
                     </button>
                   );
                 })}
+                {(eventRingers || []).filter(function(r){ return r.status === 'accepted'; }).map(function(r){
+                  var pid = r.player_id;
+                  var isPicked = captainLineupSel.indexOf(pid) !== -1;
+                  var p = r.players || {};
+                  var name = p.username || p.riot_id || 'Ringer';
+                  return (
+                    <button
+                      key={'ringer-' + r.id}
+                      type="button"
+                      onClick={function() { toggleCaptainLineup(pid); }}
+                      className={'flex items-center gap-2 px-3 py-2 rounded border text-left text-sm ' + (isPicked ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/20 bg-surface-container-low text-on-surface hover:bg-white/5')}
+                    >
+                      <Icon name={isPicked ? 'check_circle' : 'radio_button_unchecked'} size={16} fill={isPicked} />
+                      <span className="font-semibold flex-1">{name}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-secondary/80">Ringer</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
+            <div className="bg-surface-container-low/40 border border-outline-variant/15 rounded p-3 mt-4">
+              <div className="text-[10px] uppercase tracking-widest font-label text-on-surface-variant/60 mb-2">Invite a ringer for this event</div>
+              <form
+                onSubmit={function(e){
+                  e.preventDefault();
+                  var name = (ringerInviteName || '').trim();
+                  if (!name) { toast('Enter a username.', 'error'); return; }
+                  setRingerBusy(true);
+                  supabase.from('players').select('id, username').ilike('username', name).limit(1).maybeSingle().then(function(pRes){
+                    if (pRes.error || !pRes.data) { setRingerBusy(false); toast('Player not found.', 'error'); return; }
+                    inviteTeamRinger(myCaptainTeam.id, tournamentId, pRes.data.id, '').then(function(){
+                      setRingerBusy(false); setRingerInviteName(''); setRingerReload(function(n){ return n + 1; });
+                      toast('Ringer invite sent to ' + pRes.data.username + '.', 'success');
+                    }).catch(function(err){ setRingerBusy(false); toast('Invite failed: ' + (err.message || 'unknown error'), 'error'); });
+                  }).catch(function(){ setRingerBusy(false); toast('Lookup failed.', 'error'); });
+                }}
+                className="flex gap-2"
+              >
+                <input type="text" value={ringerInviteName} onChange={function(e){ setRingerInviteName(e.target.value); }} placeholder="Riot ID or username" className="flex-1 bg-surface-container border border-outline-variant/20 rounded px-3 py-1.5 text-sm text-on-surface" />
+                <Btn type="submit" size="sm" disabled={ringerBusy} icon="person_add">{ringerBusy ? '...' : 'Invite'}</Btn>
+              </form>
+              {(eventRingers || []).filter(function(r){ return r.status === 'pending'; }).length > 0 && (
+                <div className="mt-2 text-[11px] text-on-surface-variant/55">
+                  {(eventRingers || []).filter(function(r){ return r.status === 'pending'; }).length + ' ringer invite(s) pending response.'}
+                </div>
+              )}
+            </div>
             <div className="text-[11px] text-on-surface-variant/50 mt-3">{'After check-in starters get a "you are starting" notification, others get bench notice.'}</div>
           </div>
         )}

@@ -714,6 +714,115 @@ async function notifyCaptainOnInviteResponse(invite, outcome) {
   }
 }
 
+// ─── Phase B: lineup swap, LFT board, ringers ───────────────────────────────
+
+export async function swapTeamLineupPlayer(teamId, tournamentId, outPlayerId, inPlayerId) {
+  if (!teamId || !tournamentId || !outPlayerId || !inPlayerId) {
+    throw new Error('teamId, tournamentId, outPlayerId, inPlayerId all required.');
+  }
+  var res = await supabase.rpc('swap_team_lineup_player', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId,
+    p_out_player_id: outPlayerId,
+    p_in_player_id: inPlayerId
+  });
+  if (res.error) throw res.error;
+  return res.data;
+}
+
+export async function listLftPosts(filter) {
+  var q = supabase
+    .from('lft_posts')
+    .select('id, player_id, region, formats, message, created_at, expires_at, players!lft_posts_player_id_fkey(id, username, riot_id, region, profile_pic_url)')
+    .is('archived_at', null)
+    .order('created_at', { ascending: false });
+  if (filter && filter.region) q = q.eq('region', filter.region);
+  if (filter && filter.format) q = q.contains('formats', [filter.format]);
+  var res = await q;
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+export async function getMyLftPost(playerId) {
+  if (!playerId) return null;
+  var res = await supabase
+    .from('lft_posts')
+    .select('id, player_id, region, formats, message, created_at, expires_at')
+    .eq('player_id', playerId)
+    .is('archived_at', null)
+    .maybeSingle();
+  if (res.error && res.error.code !== 'PGRST116') throw res.error;
+  return res.data || null;
+}
+
+export async function upsertLftPost(input) {
+  var region = (input && input.region) || 'EUW';
+  var formats = (input && input.formats) || ['2v2', '4v4'];
+  var message = (input && input.message) || '';
+  var res = await supabase.rpc('upsert_lft_post', {
+    p_region: region,
+    p_formats: formats,
+    p_message: message
+  });
+  if (res.error) throw res.error;
+  return res.data;
+}
+
+export async function archiveMyLftPost(postId) {
+  if (!postId) throw new Error('postId required.');
+  var res = await supabase.rpc('archive_lft_post', { p_id: postId });
+  if (res.error) throw res.error;
+  return res.data;
+}
+
+export async function listTeamRingers(teamId, tournamentId) {
+  if (!teamId) return [];
+  var q = supabase
+    .from('team_event_ringers')
+    .select('id, team_id, tournament_id, player_id, status, message, created_at, responded_at, players!team_event_ringers_player_id_fkey(id, username, riot_id, region, profile_pic_url)')
+    .eq('team_id', teamId);
+  if (tournamentId) q = q.eq('tournament_id', tournamentId);
+  var res = await q;
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+export async function listMyRingerInvites(playerId) {
+  if (!playerId) return [];
+  var res = await supabase
+    .from('team_event_ringers')
+    .select('id, team_id, tournament_id, status, message, created_at, teams!team_event_ringers_team_id_fkey(id, name, tag, logo_url), tournaments!team_event_ringers_tournament_id_fkey(id, name, team_size, phase, scheduled_at)')
+    .eq('player_id', playerId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+export async function inviteTeamRinger(teamId, tournamentId, playerId, message) {
+  if (!teamId || !tournamentId || !playerId) {
+    throw new Error('teamId, tournamentId, playerId required.');
+  }
+  var res = await supabase.rpc('invite_team_ringer', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId,
+    p_player_id: playerId,
+    p_message: message || ''
+  });
+  if (res.error) throw res.error;
+  return res.data;
+}
+
+export async function respondTeamRingerInvite(ringerId, status) {
+  if (!ringerId || !status) throw new Error('ringerId and status required.');
+  var res = await supabase.rpc('respond_team_ringer_invite', {
+    p_ringer_id: ringerId,
+    p_status: status
+  });
+  if (res.error) throw res.error;
+  return res.data;
+}
+
 async function playerAuthUserId(playerId) {
   if (!playerId) return null;
   var res = await supabase

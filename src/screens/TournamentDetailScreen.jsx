@@ -15,7 +15,7 @@ import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
-import { notifyTeamMembers, registerTeamWithRosterRsvps } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamWithRosterRsvps, listTeamRingers, inviteTeamRinger } from '../lib/teams.js'
 import { createNotification } from '../lib/notifications.js'
 
 var PLACE_POINTS = [
@@ -79,6 +79,18 @@ export default function TournamentDetailScreen() {
   var _teamRoster = useState([])
   var teamRoster = _teamRoster[0]
   var setTeamRoster = _teamRoster[1]
+  var _eventRingers = useState([])
+  var eventRingers = _eventRingers[0]
+  var setEventRingers = _eventRingers[1]
+  var _ringerInviteName = useState('')
+  var ringerInviteName = _ringerInviteName[0]
+  var setRingerInviteName = _ringerInviteName[1]
+  var _ringerBusy = useState(false)
+  var ringerBusy = _ringerBusy[0]
+  var setRingerBusy = _ringerBusy[1]
+  var _ringerReload = useState(0)
+  var ringerReload = _ringerReload[0]
+  var setRingerReload = _ringerReload[1]
   var _myTeamReg = useState(null)
   var myTeamReg = _myTeamReg[0]
   var setMyTeamReg = _myTeamReg[1]
@@ -186,6 +198,16 @@ export default function TournamentDetailScreen() {
   }
 
   useEffect(refreshLiveReg, [dbTournamentId, linkedPlayerId, isTeamEvent, myCaptainTeam && myCaptainTeam.id])
+
+  useEffect(function() {
+    if (!isTeamEvent || !myCaptainTeam || !dbTournamentId) { setEventRingers([]); return; }
+    var cancelled = false;
+    listTeamRingers(myCaptainTeam.id, dbTournamentId).then(function(rows){
+      if (cancelled) return;
+      setEventRingers(rows || []);
+    }).catch(function(){ setEventRingers([]); });
+    return function(){ cancelled = true; };
+  }, [isTeamEvent, myCaptainTeam && myCaptainTeam.id, dbTournamentId, ringerReload])
 
   useEffect(function() {
     if (!isTeamEvent || !myCaptainTeam || !dbTournamentId || !supabase.from) {
@@ -795,7 +817,62 @@ export default function TournamentDetailScreen() {
                   </button>
                 );
               })}
+              {(eventRingers || []).filter(function(r){ return r.status === 'accepted'; }).map(function(r) {
+                var p = r.players || {};
+                var selected = lineupSel.indexOf(r.player_id) !== -1;
+                var locked = isAlreadyCheckedIn;
+                return (
+                  <button
+                    key={'ringer-' + r.id}
+                    type="button"
+                    disabled={locked}
+                    onClick={locked ? undefined : function(){ toggleLineupSel(r.player_id); }}
+                    className={'w-full flex items-center justify-between gap-2 px-3 py-2 rounded border text-sm transition-colors ' +
+                      (selected
+                        ? 'bg-primary/15 border-primary/50 text-on-surface'
+                        : locked
+                          ? 'bg-surface-container/40 border-outline-variant/10 text-on-surface/40 cursor-not-allowed'
+                          : 'bg-surface-container/40 border-outline-variant/15 text-on-surface hover:border-outline-variant/40 cursor-pointer')}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Icon name={selected ? 'check_box' : 'check_box_outline_blank'} size={16} className={selected ? 'text-primary' : 'text-on-surface/40'} />
+                      <span className="font-bold truncate">{p.username || 'Ringer'}</span>
+                      {p.riot_id ? <span className="text-[11px] font-mono text-on-surface/50 truncate">{p.riot_id}</span> : null}
+                      <span className="text-[9px] font-label font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-secondary/15 text-secondary">RINGER</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+            {!isAlreadyCheckedIn && (
+              <div className="bg-surface-container-low/40 border border-outline-variant/15 rounded p-3 mb-4">
+                <div className="text-[10px] uppercase tracking-widest font-label text-on-surface/60 mb-2">Invite a ringer for this event</div>
+                <form
+                  onSubmit={function(e){
+                    e.preventDefault();
+                    var name = (ringerInviteName || '').trim();
+                    if (!name) { toast('Enter a username.', 'error'); return; }
+                    setRingerBusy(true);
+                    supabase.from('players').select('id, username').ilike('username', name).limit(1).maybeSingle().then(function(pRes){
+                      if (pRes.error || !pRes.data) { setRingerBusy(false); toast('Player not found.', 'error'); return; }
+                      inviteTeamRinger(myCaptainTeam.id, dbTournamentId, pRes.data.id, '').then(function(){
+                        setRingerBusy(false); setRingerInviteName(''); setRingerReload(function(n){ return n + 1; });
+                        toast('Ringer invite sent to ' + pRes.data.username + '.', 'success');
+                      }).catch(function(err){ setRingerBusy(false); toast('Invite failed: ' + (err.message || 'unknown error'), 'error'); });
+                    }).catch(function(){ setRingerBusy(false); toast('Lookup failed.', 'error'); });
+                  }}
+                  className="flex gap-2"
+                >
+                  <input type="text" value={ringerInviteName} onChange={function(e){ setRingerInviteName(e.target.value); }} placeholder="Riot ID or username" className="flex-1 bg-surface-container border border-outline-variant/20 rounded px-3 py-1.5 text-sm text-on-surface" />
+                  <Btn type="submit" size="sm" disabled={ringerBusy} icon="person_add">{ringerBusy ? '...' : 'Invite'}</Btn>
+                </form>
+                {(eventRingers || []).filter(function(r){ return r.status === 'pending'; }).length > 0 && (
+                  <div className="mt-2 text-[11px] text-on-surface/55">
+                    {(eventRingers || []).filter(function(r){ return r.status === 'pending'; }).length + ' ringer invite(s) pending response.'}
+                  </div>
+                )}
+              </div>
+            )}
             {!isAlreadyCheckedIn && (
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="text-[11px] text-on-surface/60">
