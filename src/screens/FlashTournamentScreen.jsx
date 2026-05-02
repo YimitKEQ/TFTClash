@@ -13,6 +13,8 @@ import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
 import RegionBadge from '../components/shared/RegionBadge'
 import LiveDashboardLayout from '../components/shared/LiveDashboardLayout'
+import SocialShareBar from '../components/shared/SocialShareBar'
+import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 
 export default function FlashTournamentScreen(props) {
@@ -1549,7 +1551,7 @@ export default function FlashTournamentScreen(props) {
   gameResults.forEach(function(g) { if (allGameNums.indexOf(g.game_number) === -1) allGameNums.push(g.game_number); });
   allGameNums.sort(function(a, b) { return a - b; });
 
-  var tabs = [{id: 'info', label: 'Info', icon: 'info'}, {id: 'players', label: 'Players (' + regCount + ')', icon: 'group'}];
+  var tabs = [{id: 'info', label: 'Info', icon: 'info'}, {id: 'players', label: 'Players (' + regCount + ')', icon: 'group'}, {id: 'rules', label: 'Rules', icon: 'gavel'}];
   if (phase === 'in_progress') {
     tabs.push({id: 'live', label: 'Live', icon: 'bolt'});
   }
@@ -1558,6 +1560,25 @@ export default function FlashTournamentScreen(props) {
   }
   if (phase === 'in_progress' || phase === 'complete') {
     tabs.push({id: 'standings', label: isComplete ? 'Final Results' : 'Standings', icon: 'bar_chart'});
+  }
+
+  var shareUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/tournament/' + tournamentId;
+  var shareText = (tournament && tournament.name ? tournament.name : 'TFT Tournament') + ' on TFT Clash';
+  var calendarStartDate = null;
+  if (tournament && tournament.checkin_open_at) {
+    var _coa = new Date(tournament.checkin_open_at);
+    if (!isNaN(_coa.getTime())) calendarStartDate = _coa;
+  }
+  if (!calendarStartDate && tournament && tournament.date) {
+    var _td = new Date(tournament.date + 'T19:00:00');
+    if (!isNaN(_td.getTime())) calendarStartDate = _td;
+  }
+  var pointsScale = (tournament && tournament.points_scale) || 'standard';
+  var isDoubleUp = pointsScale === 'double_up' || pointsScale === 'double_up_swiss';
+  var rulesPlace = isDoubleUp ? DOUBLE_UP_PTS : PTS;
+  var pointsRows = [];
+  for (var _pi = 1; _pi <= 8; _pi++) {
+    if (rulesPlace[_pi] != null) pointsRows.push({ place: _pi, pts: rulesPlace[_pi] });
   }
 
   var sortedRegs = [].concat(registrations).sort(function(a, b) {
@@ -1646,14 +1667,28 @@ export default function FlashTournamentScreen(props) {
               {tournament.region && <RegionBadge region={tournament.region} size="md" />}
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={function() {
-              var url = window.location.origin + '/tournament/' + tournamentId;
-              navigator.clipboard.writeText(url).then(function() { toast('Tournament link copied!', 'success'); });
-            }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-label font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
-              <Icon name="content_copy" size={14} />
-              Copy Link
-            </button>
+          <div className="flex flex-col items-stretch md:items-end gap-2">
+            <div className="flex gap-2 flex-wrap">
+              {calendarStartDate && (
+                <AddToCalendarBtn
+                  start={calendarStartDate}
+                  durationMinutes={120}
+                  title={tournament.name || 'TFT Tournament'}
+                  description={(tournament.description || '') + (tournament.description ? '\n\n' : '') + shareUrl}
+                  url={shareUrl}
+                  uid={'tft-clash-' + tournamentId}
+                  filename={'tft-clash-' + tournamentId + '.ics'}
+                  variant="outline"
+                />
+              )}
+              <button onClick={function() {
+                navigator.clipboard.writeText(shareUrl).then(function() { toast('Tournament link copied!', 'success'); });
+              }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-label font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
+                <Icon name="content_copy" size={14} />
+                Copy Link
+              </button>
+            </div>
+            <SocialShareBar url={shareUrl} text={shareText} />
           </div>
         </div>
 
@@ -1853,6 +1888,35 @@ export default function FlashTournamentScreen(props) {
                 </div>
               </div>
 
+              {/* Description */}
+              {tournament.description && (
+                <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="description" size={16} className="text-secondary" />
+                    <span className="text-xs font-label font-bold text-secondary tracking-widest uppercase">About this Tournament</span>
+                  </div>
+                  <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line">{tournament.description}</div>
+                </div>
+              )}
+
+              {/* Entry / Invite badges */}
+              {(tournament.entry_fee || tournament.invite_only) && (
+                <div className="flex flex-wrap gap-2">
+                  {tournament.entry_fee && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-tertiary/30 bg-tertiary/10 text-tertiary text-xs font-label font-bold tracking-wider uppercase">
+                      <Icon name="paid" size={14} />
+                      {"Entry: " + tournament.entry_fee}
+                    </span>
+                  )}
+                  {tournament.invite_only && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-error/30 bg-error/10 text-error text-xs font-label font-bold tracking-wider uppercase">
+                      <Icon name="lock" size={14} />
+                      Invite-only
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Announcement */}
               {tournament.announcement && (
                 <div className="bg-primary/5 rounded border border-primary/15 p-5">
@@ -1860,7 +1924,7 @@ export default function FlashTournamentScreen(props) {
                     <Icon name="campaign" size={16} className="text-primary" />
                     <span className="text-xs font-label font-bold text-primary tracking-widest uppercase">Announcement</span>
                   </div>
-                  <div className="text-sm text-on-surface leading-relaxed">{tournament.announcement}</div>
+                  <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line">{tournament.announcement}</div>
                 </div>
               )}
             </div>
@@ -1934,6 +1998,96 @@ export default function FlashTournamentScreen(props) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: RULES
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'rules' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 space-y-5">
+              {tournament.rules_text ? (
+                <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="gavel" size={16} className="text-primary" />
+                    <span className="text-xs font-label font-bold text-primary tracking-widest uppercase">Tournament Rules</span>
+                  </div>
+                  <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line">{tournament.rules_text}</div>
+                </div>
+              ) : (
+                <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="info" size={16} className="text-on-surface-variant" />
+                    <span className="text-xs font-label font-bold text-on-surface-variant tracking-widest uppercase">Standard Ruleset</span>
+                  </div>
+                  <div className="text-sm text-on-surface-variant leading-relaxed">
+                    This tournament uses the standard EMEA ruleset. Default scoring and tiebreakers apply.
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="emoji_events" size={18} className="text-tertiary" />
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{isDoubleUp ? 'Scoring (2v2 Double Up)' : 'Scoring'}</span>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    {pointsRows.map(function(row) {
+                      return (
+                        <div key={row.place} className="text-center bg-surface-container-lowest rounded border border-outline-variant/10 px-2 py-3">
+                          <div className="text-[10px] font-label text-on-surface-variant/50 tracking-wider uppercase mb-1">{ordinal(row.place)}</div>
+                          <div className="font-mono text-lg font-bold text-tertiary">{row.pts}</div>
+                          <div className="text-[10px] font-label text-on-surface-variant/40 tracking-wider uppercase">pts</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {isDoubleUp && pointsScale === 'double_up_swiss' && (
+                    <div className="mt-3 px-3 py-2 rounded bg-secondary/[0.06] border border-secondary/20 text-[11px] text-secondary">
+                      <Icon name="trending_up" size={12} className="inline-block mr-1 -mt-0.5" />
+                      Swiss multipliers: Round 4 = {DOUBLE_UP_MULTIPLIERS && DOUBLE_UP_MULTIPLIERS[4] ? DOUBLE_UP_MULTIPLIERS[4] + 'x' : '1.25x'}, Round 5 = {DOUBLE_UP_MULTIPLIERS && DOUBLE_UP_MULTIPLIERS[5] ? DOUBLE_UP_MULTIPLIERS[5] + 'x' : '1.5x'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="balance" size={18} className="text-secondary" />
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Tiebreakers</span>
+                </div>
+                <ol className="p-5 space-y-2 text-sm text-on-surface list-decimal list-inside">
+                  <li>Total tournament points</li>
+                  <li>Wins + top 4s (wins count twice)</li>
+                  <li>Most of each placement (1st, 2nd, 3rd ...)</li>
+                  <li>Most recent game finish</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 space-y-5">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="settings" size={18} className="text-primary" />
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Format</span>
+                </div>
+                <div className="p-5 space-y-3 text-sm">
+                  <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Type</span><span className="font-mono text-on-surface font-bold">{isTeamEvent ? (teamSizeNum + 'v' + teamSizeNum) : 'Solo'}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Games</span><span className="font-mono text-on-surface font-bold">{totalGames}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Seeding</span><span className="font-mono text-on-surface font-bold">{tournament.seeding_method || 'snake'}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">{isTeamEvent ? 'Max Teams' : 'Max Players'}</span><span className="font-mono text-on-surface font-bold">{isTeamEvent ? effectiveCap : maxP}</span></div>
+                  {tournament.cut_line > 0 && (
+                    <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Cut</span><span className="font-mono text-primary font-bold">Top {tournament.cut_line} after R{tournament.cut_after_game}</span></div>
+                  )}
+                  {tournament.entry_fee && (
+                    <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Entry fee</span><span className="font-mono text-tertiary font-bold">{tournament.entry_fee}</span></div>
+                  )}
+                  <div className="flex justify-between gap-3"><span className="text-on-surface-variant/60">Access</span><span className="font-mono text-on-surface font-bold">{tournament.invite_only ? 'Invite only' : 'Open'}</span></div>
+                </div>
+              </div>
             </div>
           </div>
         )}

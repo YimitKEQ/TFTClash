@@ -125,7 +125,7 @@ export default function TournamentTab() {
     if (f.seeding) setSeedAlgo(f.seeding)
   }
 
-  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
+  var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', description: '', rulesText: '', entryFee: '', inviteOnly: false, announcement: '', bannerUrl: '', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
 
@@ -447,6 +447,49 @@ export default function TournamentTab() {
     })
   }
 
+  function unscheduleClash() {
+    var regionLabel = adminRegion === 'NA' ? 'NA' : 'EU'
+    var hadActive = !!(ts && (ts.dbTournamentId || ts.activeTournamentId))
+    var msg = hadActive
+      ? 'Unschedule the current ' + regionLabel + ' clash? This clears the scheduled time, archives the DB row, and resets the region to "Not Scheduled". Existing results stay in the database.'
+      : 'Clear the ' + regionLabel + ' clash schedule and reset to "Not Scheduled"?'
+    if (!window.confirm(msg)) return
+    var tIdToArchive = (ts && (ts.activeTournamentId || ts.dbTournamentId)) || null
+    setTournamentState(function(s) {
+      var base = s || {}
+      return {
+        phase: 'idle',
+        round: 1,
+        lobbies: [],
+        lockedLobbies: [],
+        checkedInIds: [],
+        registeredIds: [],
+        waitlistIds: [],
+        maxPlayers: base.maxPlayers || 24,
+        roundCount: base.roundCount || 3,
+        seedingMethod: base.seedingMethod || 'rank-based',
+        server: regionLabel,
+        clashTimestamp: null,
+        clashName: null,
+        clashNumber: null,
+        dbTournamentId: null,
+        activeTournamentId: null,
+        prizePool: [],
+        rulesOverride: '',
+        isFinale: false
+      }
+    })
+    if (tIdToArchive) {
+      supabase.from('tournaments').update({ archived_at: new Date().toISOString(), phase: 'archived' }).eq('id', tIdToArchive).then(function(r) {
+        if (r.error) toast('DB archive failed: ' + r.error.message, 'error')
+      }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
+      supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
+    }
+    setClashForm(function(f) { return Object.assign({}, f, { clashLocal: '' }) })
+    addAudit('WARN', regionLabel + ' clash unscheduled' + (tIdToArchive ? ' (archived tid ' + tIdToArchive + ')' : ''))
+    toast(regionLabel + ' clash unscheduled', 'success')
+  }
+
   function resetToRegistration() {
     if (!window.confirm('Reset tournament back to Registration phase? This keeps the same clash row but clears check-ins.')) return
     setTournamentState(function(s) { return Object.assign({}, s, { phase: 'registration', checkedInIds: [], round: 1 }) })
@@ -550,6 +593,11 @@ export default function TournamentTab() {
     var dateOnly = parsedDate.getFullYear() + '-' + String(parsedDate.getMonth() + 1).padStart(2, '0') + '-' + String(parsedDate.getDate()).padStart(2, '0')
     var checkinOpenIso = new Date(parsedDate.getTime() - 15 * 60 * 1000).toISOString()
     var flashRegion = (flashForm.region === 'NA' || flashForm.region === 'EU') ? flashForm.region : 'EU'
+    var descTrim = (flashForm.description || '').trim()
+    var rulesTrim = (flashForm.rulesText || '').trim()
+    var entryFeeTrim = (flashForm.entryFee || '').trim()
+    var announcementTrim = (flashForm.announcement || '').trim()
+    var bannerUrlTrim = (flashForm.bannerUrl || '').trim()
     supabase.from('tournaments').insert({
       name: trimmedName, date: dateOnly, phase: 'draft', type: 'flash_tournament',
       max_players: flashMaxP, round_count: flashGames,
@@ -564,14 +612,20 @@ export default function TournamentTab() {
       checkin_close_at: startIso,
       format: flashForm.formatPreset || 'custom',
       cut_line: cutLine,
-      cut_after_game: cutAfterGame
+      cut_after_game: cutAfterGame,
+      description: descTrim || null,
+      rules_text: rulesTrim || null,
+      entry_fee: entryFeeTrim || null,
+      invite_only: !!flashForm.inviteOnly,
+      announcement: announcementTrim || null,
+      banner_url: bannerUrlTrim || null
     }).select().single().then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       setFlashTournaments(function(ts) { return (ts || []).concat([res.data]) })
       var cutMsg = cutLine > 0 ? ' [cut to top ' + cutLine + ' after R' + cutAfterGame + ']' : ''
       addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim() + (teamSize > 1 ? ' [' + teamSize + 'v' + teamSize + ']' : '') + cutMsg)
       toast('Flash tournament created!', 'success')
-      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', prizeRows: [{ placement: '1', prize: '' }] })
+      setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', description: '', rulesText: '', entryFee: '', inviteOnly: false, announcement: '', bannerUrl: '', prizeRows: [{ placement: '1', prize: '' }] })
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
@@ -910,6 +964,13 @@ export default function TournamentTab() {
           <Btn variant="primary" size="sm" onClick={startTournament} disabled={currentPhase !== 'checkin'}>Start Tournament</Btn>
           <Btn variant="ghost" size="sm" onClick={markComplete} disabled={currentPhase !== 'inprogress'}>Mark Complete</Btn>
           <Btn variant="secondary" size="sm" onClick={resetToRegistration}>Reset Phase</Btn>
+          <Btn variant="ghost" size="sm" onClick={unscheduleClash}>
+            <Icon name="event_busy" size={14} className="inline-block mr-1 -mt-0.5" />
+            Unschedule
+          </Btn>
+        </div>
+        <div className="text-[10px] text-on-surface/40 mt-2">
+          <strong className="text-on-surface/60">Unschedule</strong> clears the scheduled time and archives the DB row so the {adminRegion === 'NA' ? 'NA' : 'EU'} region shows "Not Scheduled". Use this when you want to skip a week.
         </div>
       </Panel>
 
@@ -1083,6 +1144,60 @@ export default function TournamentTab() {
             2v2 Double Up: only team captains may register. Each 8-player lobby seats four teams of two. Both partners share the team placement (1-4) and earn the same points{flashForm.pointsScale === 'double_up_swiss' ? '. Round 4 scores 1.25x, round 5 scores 1.5x.' : '.'}
           </div>
         )}
+        <div className="mb-3 p-3 rounded-lg bg-surface-container border border-outline-variant/10">
+          <div className="text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-2">Tournament Page Content</div>
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Description (shown on Info tab)</label>
+              <textarea
+                value={flashForm.description}
+                onChange={function(e) { setFlashForm(Object.assign({}, flashForm, { description: e.target.value })) }}
+                rows="3"
+                placeholder="Short pitch for the tournament. Who is it for, what is the vibe, what is on the line."
+                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/15 rounded text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary/50"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Rules (shown on Rules tab)</label>
+              <textarea
+                value={flashForm.rulesText}
+                onChange={function(e) { setFlashForm(Object.assign({}, flashForm, { rulesText: e.target.value })) }}
+                rows="4"
+                placeholder="House rules, allowed comps, tiebreakers, sub policy. Leave blank to use the standard EMEA ruleset."
+                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/15 rounded text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary/50"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Entry Fee (display only)</label>
+                <Inp value={flashForm.entryFee} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { entryFee: typeof v === 'string' ? v : v.target.value })) }} placeholder="e.g. Free, $5, 500 RP" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Banner URL (optional)</label>
+                <Inp value={flashForm.bannerUrl} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { bannerUrl: typeof v === 'string' ? v : v.target.value })) }} placeholder="https://..." />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Announcement / Pinned Note</label>
+              <textarea
+                value={flashForm.announcement}
+                onChange={function(e) { setFlashForm(Object.assign({}, flashForm, { announcement: e.target.value })) }}
+                rows="2"
+                placeholder="Highlighted at the top of the Info tab. Use for last-minute changes, sponsor shoutouts, lobby codes prep."
+                className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/15 rounded text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary/50"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-xs text-on-surface cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!flashForm.inviteOnly}
+                onChange={function(e) { setFlashForm(Object.assign({}, flashForm, { inviteOnly: !!e.target.checked })) }}
+                className="rounded border-outline-variant/30"
+              />
+              <span>Invite-only (registrations require an admin invite)</span>
+            </label>
+          </div>
+        </div>
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] text-on-surface/60 font-bold uppercase tracking-wider">Prize Pool</label>
