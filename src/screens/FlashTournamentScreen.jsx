@@ -481,7 +481,8 @@ export default function FlashTournamentScreen(props) {
     }
     if (isTeamEvent) {
       if (!myCaptainTeam) {
-        toast('Only team captains can register a team for this event.', 'error');
+        var fmtLabel = teamSizeNum + 'v' + teamSizeNum;
+        toast('You need to be a team captain to register for this ' + fmtLabel + ' event. Create a team first.', 'error');
         navigate('/teams');
         return;
       }

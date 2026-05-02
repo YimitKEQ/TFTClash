@@ -1,5 +1,8 @@
 /**
- * TeamsScreen - real DB-backed 4v4 team management.
+ * TeamsScreen - real DB-backed team management.
+ *
+ * Teams are persistent rosters used across both 4v4 Squads and 2v2 Double Up
+ * events. Captain picks the lineup at check-in based on the tournament format.
  *
  * Routes: /teams
  *
@@ -81,7 +84,9 @@ function CreateTeamForm(props) {
       <div>
         <h3 className="font-display text-2xl text-on-surface">Start a team</h3>
         <p className="text-sm text-on-surface/60 mt-1">
-          You become captain. Invite up to 5 more players (4 main + 2 sub).
+          You become captain. Invite up to 5 more players. Your team can enter
+          both 4v4 Squads and 2v2 Double Up events; pick the right lineup at
+          check-in.
         </p>
       </div>
       <form onSubmit={submit} className="space-y-4">
@@ -605,10 +610,12 @@ export default function TeamsScreen() {
     <PageLayout>
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <div className="space-y-1">
-          <h1 className="font-display text-4xl text-on-surface">4v4 Teams</h1>
+          <h1 className="font-display text-4xl text-on-surface">Teams</h1>
           <p className="text-on-surface/60">
-            Build a persistent 4-player squad. Invite up to 6 active members (4 main + 2 subs).
-            One active team per player. Leave-cooldown is 60 minutes.
+            Build a persistent roster for both 4v4 Squads and 2v2 Double Up
+            events. Invite up to 6 active members. One active team per player.
+            Leave-cooldown is 60 minutes. Captains pick the lineup at check-in
+            (4 starters for Squads, 2 for Double Up).
           </p>
         </div>
 
