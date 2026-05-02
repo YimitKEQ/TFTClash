@@ -274,6 +274,7 @@ function TFTClash(){
     if(segs[0]==="results"&&segs[1]){navSourceRef.current="router";setScreen("results");setSubRoute(segs[1]);return;}
     if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";navigate("/tournament/"+segs[1],{replace:true});return;}
     if(segs[0]==="tournament"&&segs[1]){navSourceRef.current="router";setScreen("tournament-"+segs[1]);return;}
+    if(segs[0]==="teams"&&segs[1]==="join"&&segs[2]){navSourceRef.current="router";setScreen("teams");setSubRoute("join-"+segs[2]);return;}
     if(segs[0]==="team"&&segs[1]){navSourceRef.current="router";setScreen("team-"+segs[1]);return;}
     if(segs[0]==="obs"&&segs[1]){navSourceRef.current="router";setScreen("obs-"+segs[1]);return;}
     if(segs[0]==="host"){

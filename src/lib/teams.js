@@ -17,7 +17,7 @@ import { createNotification } from './notifications.js';
 export async function listTeams(filter) {
   var q = supabase
     .from('teams')
-    .select('id, name, tag, region, captain_player_id, logo_url, bio, created_at, archived_at')
+    .select('id, name, tag, region, captain_player_id, logo_url, bio, invite_code, lineup_2v2, lineup_4v4, created_at, archived_at')
     .order('created_at', { ascending: false });
 
   if (!filter || filter.includeArchived !== true) {
@@ -35,7 +35,7 @@ export async function getTeamWithRoster(teamId) {
   if (!teamId) return null;
   var teamRes = await supabase
     .from('teams')
-    .select('id, name, tag, region, captain_player_id, logo_url, bio, created_at, archived_at')
+    .select('id, name, tag, region, captain_player_id, logo_url, bio, invite_code, lineup_2v2, lineup_4v4, created_at, archived_at')
     .eq('id', teamId)
     .maybeSingle();
   if (teamRes.error) throw teamRes.error;
@@ -160,7 +160,7 @@ export async function createTeam(input) {
   var res = await supabase
     .from('teams')
     .insert(payload)
-    .select('id, name, tag, region, captain_player_id, logo_url, bio, created_at, archived_at')
+    .select('id, name, tag, region, captain_player_id, logo_url, bio, invite_code, lineup_2v2, lineup_4v4, created_at, archived_at')
     .single();
   if (res.error) throw res.error;
   return res.data;
@@ -179,7 +179,7 @@ export async function updateTeamProfile(teamId, patch) {
     .from('teams')
     .update(allowed)
     .eq('id', teamId)
-    .select('id, name, tag, region, captain_player_id, logo_url, bio, created_at, archived_at')
+    .select('id, name, tag, region, captain_player_id, logo_url, bio, invite_code, lineup_2v2, lineup_4v4, created_at, archived_at')
     .single();
   if (res.error) throw res.error;
   return res.data;
@@ -288,6 +288,63 @@ export async function registerTeamForTournament(input) {
     .single();
   if (ins.error) throw ins.error;
   return ins.data;
+}
+
+/**
+ * Captain-side wrapper that does both: register the team AND create RSVP rows
+ * for every roster member, then fires bell notifications with deeplinks. This
+ * is the preferred entry point from screens; it replaces direct calls to
+ * registerTeamForTournament for team events.
+ *
+ * tournamentName + teamName are passed in so we can put nice copy in the bell
+ * without requiring callers to await another fetch.
+ */
+export async function registerTeamWithRosterRsvps(teamId, tournamentId, tournamentName, teamName) {
+  if (!teamId || !tournamentId) throw new Error('teamId and tournamentId required.');
+  var rpc = await registerTeamWithRsvps(teamId, tournamentId);
+
+  // Fire per-member RSVP notifications. We do this client-side rather than in
+  // the RPC because notifications.insert needs auth.uid() context for RLS, and
+  // a SECURITY DEFINER block would lose that. This is best-effort; failures
+  // are swallowed so registration always returns success.
+  try {
+    var memRes = await supabase
+      .from('team_members')
+      .select('player_id, players!team_members_player_id_fkey(auth_user_id)')
+      .eq('team_id', teamId)
+      .is('removed_at', null);
+    var rsvpsRes = await supabase
+      .from('team_event_rsvps')
+      .select('id, player_id, status')
+      .eq('team_id', teamId)
+      .eq('tournament_id', tournamentId);
+    var rsvpByPid = {};
+    ((rsvpsRes && rsvpsRes.data) || []).forEach(function(r) {
+      rsvpByPid[r.player_id] = r;
+    });
+    var safeT = tournamentName || 'a tournament';
+    var safeTeam = teamName || 'your team';
+    var deepLink = '/teams';
+    ((memRes && memRes.data) || []).forEach(function(m) {
+      var rsvp = rsvpByPid[m.player_id];
+      if (!rsvp || rsvp.status !== 'pending') return;
+      var auth = m.players && m.players.auth_user_id;
+      if (!auth) return;
+      try {
+        createNotification(
+          auth,
+          'Confirm: ' + safeT,
+          safeTeam + ' is registered for ' + safeT + '. Tap to confirm you can play.',
+          'group',
+          deepLink
+        );
+      } catch (e) {}
+    });
+  } catch (e) {
+    console.warn('registerTeamWithRosterRsvps notify step failed:', e);
+  }
+
+  return rpc;
 }
 
 // ─── Writes: invites ────────────────────────────────────────────────────────
@@ -533,6 +590,104 @@ export async function notifyTeamMembers(teamId, title, body, icon, options) {
   } catch (err) {
     console.warn('notifyTeamMembers failed:', err);
   }
+}
+
+// ─── Writes: invite codes ───────────────────────────────────────────────────
+
+/**
+ * Redeem a shareable team invite code. Idempotent: if the caller is already on
+ * the team, returns success without inserting a duplicate. Triggers (single
+ * active membership, max-roster, role guard) still fire on first acceptance.
+ */
+export async function acceptInviteByCode(code) {
+  if (!code || !String(code).trim()) throw new Error('Invite code required.');
+  var res = await supabase.rpc('accept_team_invite_by_code', { p_code: String(code).trim() });
+  if (res.error) throw res.error;
+  return res.data || {};
+}
+
+// ─── Writes: lineup presets ─────────────────────────────────────────────────
+
+/**
+ * Save a default lineup preset for the team. p_size = 2 for the Double Up
+ * pair, 4 for the Squads starting four. Pass an empty array to clear.
+ * Captain-only via DB RPC.
+ */
+export async function saveLineupPreset(teamId, size, lineupPlayerIds) {
+  if (!teamId) throw new Error('teamId required.');
+  if (size !== 2 && size !== 4) throw new Error('size must be 2 or 4.');
+  var res = await supabase.rpc('update_team_lineup_preset', {
+    p_team_id: teamId,
+    p_size: size,
+    p_lineup: lineupPlayerIds || []
+  });
+  if (res.error) throw res.error;
+  return res.data || {};
+}
+
+// ─── Writes: tournament RSVPs ───────────────────────────────────────────────
+
+/**
+ * Captain-only. Registers the team for a tournament and creates an RSVP row
+ * for every active roster member. Captain is auto-accepted; everyone else is
+ * pending. Pair this with createNotification calls in the caller so each
+ * roster member sees the RSVP in the notification bell.
+ *
+ * Returns { registration_id, team_id, tournament_id }.
+ */
+export async function registerTeamWithRsvps(teamId, tournamentId) {
+  if (!teamId || !tournamentId) throw new Error('teamId and tournamentId required.');
+  var res = await supabase.rpc('register_team_with_rsvps', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId
+  });
+  if (res.error) throw res.error;
+  return res.data || {};
+}
+
+/**
+ * Player responds to an RSVP. status must be 'accepted' or 'declined'.
+ * Only the invited player can respond (enforced server-side).
+ */
+export async function respondTeamEventRsvp(rsvpId, status) {
+  if (!rsvpId || !status) throw new Error('rsvpId and status required.');
+  var res = await supabase.rpc('respond_team_event_rsvp', {
+    p_rsvp_id: rsvpId,
+    p_status: status
+  });
+  if (res.error) throw res.error;
+  return res.data || {};
+}
+
+/**
+ * List the RSVPs for a (team, tournament). Used in the captain dashboard so
+ * captains see who has confirmed before they need to lock the lineup.
+ */
+export async function listTeamEventRsvps(teamId, tournamentId) {
+  if (!teamId || !tournamentId) return [];
+  var res = await supabase
+    .from('team_event_rsvps')
+    .select('id, team_id, tournament_id, player_id, status, responded_at, created_at')
+    .eq('team_id', teamId)
+    .eq('tournament_id', tournamentId);
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+/**
+ * List pending RSVPs for the calling player so the bell + Teams screen can
+ * surface them. Joins to tournaments and teams for context (name, date).
+ */
+export async function listMyPendingRsvps(playerId) {
+  if (!playerId) return [];
+  var res = await supabase
+    .from('team_event_rsvps')
+    .select('id, team_id, tournament_id, status, created_at, teams!team_event_rsvps_team_id_fkey(id, name, tag), tournaments!team_event_rsvps_tournament_id_fkey(id, name, date, team_size, phase)')
+    .eq('player_id', playerId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (res.error) throw res.error;
+  return res.data || [];
 }
 
 // ─── Internals ──────────────────────────────────────────────────────────────

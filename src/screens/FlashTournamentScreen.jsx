@@ -6,7 +6,7 @@ import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from '../lib/constan
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
-import { notifyTeamMembers, registerTeamForTournament } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamWithRosterRsvps } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
@@ -182,7 +182,7 @@ export default function FlashTournamentScreen(props) {
     if (!pid || !supabase.from) { setMyCaptainTeam(null); return; }
     var cancelled = false;
     supabase.from('teams')
-      .select('id, name, tag, captain_player_id, archived_at')
+      .select('id, name, tag, captain_player_id, lineup_2v2, lineup_4v4, archived_at')
       .eq('captain_player_id', pid)
       .is('archived_at', null)
       .maybeSingle()
@@ -224,8 +224,21 @@ export default function FlashTournamentScreen(props) {
     if (!teamLive || !myCaptainTeam) { setCaptainLineupSel([]); return; }
     var reg = registrations.find(function(r) { return r.team_id === myCaptainTeam.id; });
     var existing = reg && Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
-    setCaptainLineupSel(existing);
-  }, [tournament && tournament.team_size, myCaptainTeam && myCaptainTeam.id, registrations]);
+    if (existing.length > 0) {
+      setCaptainLineupSel(existing);
+      return;
+    }
+    // Fall back to the captain's saved preset for this format. Filter out any
+    // members who have since left the team so the picker never preselects a
+    // stale player_id and bricks check-in.
+    var presetRaw = ts === 2 ? myCaptainTeam.lineup_2v2 : ts === 4 ? myCaptainTeam.lineup_4v4 : null;
+    var preset = Array.isArray(presetRaw) ? presetRaw : [];
+    var rosterIds = (myTeamRoster || []).map(function(m) { return m.player_id; });
+    var rosterSet = {};
+    rosterIds.forEach(function(id) { rosterSet[id] = true; });
+    var filtered = preset.filter(function(pid) { return rosterSet[pid]; }).slice(0, ts);
+    setCaptainLineupSel(filtered);
+  }, [tournament && tournament.team_size, myCaptainTeam && myCaptainTeam.id, registrations, myTeamRoster]);
 
   function toggleCaptainLineup(playerId) {
     var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
@@ -490,23 +503,14 @@ export default function FlashTournamentScreen(props) {
       }
       if (regCount >= effectiveCap) { toast('Tournament is full', 'error'); return; }
       setActionLoading(true);
-      registerTeamForTournament({
-        tournamentId: tournamentId,
-        teamId: myCaptainTeam.id,
-        captainPlayerId: myPlayer.id,
-        status: 'registered'
-      }).then(function() {
+      registerTeamWithRosterRsvps(
+        myCaptainTeam.id,
+        tournamentId,
+        tournament ? tournament.name : 'the tournament',
+        myCaptainTeam.name
+      ).then(function() {
         setActionLoading(false);
-        toast(myCaptainTeam.name + ' registered for ' + (tournament ? tournament.name : 'the tournament') + '!', 'success');
-        try {
-          notifyTeamMembers(
-            myCaptainTeam.id,
-            'Team Registered',
-            myCaptainTeam.name + ' is registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check-in opens before the event.',
-            'sports_esports',
-            { excludePlayerIds: myPlayer ? [myPlayer.id] : [] }
-          );
-        } catch (e) {}
+        toast(myCaptainTeam.name + ' registered. Roster has been asked to confirm.', 'success');
         broadcastUpdate('registration');
         loadRegistrations();
       }).catch(function(err) {

@@ -21,7 +21,8 @@ import { Panel, Btn, Inp, Icon, Tag } from '../components/ui';
 import {
   listTeams, getMyTeam, listMyInvites, listTeamSentInvites, getTeamTournamentHistory,
   createTeam, disbandTeam, sendInvite, respondInvite,
-  setMemberRole, transferCaptaincy, leaveTeam, kickMember
+  setMemberRole, transferCaptaincy, leaveTeam, kickMember,
+  acceptInviteByCode, saveLineupPreset, listMyPendingRsvps, respondTeamEventRsvp
 } from '../lib/teams.js';
 
 var REGIONS = ['EUW', 'NA', 'KR', 'EUNE', 'OCE', 'BR', 'JP', 'LAN', 'LAS', 'TR', 'RU'];
@@ -455,10 +456,276 @@ function TeamDirectory(props) {
   );
 }
 
+function InviteLinkPanel(props) {
+  var team = props.team;
+  var amCaptain = props.amCaptain;
+  var toast = props.toast;
+  var [copied, setCopied] = useState(false);
+  if (!team || !team.invite_code) return null;
+  var origin = (typeof window !== 'undefined' && window.location) ? window.location.origin : '';
+  var url = origin + '/teams/join/' + team.invite_code;
+  function copy() {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      if (toast) toast('Copy not supported in this browser.');
+      return;
+    }
+    navigator.clipboard.writeText(url).then(function() {
+      setCopied(true);
+      if (toast) toast('Invite link copied.');
+      setTimeout(function(){ setCopied(false); }, 2000);
+    }).catch(function() {
+      if (toast) toast('Copy failed.');
+    });
+  }
+  return (
+    <Panel padding="default" className="space-y-3" accent="primary">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-display text-xl text-on-surface">Shareable invite link</h3>
+          <p className="text-sm text-on-surface/60 mt-1">
+            {amCaptain
+              ? 'Send this to anyone you want on the team. They click, sign in, and they are on the roster.'
+              : 'Anyone on the team can share this with prospects.'}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <code className="flex-1 font-mono text-sm bg-surface-container-low/60 border border-outline-variant/20 rounded px-3 py-2 truncate">{url}</code>
+        <Btn size="sm" icon={copied ? 'check' : 'content_copy'} onClick={copy}>{copied ? 'Copied' : 'Copy'}</Btn>
+      </div>
+      <div className="text-xs text-on-surface/50">
+        Code: <span className="font-mono text-on-surface/80">{team.invite_code}</span>
+      </div>
+    </Panel>
+  );
+}
+
+function JoinByCodeCard(props) {
+  var toast = props.toast;
+  var onJoined = props.onJoined;
+  var [code, setCode] = useState('');
+  var [busy, setBusy] = useState(false);
+  function submit(e) {
+    e.preventDefault();
+    var trimmed = String(code || '').trim();
+    if (!trimmed) { if (toast) toast('Enter an invite code.'); return; }
+    setBusy(true);
+    acceptInviteByCode(trimmed)
+      .then(function(r) {
+        setBusy(false);
+        if (r && r.already_member) {
+          if (toast) toast('You were already on that team.');
+        } else {
+          if (toast) toast('Joined ' + (r && r.team && r.team.name ? r.team.name : 'team') + '.');
+        }
+        setCode('');
+        if (onJoined) onJoined();
+      })
+      .catch(function(err) {
+        setBusy(false);
+        if (toast) toast('Could not join: ' + (err.message || 'unknown error'));
+      });
+  }
+  return (
+    <Panel padding="default" className="space-y-3">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Have an invite code?</h3>
+        <p className="text-sm text-on-surface/60 mt-1">Paste the 8-character code a captain shared with you.</p>
+      </div>
+      <form onSubmit={submit} className="flex items-end gap-2">
+        <div className="flex-1">
+          <Inp
+            label="Invite code"
+            maxLength={32}
+            value={code}
+            onChange={function(e){ setCode(e.target.value.toUpperCase()); }}
+            placeholder="A1B2C3D4"
+          />
+        </div>
+        <Btn type="submit" loading={busy} icon="login">Join</Btn>
+      </form>
+    </Panel>
+  );
+}
+
+function LineupPresetPanel(props) {
+  var team = props.team;
+  var amCaptain = props.amCaptain;
+  var toast = props.toast;
+  var onSaved = props.onSaved;
+  var members = ((team && team.members) || []).filter(function(m){ return m.role !== 'sub'; });
+  var subs = ((team && team.members) || []).filter(function(m){ return m.role === 'sub'; });
+  var roster = members.concat(subs);
+  var rosterIds = roster.map(function(m){ return m.player_id; });
+  var memberById = {};
+  roster.forEach(function(m){ memberById[m.player_id] = m; });
+
+  function sanitize(arr) {
+    return (arr || []).filter(function(pid){ return rosterIds.indexOf(pid) !== -1; });
+  }
+  var [duo, setDuo] = useState(sanitize(team && team.lineup_2v2));
+  var [squad, setSquad] = useState(sanitize(team && team.lineup_4v4));
+  var [busy, setBusy] = useState(null);
+
+  function toggle(setter, current, max, pid) {
+    var idx = current.indexOf(pid);
+    if (idx !== -1) {
+      setter(current.filter(function(x){ return x !== pid; }));
+    } else {
+      if (current.length >= max) {
+        if (toast) toast('Preset is full (' + max + '). Deselect to swap.');
+        return;
+      }
+      setter(current.concat([pid]));
+    }
+  }
+
+  function save(size) {
+    var arr = size === 2 ? duo : squad;
+    if (arr.length !== 0 && arr.length !== size) {
+      if (toast) toast('Pick exactly ' + size + ' players or clear the preset.');
+      return;
+    }
+    setBusy(size);
+    saveLineupPreset(team.id, size, arr)
+      .then(function(){
+        setBusy(null);
+        if (toast) toast(size === 2 ? '2v2 preset saved.' : '4v4 preset saved.');
+        if (onSaved) onSaved();
+      })
+      .catch(function(err){
+        setBusy(null);
+        if (toast) toast('Save failed: ' + (err.message || 'unknown error'));
+      });
+  }
+
+  if (!team) return null;
+  if (!amCaptain) {
+    var hasAny = (team.lineup_2v2 && team.lineup_2v2.length) || (team.lineup_4v4 && team.lineup_4v4.length);
+    if (!hasAny) return null;
+    function nameFor(pid) { var m = memberById[pid]; return (m && m.player && m.player.username) || ('#' + String(pid).slice(0,6)); }
+    return (
+      <Panel padding="default" className="space-y-3">
+        <div>
+          <h3 className="font-display text-xl text-on-surface">Default lineups</h3>
+          <p className="text-sm text-on-surface/60 mt-1">Captain's saved starters for each format.</p>
+        </div>
+        {team.lineup_2v2 && team.lineup_2v2.length ? (
+          <div className="text-sm"><span className="font-label uppercase tracking-wider text-on-surface/50 mr-2">2v2</span>{team.lineup_2v2.map(nameFor).join(', ')}</div>
+        ) : null}
+        {team.lineup_4v4 && team.lineup_4v4.length ? (
+          <div className="text-sm"><span className="font-label uppercase tracking-wider text-on-surface/50 mr-2">4v4</span>{team.lineup_4v4.map(nameFor).join(', ')}</div>
+        ) : null}
+      </Panel>
+    );
+  }
+
+  function PresetRow(args) {
+    var size = args.size;
+    var sel = args.sel;
+    var setter = args.setter;
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-display text-lg text-on-surface">{size === 2 ? '2v2 Double Up' : '4v4 Squads'}</div>
+            <div className="text-xs text-on-surface/50">Pick {size} starter{size > 1 ? 's' : ''}. Used as the default at check-in.</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-on-surface/60">{sel.length}/{size}</span>
+            <Btn size="sm" v="ghost" onClick={function(){ setter([]); }}>Clear</Btn>
+            <Btn size="sm" loading={busy === size} icon="save" onClick={function(){ save(size); }}>Save</Btn>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {roster.map(function(m){
+            var active = sel.indexOf(m.player_id) !== -1;
+            var p = m.player || {};
+            return (
+              <button
+                key={m.player_id}
+                type="button"
+                onClick={function(){ toggle(setter, sel, size, m.player_id); }}
+                className={'text-left p-2 rounded-lg border transition ' + (active ? 'bg-primary/15 border-primary/50 text-on-surface' : 'bg-surface-container-low/40 border-outline-variant/20 text-on-surface/70 hover:bg-surface-container-low/70')}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icon name={active ? 'check_circle' : 'radio_button_unchecked'} size={18} className={active ? 'text-primary' : 'text-on-surface/30'} />
+                  <div className="min-w-0">
+                    <div className="font-bold truncate text-sm">{p.username || ('#' + String(m.player_id).slice(0,6))}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-on-surface/40">{m.role}</div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Panel padding="default" className="space-y-5">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Lineup presets</h3>
+        <p className="text-sm text-on-surface/60 mt-1">
+          Save default starters for each format. The check-in lineup picker prefills from these so you don't re-pick at every event.
+        </p>
+      </div>
+      <PresetRow size={2} sel={duo} setter={setDuo} />
+      <div className="border-t border-outline-variant/15"></div>
+      <PresetRow size={4} sel={squad} setter={setSquad} />
+    </Panel>
+  );
+}
+
+function MyRsvpsPanel(props) {
+  var rsvps = props.rsvps || [];
+  var onRespond = props.onRespond;
+  var navigate = props.navigate;
+  if (!rsvps.length) return null;
+  function fmtDate(s) {
+    if (!s) return '';
+    try { var d = new Date(s); if (isNaN(d.getTime())) return ''; return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+    catch (e) { return ''; }
+  }
+  return (
+    <Panel padding="default" className="space-y-3" accent="tertiary">
+      <div>
+        <h3 className="font-display text-xl text-on-surface">Confirm tournament availability</h3>
+        <p className="text-sm text-on-surface/60 mt-1">Your captain registered the team. Tell them whether you can play.</p>
+      </div>
+      <div className="space-y-2">
+        {rsvps.map(function(r){
+          var t = r.tournaments || {};
+          var team = r.teams || {};
+          var fmt = t.team_size === 2 ? '2v2' : t.team_size === 4 ? '4v4' : '';
+          return (
+            <div key={r.id} className="bg-surface-container-low/60 border border-outline-variant/10 rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <button type="button" onClick={function(){ if (navigate && t.id) navigate('/tournament/' + t.id); }} className="font-bold text-on-surface truncate hover:text-primary text-left">{t.name || 'Tournament'}</button>
+                  {fmt ? <Tag variant="secondary">{fmt}</Tag> : null}
+                </div>
+                <div className="text-xs text-on-surface/50 mt-1">{team.name || 'your team'} {fmtDate(t.date) ? '\u00b7 ' + fmtDate(t.date) : ''}</div>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <Btn size="sm" v="ghost" onClick={function(){ onRespond(r.id, 'declined'); }}>Can't play</Btn>
+                <Btn size="sm" icon="check" onClick={function(){ onRespond(r.id, 'accepted'); }}>I'm in</Btn>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
 export default function TeamsScreen() {
   var ctx = useApp();
   var currentUser = ctx.currentUser;
   var toast = ctx.toast;
+  var subRoute = ctx.subRoute;
+  var setSubRoute = ctx.setSubRoute;
 
   var [loading, setLoading] = useState(true);
   var [myTeam, setMyTeam] = useState(null);
@@ -466,7 +733,33 @@ export default function TeamsScreen() {
   var [allTeams, setAllTeams] = useState([]);
   var [sentInvites, setSentInvites] = useState([]);
   var [history, setHistory] = useState([]);
+  var [pendingRsvps, setPendingRsvps] = useState([]);
   var [reload, setReload] = useState(0);
+  var [joiningCode, setJoiningCode] = useState(false);
+  var navigate = useNavigate();
+
+  useEffect(function() {
+    if (!subRoute || subRoute.indexOf('join-') !== 0) return;
+    if (!currentUser || !currentUser.id) return;
+    if (joiningCode) return;
+    var code = subRoute.slice(5).trim().toUpperCase();
+    if (!code) { if (setSubRoute) setSubRoute(''); return; }
+    setJoiningCode(true);
+    acceptInviteByCode(code).then(function(res) {
+      if (res && res.already_member) {
+        if (toast) toast('You\'re already on this team.');
+      } else {
+        if (toast) toast('Joined team!');
+      }
+      if (setSubRoute) setSubRoute('');
+      navigate('/teams', { replace: true });
+      setReload(function(n){ return n + 1; });
+    }).catch(function(err) {
+      if (toast) toast('Could not join: ' + (err.message || 'invalid code'));
+      if (setSubRoute) setSubRoute('');
+      navigate('/teams', { replace: true });
+    }).finally(function(){ setJoiningCode(false); });
+  }, [subRoute, currentUser ? currentUser.id : null]);
 
   useEffect(function() {
     var cancelled = false;
@@ -475,12 +768,14 @@ export default function TeamsScreen() {
     Promise.all([
       playerId ? getMyTeam(playerId) : Promise.resolve(null),
       playerId ? listMyInvites(playerId) : Promise.resolve([]),
-      listTeams({ includeArchived: false })
+      listTeams({ includeArchived: false }),
+      playerId ? listMyPendingRsvps(playerId).catch(function(){ return []; }) : Promise.resolve([])
     ]).then(function(out) {
       if (cancelled) return;
       var team = out[0];
       var invs = out[1];
       var all = out[2];
+      setPendingRsvps(out[3] || []);
       if (invs && invs.length) {
         var byId = {};
         all.forEach(function(t) { byId[t.id] = t; });
@@ -522,6 +817,15 @@ export default function TeamsScreen() {
   }
 
   function refresh() { setReload(function(n){ return n + 1; }); }
+
+  function handleRsvp(rsvpId, status) {
+    respondTeamEventRsvp(rsvpId, status)
+      .then(function(){
+        if (toast) toast(status === 'accepted' ? 'You\'re in.' : 'Marked as unavailable.');
+        refresh();
+      })
+      .catch(function(err){ if (toast) toast('RSVP failed: ' + (err.message || 'unknown error')); });
+  }
 
   function handleRespond(inviteId, action) {
     var playerId = currentUser ? currentUser.id : null;
@@ -619,11 +923,13 @@ export default function TeamsScreen() {
           </p>
         </div>
 
+        <MyRsvpsPanel rsvps={pendingRsvps} onRespond={handleRsvp} navigate={navigate} />
         <InviteList invites={invites} onRespond={handleRespond} />
 
         {myTeam ? (
           <>
             <TeamStatsPanel team={myTeam} history={history} />
+            <InviteLinkPanel team={myTeam} amCaptain={amCaptain} toast={toast} />
             <MyTeamPanel
               team={myTeam}
               amCaptain={amCaptain}
@@ -635,17 +941,21 @@ export default function TeamsScreen() {
               onKick={handleKick}
               onDisband={handleDisband}
             />
+            <LineupPresetPanel team={myTeam} amCaptain={amCaptain} toast={toast} onSaved={refresh} />
             {amCaptain ? (
               <SentInvitesPanel sent={sentInvites} onCancel={handleCancelSent} />
             ) : null}
             <TeamHistoryPanel history={history} onOpen={function(tid){ navigate('/tournament/' + tid); }} />
           </>
         ) : (
-          <CreateTeamForm
-            captainPlayerId={currentUser.id}
-            toast={toast}
-            onCreated={refresh}
-          />
+          <>
+            <JoinByCodeCard toast={toast} onJoined={refresh} />
+            <CreateTeamForm
+              captainPlayerId={currentUser.id}
+              toast={toast}
+              onCreated={refresh}
+            />
+          </>
         )}
 
         <TeamDirectory teams={allTeams} />

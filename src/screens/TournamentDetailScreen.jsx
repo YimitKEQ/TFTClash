@@ -15,7 +15,7 @@ import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
-import { notifyTeamMembers, registerTeamForTournament } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamWithRosterRsvps } from '../lib/teams.js'
 import { createNotification } from '../lib/notifications.js'
 
 var PLACE_POINTS = [
@@ -148,7 +148,7 @@ export default function TournamentDetailScreen() {
   useEffect(function() {
     if (!linkedPlayerId || !supabase.from) { setMyCaptainTeam(null); return; }
     supabase.from('teams')
-      .select('id, name, tag, captain_player_id, archived_at')
+      .select('id, name, tag, captain_player_id, lineup_2v2, lineup_4v4, archived_at')
       .eq('captain_player_id', linkedPlayerId)
       .is('archived_at', null)
       .maybeSingle()
@@ -217,7 +217,17 @@ export default function TournamentDetailScreen() {
         var reg = regRes && regRes.data;
         setMyTeamReg(reg);
         var existing = (reg && Array.isArray(reg.lineup_player_ids)) ? reg.lineup_player_ids : [];
-        setLineupSel(existing);
+        if (existing.length > 0) {
+          setLineupSel(existing);
+        } else {
+          var ts = teamSize;
+          var presetRaw = ts === 2 ? myCaptainTeam.lineup_2v2 : ts === 4 ? myCaptainTeam.lineup_4v4 : null;
+          var preset = Array.isArray(presetRaw) ? presetRaw : [];
+          var rosterSet = {};
+          pids.forEach(function(id){ rosterSet[id] = true; });
+          var filtered = preset.filter(function(pid){ return rosterSet[pid]; }).slice(0, ts);
+          setLineupSel(filtered);
+        }
       }).catch(function(){});
     }).catch(function(){});
     return function(){ cancelled = true; };
@@ -384,23 +394,14 @@ export default function TournamentDetailScreen() {
         setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
         toast('Tournament is full', 'error'); return
       }
-      registerTeamForTournament({
-        tournamentId: dbTournamentId,
-        teamId: myCaptainTeam.id,
-        captainPlayerId: linkedPlayer.id,
-        status: 'registered'
-      })
+      registerTeamWithRosterRsvps(
+        myCaptainTeam.id,
+        dbTournamentId,
+        event.name,
+        myCaptainTeam.name
+      )
         .then(function() {
-          toast(myCaptainTeam.name + ' registered for ' + event.name + '!', 'success')
-          try {
-            notifyTeamMembers(
-              myCaptainTeam.id,
-              'Team Registered',
-              myCaptainTeam.name + ' is registered for ' + event.name + '. Check-in opens before the event.',
-              'sports_esports',
-              { excludePlayerIds: linkedPlayer ? [linkedPlayer.id] : [] }
-            );
-          } catch (e) {}
+          toast(myCaptainTeam.name + ' registered. Roster has been asked to confirm.', 'success')
           refreshLiveReg()
         })
         .catch(function(err) {
