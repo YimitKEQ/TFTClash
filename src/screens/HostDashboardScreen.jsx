@@ -347,6 +347,11 @@ export default function HostDashboardScreen() {
     }).catch(function() {});
   }, [currentUser]);
 
+  // Per-tournament team standings winner, populated lazily for completed team
+  // events so the list card can display "Winning team" instead of falling back
+  // to a solo "champion" string. Keyed by tournament uuid.
+  var [topTeamByTournament, setTopTeamByTournament] = useState({});
+
   // Load host tournaments from DB. DB is the only source of truth - replace local state on every load.
   useEffect(function() {
     if (!currentUser || !supabase.from || !currentUser.auth_user_id) return;
@@ -396,6 +401,47 @@ export default function HostDashboardScreen() {
             };
           });
           if (setHostTournaments) setHostTournaments(mapped);
+
+          // For each completed team tournament, aggregate game_results by
+          // team_id and surface the winning team's name/tag on the list card.
+          var teamFinals = mapped.filter(function(t) {
+            return (t.teamSize || 1) > 1 && (t.phase === 'complete' || t.status === 'complete');
+          });
+          if (teamFinals.length === 0) return;
+          teamFinals.forEach(function(t) {
+            supabase.from('game_results').select('team_id,placement,points').eq('tournament_id', t.dbId).then(function(grRes) {
+              if (grRes.error || !Array.isArray(grRes.data) || grRes.data.length === 0) return;
+              var byTeam = {};
+              grRes.data.forEach(function(r) {
+                if (!r.team_id) return;
+                if (!byTeam[r.team_id]) byTeam[r.team_id] = { team_id: r.team_id, total: 0, top2: 0, fourths: 0, firsts: 0, bestPlacement: 99 };
+                var s = byTeam[r.team_id];
+                var place = r.placement || 0;
+                s.total += r.points || 0;
+                if (place === 1) { s.firsts += 1; s.top2 += 1 }
+                else if (place === 2) { s.top2 += 1 }
+                else if (place === 4) { s.fourths += 1 }
+                if (place > 0 && place < s.bestPlacement) s.bestPlacement = place;
+              });
+              var ordered = Object.keys(byTeam).map(function(k) { return byTeam[k] }).sort(function(a, b) {
+                if (b.total !== a.total) return b.total - a.total;
+                if (a.bestPlacement !== b.bestPlacement) return a.bestPlacement - b.bestPlacement;
+                if (b.top2 !== a.top2) return b.top2 - a.top2;
+                if (a.fourths !== b.fourths) return a.fourths - b.fourths;
+                return b.firsts - a.firsts;
+              });
+              if (ordered.length === 0) return;
+              var winner = ordered[0];
+              supabase.from('teams').select('id,name,tag').eq('id', winner.team_id).maybeSingle().then(function(tRes) {
+                if (tRes.error || !tRes.data) return;
+                setTopTeamByTournament(function(prev) {
+                  var next = Object.assign({}, prev);
+                  next[t.dbId] = { name: tRes.data.name || 'Team', tag: tRes.data.tag || null, score: winner.total, firsts: winner.firsts };
+                  return next;
+                });
+              }).catch(function() {});
+            }).catch(function() {});
+          });
         }).catch(function() {});
       }).catch(function() {});
   }, [currentUser ? currentUser.auth_user_id : null]);
@@ -1159,11 +1205,19 @@ export default function HostDashboardScreen() {
               var isDraft = t.status === "upcoming" || t.status === "pending_approval";
               var isComplete = t.status === "complete";
               var teamSz = parseInt(t.teamSize, 10) || 1;
+              var isTeamEvent = teamSz > 1;
               var ptsScale = String(t.pointsScale || 'standard');
               var teamBadge = null;
               if (teamSz === 4) teamBadge = <span className="px-2 py-0.5 bg-tertiary/15 text-tertiary border border-tertiary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">4v4</span>;
               else if (teamSz === 2 && ptsScale === 'double_up_swiss') teamBadge = <span className="px-2 py-0.5 bg-secondary/15 text-secondary border border-secondary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">2v2 DU - Swiss</span>;
               else if (teamSz === 2) teamBadge = <span className="px-2 py-0.5 bg-secondary/15 text-secondary border border-secondary/30 font-label text-[10px] font-black uppercase tracking-widest rounded">2v2 DU</span>;
+              // For team events, registration rows are 1 per team (the captain),
+              // so t.registered is already a team count. Capacity is total
+              // individuals - convert to teams.
+              var capUnitLabel = isTeamEvent ? 'Teams' : 'Players';
+              var teamCap = isTeamEvent ? Math.max(1, Math.floor((t.size || 0) / teamSz)) : (t.size || 0);
+              var capacityLabel = (t.registered || 0) + '/' + teamCap + ' ' + capUnitLabel;
+              var topTeam = topTeamByTournament[t.dbId] || null;
               return (
                 <div key={t.id} className="bg-surface-container-low p-5 rounded-lg flex items-center gap-6 hover:bg-surface-container transition-all group">
                   {/* Icon block */}
@@ -1187,14 +1241,23 @@ export default function HostDashboardScreen() {
                     </div>
                     <div className="flex gap-6 flex-wrap">
                       <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
-                        <Icon name="group" size={14} />
-                        {t.registered || 0}/{t.size} Players
+                        <Icon name={isTeamEvent ? "groups" : "group"} size={14} />
+                        {capacityLabel}
                       </span>
                       <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
                         <Icon name={isComplete ? "check_circle" : "calendar_today"} size={14} />
                         {isComplete ? "Finalized" : (t.date || "TBD")}
                       </span>
-                      {isComplete && t.champion && (
+                      {isComplete && isTeamEvent && topTeam && (
+                        <span className="text-xs font-mono text-slate-600 flex items-center gap-1">
+                          <Icon name="emoji_events" size={14} />
+                          {"Top team: "}
+                          {topTeam.tag ? <span className="text-secondary/80">{"[" + topTeam.tag + "] "}</span> : null}
+                          {topTeam.name}
+                          <span className="text-slate-700 ml-1">{"(" + topTeam.score + " pts)"}</span>
+                        </span>
+                      )}
+                      {isComplete && !isTeamEvent && t.champion && (
                         <span className="text-xs font-mono text-slate-600 flex items-center gap-1">
                           <Icon name="emoji_events" size={14} />
                           Winner: {t.champion}
@@ -1203,7 +1266,7 @@ export default function HostDashboardScreen() {
                     </div>
                     {!isComplete && (
                       <div className="mt-2">
-                        <Bar val={t.registered || 0} max={t.size || 1} color="#ffc66b" h={3} />
+                        <Bar val={t.registered || 0} max={Math.max(1, isTeamEvent ? teamCap : (t.size || 1))} color="#ffc66b" h={3} />
                       </div>
                     )}
                   </div>
