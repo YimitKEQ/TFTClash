@@ -240,6 +240,56 @@ export async function disbandTeam(teamId, reason) {
   return teamRes.data;
 }
 
+// ─── Writes: tournament registration ────────────────────────────────────────
+
+/**
+ * Register a team for a tournament. Acts like an upsert keyed on
+ * (tournament_id, team_id) but uses an explicit pre-check + insert/update
+ * so it doesn't rely on Postgres being able to infer the partial unique
+ * index `registrations_unique_team_per_tournament` from an ON CONFLICT
+ * column list — which it can't, because partial indexes require the WHERE
+ * predicate to be supplied explicitly and supabase-js has no way to do that.
+ *
+ * Returns the registration row.
+ */
+export async function registerTeamForTournament(input) {
+  if (!input || !input.tournamentId || !input.teamId || !input.captainPlayerId) {
+    throw new Error('tournamentId, teamId, captainPlayerId required.');
+  }
+  var existing = await supabase
+    .from('registrations')
+    .select('id, status')
+    .eq('tournament_id', input.tournamentId)
+    .eq('team_id', input.teamId)
+    .maybeSingle();
+  if (existing.error) throw existing.error;
+
+  var payload = {
+    tournament_id: input.tournamentId,
+    team_id: input.teamId,
+    player_id: input.captainPlayerId,
+    status: input.status || 'registered'
+  };
+
+  if (existing.data) {
+    var upd = await supabase
+      .from('registrations')
+      .update({ status: payload.status, player_id: payload.player_id })
+      .eq('id', existing.data.id)
+      .select('id, status, team_id')
+      .single();
+    if (upd.error) throw upd.error;
+    return upd.data;
+  }
+  var ins = await supabase
+    .from('registrations')
+    .insert(payload)
+    .select('id, status, team_id')
+    .single();
+  if (ins.error) throw ins.error;
+  return ins.data;
+}
+
 // ─── Writes: invites ────────────────────────────────────────────────────────
 
 export async function sendInvite(input) {

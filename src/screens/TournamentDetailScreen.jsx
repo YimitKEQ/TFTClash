@@ -15,7 +15,7 @@ import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
-import { notifyTeamMembers } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamForTournament } from '../lib/teams.js'
 import { createNotification } from '../lib/notifications.js'
 
 var PLACE_POINTS = [
@@ -384,16 +384,13 @@ export default function TournamentDetailScreen() {
         setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
         toast('Tournament is full', 'error'); return
       }
-      supabase.from('registrations').upsert(
-        { tournament_id: dbTournamentId, player_id: linkedPlayer.id, team_id: myCaptainTeam.id, status: 'registered' },
-        { onConflict: 'tournament_id,team_id' }
-      )
-        .then(function(r) {
-          if (r && r.error) {
-            setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
-            toast('Registration failed: ' + r.error.message, 'error')
-            return
-          }
+      registerTeamForTournament({
+        tournamentId: dbTournamentId,
+        teamId: myCaptainTeam.id,
+        captainPlayerId: linkedPlayer.id,
+        status: 'registered'
+      })
+        .then(function() {
           toast(myCaptainTeam.name + ' registered for ' + event.name + '!', 'success')
           try {
             notifyTeamMembers(
@@ -406,9 +403,10 @@ export default function TournamentDetailScreen() {
           } catch (e) {}
           refreshLiveReg()
         })
-        .catch(function() {
+        .catch(function(err) {
           setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
-          toast('Registration failed', 'error')
+          var msg = err && err.message ? err.message : 'Registration failed'
+          toast('Registration failed: ' + msg, 'error')
         })
       return
     }

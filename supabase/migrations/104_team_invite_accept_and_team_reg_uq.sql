@@ -1,25 +1,22 @@
 -- 104_team_invite_accept_and_team_reg_uq.sql
 --
--- Two coupled fixes that unblock the 4v4 Squads + 2v2 Double Up flow:
+-- accept_team_invite(p_invite_id) RPC. The "Captain inserts members"
+-- RLS policy on team_members requires the calling user to be the
+-- team captain. That is correct for the captain-driven roster path
+-- but it blocks the *invitee* from accepting their own invite, which
+-- is the standard flow. We expose a SECURITY DEFINER RPC that runs
+-- as the table owner, validates the calling player is the invitee,
+-- inserts the membership row, and flips the invite to accepted in
+-- one transaction. Roster triggers (single active membership, max
+-- roster size, role guard) still fire because the INSERT path is
+-- unchanged.
 --
--- 1. accept_team_invite(p_invite_id) RPC. The "Captain inserts members"
---    RLS policy on team_members requires the calling user to be the
---    team captain. That is correct for the captain-driven roster path
---    but it blocks the *invitee* from accepting their own invite, which
---    is the standard flow. We expose a SECURITY DEFINER RPC that runs
---    as the table owner, validates the calling player is the invitee,
---    inserts the membership row, and flips the invite to accepted in
---    one transaction. Roster triggers (single active membership, max
---    roster size, role guard) still fire because the INSERT path is
---    unchanged.
---
--- 2. Partial unique index on registrations(tournament_id, team_id).
---    The team registration call in FlashTournamentScreen does
---    `upsert(..., { onConflict: 'tournament_id,team_id' })` but no
---    such constraint existed, so Postgres returned
---    "no unique or exclusion constraint matching the ON CONFLICT
---    specification". A partial unique index keeps solo registrations
---    (team_id IS NULL) untouched while enforcing one row per (tournament, team).
+-- Note: the team-registration ON CONFLICT bug is NOT fixed by adding
+-- a partial unique index, because Postgres cannot infer a partial
+-- index from an ON CONFLICT (col, col) clause without the WHERE
+-- predicate, and supabase-js does not expose that. The fix lives
+-- client-side in registerTeamForTournament() (lib/teams.js), which
+-- does an explicit pre-check + insert/update.
 
 -- 1. RPC: accept_team_invite ------------------------------------------------
 
@@ -98,11 +95,5 @@ GRANT EXECUTE ON FUNCTION public.accept_team_invite(uuid) TO authenticated;
 COMMENT ON FUNCTION public.accept_team_invite(uuid) IS
   'Atomically accepts a team invite for the calling player. SECURITY DEFINER bypasses the captain-only INSERT policy on team_members. Roster triggers still fire.';
 
--- 2. Partial unique index for team registrations ----------------------------
-
-CREATE UNIQUE INDEX IF NOT EXISTS registrations_tournament_team_uq
-  ON public.registrations (tournament_id, team_id)
-  WHERE team_id IS NOT NULL;
-
-COMMENT ON INDEX public.registrations_tournament_team_uq IS
-  'One registration row per (tournament, team) for team events. Solo registrations (team_id IS NULL) keep using the existing (tournament_id, player_id) unique constraint.';
+-- (No additional schema changes. The team-registration upsert collision
+--  is handled client-side; see registerTeamForTournament in lib/teams.js.)

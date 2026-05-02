@@ -6,7 +6,7 @@ import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from '../lib/constan
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
-import { notifyTeamMembers } from '../lib/teams.js'
+import { notifyTeamMembers, registerTeamForTournament } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel, PillTab, PillTabGroup } from '../components/ui'
@@ -490,14 +490,13 @@ export default function FlashTournamentScreen(props) {
       }
       if (regCount >= effectiveCap) { toast('Tournament is full', 'error'); return; }
       setActionLoading(true);
-      supabase.from('registrations').upsert({
-        tournament_id: tournamentId,
-        player_id: myPlayer.id,
-        team_id: myCaptainTeam.id,
+      registerTeamForTournament({
+        tournamentId: tournamentId,
+        teamId: myCaptainTeam.id,
+        captainPlayerId: myPlayer.id,
         status: 'registered'
-      }, { onConflict: 'tournament_id,team_id' }).then(function(res) {
+      }).then(function() {
         setActionLoading(false);
-        if (res.error) { toast('Registration failed: ' + res.error.message, 'error'); return; }
         toast(myCaptainTeam.name + ' registered for ' + (tournament ? tournament.name : 'the tournament') + '!', 'success');
         try {
           notifyTeamMembers(
@@ -510,7 +509,11 @@ export default function FlashTournamentScreen(props) {
         } catch (e) {}
         broadcastUpdate('registration');
         loadRegistrations();
-      }).catch(function() { setActionLoading(false); toast('Registration failed', 'error'); });
+      }).catch(function(err) {
+        setActionLoading(false);
+        var msg = err && err.message ? err.message : 'Registration failed';
+        toast('Registration failed: ' + msg, 'error');
+      });
       return;
     }
     setActionLoading(true);
