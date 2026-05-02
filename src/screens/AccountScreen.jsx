@@ -175,6 +175,7 @@ export default function AccountScreen() {
   var discordIdent = user.identities && user.identities.find(function(i) { return i.provider === 'discord'; });
   var discordId = discordIdent && discordIdent.identity_data && discordIdent.identity_data.sub;
   var discordName = discordIdent && discordIdent.identity_data && (discordIdent.identity_data.global_name || discordIdent.identity_data.full_name);
+  var hasEmailIdentity = !!(user.identities && user.identities.find(function(i) { return i.provider === 'email'; }));
 
   useEffect(function() {
     if (!user || !user.id) return;
@@ -1414,48 +1415,50 @@ export default function AccountScreen() {
               </div>
             </Panel>
 
-            {/* Change Password */}
-            <Panel padding="spacious" className="md:col-span-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Icon name="lock_reset" size={20} className="text-primary" />
-                <h3 className="font-label text-sm font-bold uppercase tracking-widest">Change Password</h3>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">New Password</label>
-                  <input
-                    type="password"
-                    value={changePw}
-                    onChange={function(e) { setChangePw(e.target.value); if (changePwError) setChangePwError(''); }}
-                    placeholder="Enter new password"
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
-                  />
+            {/* Change Password — only for email-auth users */}
+            {hasEmailIdentity && (
+              <Panel padding="spacious" className="md:col-span-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Icon name="lock_reset" size={20} className="text-primary" />
+                  <h3 className="font-label text-sm font-bold uppercase tracking-widest">Change Password</h3>
                 </div>
-                <div>
-                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">Confirm Password</label>
-                  <input
-                    type="password"
-                    value={changePwConfirm}
-                    onChange={function(e) { setChangePwConfirm(e.target.value); if (changePwError) setChangePwError(''); }}
-                    placeholder="Confirm new password"
-                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">New Password</label>
+                    <input
+                      type="password"
+                      value={changePw}
+                      onChange={function(e) { setChangePw(e.target.value); if (changePwError) setChangePwError(''); }}
+                      placeholder="Enter new password"
+                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">Confirm Password</label>
+                    <input
+                      type="password"
+                      value={changePwConfirm}
+                      onChange={function(e) { setChangePwConfirm(e.target.value); if (changePwError) setChangePwError(''); }}
+                      placeholder="Confirm new password"
+                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                  {changePwError && (
+                    <p className="text-error text-xs font-label uppercase tracking-wide">{changePwError}</p>
+                  )}
+                  <Btn
+                    variant="secondary"
+                    size="md"
+                    className="w-full"
+                    onClick={handleChangePassword}
+                    disabled={changePwSaving || !changePw}
+                    loading={changePwSaving}
+                  >
+                    {changePwSaving ? 'Updating' : 'Update Password'}
+                  </Btn>
                 </div>
-                {changePwError && (
-                  <p className="text-error text-xs font-label uppercase tracking-wide">{changePwError}</p>
-                )}
-                <Btn
-                  variant="secondary"
-                  size="md"
-                  className="w-full"
-                  onClick={handleChangePassword}
-                  disabled={changePwSaving || !changePw}
-                  loading={changePwSaving}
-                >
-                  {changePwSaving ? 'Updating' : 'Update Password'}
-                </Btn>
-              </div>
-            </Panel>
+              </Panel>
+            )}
 
             {/* Support the platform */}
             <div className="md:col-span-12">

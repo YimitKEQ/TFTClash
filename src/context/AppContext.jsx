@@ -221,8 +221,10 @@ export function AppProvider(props) {
 
   function markAllRead(){
     if(!currentUser)return;
+    var authId=currentUser.auth_user_id;
+    if(!isUuid(authId))return;
     supabase.from('notifications').update({read:true})
-      .eq('user_id',currentUser.id).eq('read',false)
+      .eq('user_id',authId).eq('read',false)
       .then(function(){
         setNotifications(function(prev){
           return prev.map(function(n){return Object.assign({},n,{read:true});});
