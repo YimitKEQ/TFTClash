@@ -35,6 +35,7 @@ var MOBILE_TABS = [
 function NotificationBell(props) {
   var notifications = props.notifications;
   var onMarkAllRead = props.onMarkAllRead;
+  var onNavigate = props.onNavigate;
   var _open = useState(false);
   var open = _open[0];
   var setOpen = _open[1];
@@ -44,8 +45,17 @@ function NotificationBell(props) {
     bell: 'notifications', trophy: 'emoji_events', star: 'star',
     swords: 'swords', check: 'check_circle', alert: 'warning',
     info: 'info', calendar: 'calendar_today', gift: 'redeem',
-    fire: 'local_fire_department', bolt: 'bolt', person: 'person'
+    fire: 'local_fire_department', bolt: 'bolt', person: 'person',
+    group_add: 'group_add', group: 'group', person_remove: 'person_remove',
+    sports_esports: 'sports_esports', controller: 'sports_esports', cancel: 'cancel'
   };
+
+  function handleClick(n) {
+    if (n && n.action_url && onNavigate) {
+      setOpen(false);
+      onNavigate(n.action_url);
+    }
+  }
 
   return (
     <div className="relative">
@@ -80,12 +90,22 @@ function NotificationBell(props) {
                 <div className="py-8 text-center text-on-surface/40 text-[13px]">All caught up!</div>
               ) : (
                 (notifications || []).map(function(n) {
+                  var clickable = !!(n && n.action_url);
+                  var rowClass = 'px-4 py-3 border-b border-white/[0.04] flex gap-3 items-start' + (n.read ? '' : ' bg-primary/[0.03]') + (clickable ? ' cursor-pointer hover:bg-white/[0.04]' : '');
                   return (
-                    <div key={n.id} className={'px-4 py-3 border-b border-white/[0.04] flex gap-3 items-start' + (n.read ? '' : ' bg-primary/[0.03]')}>
+                    <div
+                      key={n.id}
+                      role={clickable ? 'button' : undefined}
+                      tabIndex={clickable ? 0 : undefined}
+                      onClick={clickable ? function() { handleClick(n); } : undefined}
+                      onKeyDown={clickable ? function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(n); } } : undefined}
+                      className={rowClass}
+                    >
                       <Icon name={ICON_MAP[n.icon] || 'notifications'} size={16} className="mt-0.5 text-on-surface/40 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className={'text-xs leading-[1.4] mb-0.5 ' + (n.read ? 'text-on-surface/60' : 'font-semibold text-on-surface')}>{n.title}</div>
-                        <div className="text-[11px] text-on-surface/40 leading-relaxed">{n.body}</div>
+                        <div className="text-[11px] text-on-surface/40 leading-relaxed">{n.body || n.message}</div>
+                        {clickable && <div className="text-[10px] mt-1 text-primary font-label font-bold tracking-wider uppercase">Open</div>}
                       </div>
                       {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />}
                     </div>
@@ -320,7 +340,7 @@ export default function Navbar() {
               <kbd className="font-mono text-[10px] border border-outline-variant/25 rounded px-1 py-px text-on-surface/40">{typeof navigator !== 'undefined' && navigator.platform && navigator.platform.indexOf('Mac') >= 0 ? '\u2318K' : 'Ctrl K'}</kbd>
             </button>
 
-            <NotificationBell notifications={notifications || []} onMarkAllRead={markAllRead} />
+            <NotificationBell notifications={notifications || []} onMarkAllRead={markAllRead} onNavigate={function(url) { navigate(url); }} />
 
             {currentUser ? (
               <button

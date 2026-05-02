@@ -260,7 +260,8 @@ export async function sendInvite(input) {
     .single();
   if (res.error) throw res.error;
 
-  // Best-effort notification to the invitee.
+  // Best-effort notification to the invitee. Deeplinks to /teams so they
+  // can accept from the bell without having to find the tournament page first.
   var notifyTo = await playerAuthUserId(payload.invitee_player_id);
   if (notifyTo) {
     var teamRes = await supabase.from('teams').select('name').eq('id', payload.team_id).maybeSingle();
@@ -268,8 +269,9 @@ export async function sendInvite(input) {
     createNotification(
       notifyTo,
       'Team invite',
-      'You\'ve been invited to ' + teamName + '.',
-      'group_add'
+      'You have been invited to join ' + teamName + '. Open the Teams page to accept.',
+      'group_add',
+      '/teams'
     );
   }
 
@@ -282,6 +284,8 @@ export async function respondInvite(inviteId, action, playerId) {
   var nowIso = new Date().toISOString();
 
   if (action === 'accept') {
+    // Read first so we can fire captain notification with the right ids
+    // even though the RPC handles the actual mutation atomically.
     var inv = await supabase
       .from('team_invites')
       .select('id, team_id, invitee_player_id, inviter_player_id, status')
@@ -289,28 +293,23 @@ export async function respondInvite(inviteId, action, playerId) {
       .single();
     if (inv.error) throw inv.error;
     if (inv.data.status !== 'pending') throw new Error('Invite is no longer pending.');
-    if (!playerId) throw new Error('playerId is required to accept an invite.');
-    if (inv.data.invitee_player_id !== playerId) {
+    if (playerId && inv.data.invitee_player_id !== playerId) {
       throw new Error('Only the invitee can accept.');
     }
 
-    var addRes = await supabase
-      .from('team_members')
-      .insert({ team_id: inv.data.team_id, player_id: inv.data.invitee_player_id, role: 'main' })
-      .select('id, team_id, player_id, role, joined_at')
-      .single();
-    if (addRes.error) throw addRes.error;
+    // SECURITY DEFINER RPC - bypasses captain-only INSERT policy on
+    // team_members. Roster triggers (single-active-membership, max-roster,
+    // role guard) still fire on the underlying INSERT.
+    var rpc = await supabase.rpc('accept_team_invite', { p_invite_id: inviteId });
+    if (rpc.error) throw rpc.error;
 
-    var statusRes = await supabase
-      .from('team_invites')
-      .update({ status: 'accepted', responded_at: nowIso })
-      .eq('id', inviteId);
-    if (statusRes.error) throw statusRes.error;
-
-    // Notify the captain that their invitee accepted.
     notifyCaptainOnInviteResponse(inv.data, 'accepted');
 
-    return { invite: { id: inviteId, status: 'accepted' }, member: addRes.data };
+    var data = rpc.data || {};
+    return {
+      invite: data.invite || { id: inviteId, status: 'accepted' },
+      member: data.member || null
+    };
   }
 
   var newStatus = action === 'cancel' ? 'cancelled' : 'declined';

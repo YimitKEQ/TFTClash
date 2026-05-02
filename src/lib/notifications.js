@@ -10,13 +10,17 @@ export function writeActivityEvent(type, playerId, text) {
   }).catch(function(err) { console.warn('Activity feed write error:', err); });
 }
 
-// Module-level helper - usable in any component without prop-drilling
-export function createNotification(userId, title, body, icon) {
+// Module-level helper - usable in any component without prop-drilling.
+// `actionUrl` is optional; when set, the notification renders as a clickable
+// row that navigates to that path (used for team invites, host requests, etc.)
+export function createNotification(userId, title, body, icon, actionUrl) {
   if (!userId) return Promise.resolve();
-  return supabase.from('notifications').insert({
+  var row = {
     user_id: userId, title: title, body: body, message: body, icon: icon || "bell", type: "info",
     read: false, created_at: new Date().toISOString()
-  });
+  };
+  if (actionUrl) row.action_url = String(actionUrl);
+  return supabase.from('notifications').insert(row);
 }
 
 // Server-side audit trail (see migration 009)
