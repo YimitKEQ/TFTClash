@@ -39,7 +39,7 @@ export async function getTournamentState() {
 export async function getStandings(limit = 10) {
   const { data, error } = await supabase
     .from('players')
-    .select('username,rank,season_pts,wins,top4,games_played')
+    .select('username,rank,season_pts,wins,top4,games')
     .order('season_pts', { ascending: false })
     .limit(limit);
   if (error || !data || !data.length) return [];
@@ -49,7 +49,7 @@ export async function getStandings(limit = 10) {
     pts: r.season_pts || 0,
     wins: r.wins || 0,
     top4: r.top4 || 0,
-    games: r.games_played || 0,
+    games: r.games || 0,
   }));
 }
 
@@ -68,7 +68,7 @@ export async function getPlayer(name) {
     pts: data.season_pts || 0,
     wins: data.wins || 0,
     top4: data.top4 || 0,
-    games: data.games_played || 0,
+    games: data.games || 0,
     riotId: data.riot_id_eu || data.riot_id || '',
     riotIdEu: data.riot_id_eu || '',
     riotIdNa: data.riot_id_na || '',
@@ -94,7 +94,7 @@ export async function getPlayerByDiscordId(discordUserId) {
     pts: data.season_pts || 0,
     wins: data.wins || 0,
     top4: data.top4 || 0,
-    games: data.games_played || 0,
+    games: data.games || 0,
     riotId: data.riot_id_eu || data.riot_id || '',
     riotIdEu: data.riot_id_eu || '',
     riotIdNa: data.riot_id_na || '',
