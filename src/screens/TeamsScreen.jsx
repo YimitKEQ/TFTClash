@@ -921,7 +921,16 @@ export default function TeamsScreen() {
       navigate('/teams', { replace: true });
       setReload(function(n){ return n + 1; });
     }).catch(function(err) {
-      if (toast) toast('Could not join: ' + (err.message || 'invalid code'));
+      var raw = (err && err.message ? String(err.message) : '').toLowerCase();
+      var friendly;
+      if (raw.indexOf('already a member') !== -1 || raw.indexOf('enforce_team_member_rules') !== -1 || raw.indexOf('single_active') !== -1) {
+        friendly = 'You\'re already on a team. Leave your current team before joining another.';
+      } else if (raw.indexOf('not found') !== -1 || raw.indexOf('invalid') !== -1) {
+        friendly = 'Invite code is invalid or expired.';
+      } else {
+        friendly = 'Could not join the team. Try the invite link again or contact the captain.';
+      }
+      if (toast) toast(friendly);
       if (setSubRoute) setSubRoute('');
       navigate('/teams', { replace: true });
     }).finally(function(){ setJoiningCode(false); });

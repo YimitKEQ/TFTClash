@@ -2092,7 +2092,14 @@ function ClashIdleView(props) {
 
   var lastClash = (props.pastClashes || [])[0] || null
 
-  var nextSaturday = getNextSaturday()
+  var scheduledClashTs = null;
+  try {
+    var rawTs = props.tournamentState && props.tournamentState.clashTimestamp;
+    if (rawTs) {
+      var dParsed = new Date(rawTs);
+      if (!isNaN(dParsed.getTime()) && dParsed.getTime() > Date.now()) scheduledClashTs = dParsed;
+    }
+  } catch (e) { scheduledClashTs = null; }
 
   var top3 = lastClash && lastClash.top8 ? lastClash.top8.slice(0, 3) : []
   var top3Colors = ['text-primary', 'text-on-surface', 'text-tertiary']
@@ -2104,8 +2111,18 @@ function ClashIdleView(props) {
       {/* Panel 1 - Countdown Hero */}
       <Panel>
         <div className="text-center py-4">
-          <div className="cond text-[9px] font-bold uppercase tracking-[0.15em] text-primary mb-4">Next Clash</div>
-          <CountdownTimer targetDate={nextSaturday} />
+          {scheduledClashTs ? (
+            <>
+              <div className="cond text-[9px] font-bold uppercase tracking-[0.15em] text-primary mb-4">Next Clash</div>
+              <CountdownTimer targetDate={scheduledClashTs} />
+              <div className="text-xs text-on-surface/60 mt-3">Scheduled for {scheduledClashTs.toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.</div>
+            </>
+          ) : (
+            <>
+              <div className="font-display text-2xl font-bold text-on-surface mb-2">No Clash Scheduled</div>
+              <div className="text-xs text-on-surface/60">Check back soon. Hosts post the next clash here when it's set.</div>
+            </>
+          )}
           <div className="inline-flex items-center px-3 py-1 rounded-full border border-on-surface/20 text-on-surface/40 text-[10px] cond font-bold uppercase tracking-widest mt-4 mb-2">
             No Active Clash
           </div>
