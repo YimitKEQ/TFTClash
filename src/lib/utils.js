@@ -23,24 +23,41 @@ export function shareToTwitter(text) {
   window.open("https://twitter.com/intent/tweet?text=" + encoded, "_blank", "width=550,height=420");
 }
 
+function withRef(path, ref) {
+  var base = "https://www.tftclash.com" + (path || "");
+  if (!ref) return base;
+  var sep = base.indexOf("?") === -1 ? "?" : "&";
+  return base + sep + "ref=" + encodeURIComponent(String(ref).toLowerCase());
+}
+
 export function buildShareText(type, data) {
-  var url = "tftclash.com";
+  data = data || {};
+  var ref = data.ref || data.referrer || null;
   if (type === "result") {
-    return "Finished " + ordinal(data.placement) + " in " + data.clashName + " - " + data.points + " season pts\n\n#TFTClash #TFT\n" + url;
+    var place = ordinal(data.placement);
+    var line = data.placement === 1
+      ? "Just took the dub - 1st place in " + data.clashName + " (+" + data.points + " season pts)"
+      : "Locked " + place + " in " + data.clashName + " (+" + data.points + " season pts)";
+    return line + ".\n\nFree weekly TFT tournaments, all ranks welcome.\n#TFTClash #TFT\n" + withRef("/", ref);
   }
   if (type === "profile") {
-    return data.name + " - Rank #" + data.rank + " with " + data.pts + " pts on TFT Clash\n\n#TFTClash\n" + url + "/player/" + data.name;
+    var who = data.name || "Player";
+    return who + " - Season #" + data.rank + ", " + data.pts + " pts on TFT Clash. Run it back?\n#TFTClash\n" + withRef("/player/" + encodeURIComponent(who), ref);
   }
   if (type === "recap") {
-    return data.winner + " won " + data.clashName + "! Full recap on TFT Clash\n\n#TFTClash #TFT\n" + url;
+    return data.winner + " just won " + data.clashName + ". Full bracket, replays, every lobby - all on TFT Clash.\n#TFTClash #TFT\n" + withRef("/", ref);
   }
   if (type === "season") {
-    return "My " + data.seasonName + " stats on TFT Clash: #" + data.position + " overall, " + data.pts + " pts, " + data.wins + " wins, AVP " + data.avg + "\n\n#TFTClash #TFT\n" + url;
+    return "Season " + data.seasonName + " wrap on TFT Clash: #" + data.position + " overall, " + data.pts + " pts, " + data.wins + " wins, " + data.avg + " AVP. Bring it next season.\n#TFTClash #TFT\n" + withRef("/", ref);
   }
   if (type === "round") {
-    return "Just finished " + ordinal(data.placement) + " in Round " + data.round + " of " + data.clashName + " on TFT Clash\n\n#TFTClash #TFT\n" + url;
+    var rPlace = ordinal(data.placement);
+    var rLine = data.placement === 1
+      ? "1st in Round " + data.round + " of " + data.clashName + ". Game on."
+      : rPlace + " in Round " + data.round + " of " + data.clashName + ". One more.";
+    return rLine + "\n#TFTClash #TFT\n" + withRef("/", ref);
   }
-  return "Competing on TFT Clash - free weekly TFT tournaments\n\n" + url;
+  return "Free weekly TFT tournaments. Real bracket, real prizes, all ranks welcome.\n#TFTClash\n" + withRef("/", ref);
 }
 
 export function isValidRiotId(id) {

@@ -455,7 +455,7 @@ export default function PlayerProfileScreen() {
 
   function handleShare() {
     var ppRank = players.filter(function(p) { return p.pts > player.pts; }).length + 1;
-    shareToTwitter(buildShareText('profile', { name: player.name, rank: ppRank, pts: player.pts }));
+    shareToTwitter(buildShareText('profile', { name: player.name, rank: ppRank, pts: player.pts, ref: (currentUser && currentUser.username) || player.name }));
   }
 
   var tabs = ['overview', 'rounds', 'history', 'h2h', 'achievements', 'deep-stats'];

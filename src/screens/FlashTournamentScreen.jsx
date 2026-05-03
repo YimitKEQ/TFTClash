@@ -1724,7 +1724,7 @@ export default function FlashTournamentScreen(props) {
                 Copy Link
               </button>
             </div>
-            <SocialShareBar url={shareUrl} text={shareText} />
+            <SocialShareBar url={shareUrl} text={shareText} referrer={(currentUser && currentUser.username) || (myPlayer && myPlayer.username)} />
           </div>
         </div>
 
@@ -2426,6 +2426,7 @@ export default function FlashTournamentScreen(props) {
                           placement: myReport.reported_placement,
                           round: currentGameNumber,
                           clashName: tournament ? tournament.name : 'TFT Clash',
+                          ref: (currentUser && currentUser.username) || (myPlayer && myPlayer.username),
                         }));
                       }}
                       className="bg-transparent text-primary text-[10px] font-label font-bold tracking-widest uppercase cursor-pointer border border-primary/20 rounded px-3 py-1.5 hover:bg-primary/10 transition-colors flex items-center gap-1"

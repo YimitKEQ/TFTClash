@@ -186,6 +186,7 @@ export default function SeasonRecapScreen() {
       pts: player.pts,
       wins: s.wins,
       avg: s.avgPlacement,
+      ref: (currentUser && currentUser.username) || (player && player.name),
     }))
   }
 

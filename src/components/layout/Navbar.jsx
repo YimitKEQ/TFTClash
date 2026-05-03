@@ -226,7 +226,6 @@ export default function Navbar() {
             <button
               key={item.id}
               onClick={function() {
-                if (item.id === 'account' && !currentUser) { setAuthScreen('login'); setDrawer(false); return; }
                 navTo(item.id);
                 setDrawer(false);
               }}
@@ -386,7 +385,6 @@ export default function Navbar() {
               key={item.id}
               onClick={function() {
                 if (item.id === '__more__') { setDrawer(true); return; }
-                if (item.id === 'account' && !currentUser) { setAuthScreen('login'); return; }
                 navTo(item.id);
               }}
               className={'flex flex-col items-center gap-0.5 py-1 px-3 cursor-pointer bg-transparent border-none transition-colors ' +

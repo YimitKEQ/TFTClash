@@ -33,9 +33,20 @@ function ShareButton(props) {
   )
 }
 
+function appendRef(rawUrl, ref) {
+  if (!rawUrl || !ref) return rawUrl
+  try {
+    var sep = rawUrl.indexOf('?') === -1 ? '?' : '&'
+    return rawUrl + sep + 'ref=' + encodeURIComponent(String(ref).toLowerCase())
+  } catch (e) {
+    return rawUrl
+  }
+}
+
 export default function SocialShareBar(props) {
-  var url = props.url || (typeof window !== 'undefined' ? window.location.href : '')
-  var text = props.text || 'Check this out on TFT Clash'
+  var rawUrl = props.url || (typeof window !== 'undefined' ? window.location.href : '')
+  var url = appendRef(rawUrl, props.referrer)
+  var text = props.text || 'Free weekly TFT tournaments on TFT Clash'
 
   var _copied = useState(null)
   var copied = _copied[0]

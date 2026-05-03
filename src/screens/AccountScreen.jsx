@@ -442,7 +442,7 @@ export default function AccountScreen() {
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center mb-12">
             <span className="font-label text-xs uppercase tracking-widest text-secondary">Your account</span>
-            <h1 className="font-editorial text-4xl md:text-5xl text-on-surface mt-3 mb-4">Sign in to claim your throne</h1>
+            <h1 className="font-display text-4xl md:text-5xl uppercase tracking-tight text-on-surface mt-3 mb-4">Sign in to claim your throne</h1>
             <p className="text-on-surface-variant max-w-xl mx-auto mb-6">
               Free to compete, always. Create an account to track your season, earn awards, and customize your competitive identity.
             </p>
@@ -553,7 +553,7 @@ export default function AccountScreen() {
                   size="sm"
                   icon="share"
                   onClick={function() {
-                    shareToTwitter(buildShareText('profile', { name: user.username, rank: seasonRank, pts: linkedPlayer.pts }));
+                    shareToTwitter(buildShareText('profile', { name: user.username, rank: seasonRank, pts: linkedPlayer.pts, ref: user.username }));
                   }}
                 >
                   Share
