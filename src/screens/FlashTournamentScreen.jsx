@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
-import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS } from '../lib/constants.js'
+import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS, DEFAULT_TFT_RULES } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
@@ -2093,13 +2093,28 @@ export default function FlashTournamentScreen(props) {
                   <div className="text-sm text-on-surface leading-relaxed whitespace-pre-line">{tournament.rules_text}</div>
                 </div>
               ) : (
-                <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="info" size={16} className="text-on-surface-variant" />
-                    <span className="text-xs font-label font-bold text-on-surface-variant tracking-widest uppercase">Standard Ruleset</span>
+                <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
+                    <Icon name="gavel" size={16} className="text-primary" />
+                    <span className="text-xs font-label font-bold text-primary tracking-widest uppercase">Default TFT Ruleset</span>
+                    <span className="ml-auto text-[10px] font-label text-on-surface-variant/40 tracking-wider uppercase">Host did not customize</span>
                   </div>
-                  <div className="text-sm text-on-surface-variant leading-relaxed">
-                    This tournament uses the standard EMEA ruleset. Default scoring and tiebreakers apply.
+                  <div className="divide-y divide-outline-variant/10">
+                    {DEFAULT_TFT_RULES.map(function(section) {
+                      return (
+                        <div key={section.title} className="p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Icon name={section.icon} size={16} className="text-secondary" />
+                            <span className="text-xs font-label font-bold text-on-surface tracking-widest uppercase">{section.title}</span>
+                          </div>
+                          <ul className="space-y-1.5 text-sm text-on-surface-variant leading-relaxed list-disc list-inside marker:text-primary/40">
+                            {section.points.map(function(pt, i) {
+                              return (<li key={section.title + '-' + i}>{pt}</li>);
+                            })}
+                          </ul>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -2567,7 +2582,7 @@ export default function FlashTournamentScreen(props) {
                       </div>
 
                       {/* Player list */}
-                      <div className="divide-y divide-outline-variant/5">
+                      <div className="divide-y divide-outline-variant/15">
                         {lobbyPlayers.map(function(p, pi) {
                           var isHost = p.id === hostId;
                           var isMe = myPlayer && p.id === myPlayer.id;
@@ -2577,7 +2592,7 @@ export default function FlashTournamentScreen(props) {
                           return (
                             <div
                               key={p.id || pi}
-                              className={"flex items-center gap-3 px-4 py-2 " + (isMe ? "bg-secondary/5" : "")}
+                              className={"flex items-center gap-3 px-4 py-3 " + (isMe ? "bg-secondary/5" : "")}
                             >
                               <span className={"font-mono text-xs " + (pi === 0 ? "text-primary" : pi <= 2 ? "text-on-surface-variant/60" : "text-on-surface-variant/30")}>
                                 {String(pi + 1).padStart(2, "0")}
@@ -2621,8 +2636,8 @@ export default function FlashTournamentScreen(props) {
 
                               {/* Admin / host override */}
                               {(isAdmin || iAmHost) && isLive && !isLocked && (
-                                <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-1">
-                                  <option value="">{"--"}</option>
+                                <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-2 shrink-0">
+                                  <option value="">{"Set #"}</option>
                                   {Array.from({length: isDoubleUpLobby ? 4 : (lobby.player_ids || []).length}, function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
                                 </Sel>
                               )}

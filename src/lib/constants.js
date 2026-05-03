@@ -224,6 +224,54 @@ export var PREMIUM_TIERS = [
   },
 ];
 
+// ─── DEFAULT TOURNAMENT RULES ────────────────────────────────────────────────
+// Used as the Rules tab fallback when a host leaves rules_text blank.
+// Keep TFT-specific (lobby format, scouting, screenshots, disconnects)
+// rather than generic boilerplate.
+
+export var DEFAULT_TFT_RULES = [
+  {
+    title: "Lobby and Game Conduct",
+    icon: "swords",
+    points: [
+      "Join your assigned lobby on time. The host can replace late players with a waitlisted alternate after the timer expires.",
+      "Standard ranked TFT rules apply. No custom mods, scripts, or account-sharing.",
+      "Coaching during a live game is not allowed. Scouting in the planning phase is fine.",
+      "Streamers should run a 2 minute (or longer) delay to prevent stream sniping."
+    ]
+  },
+  {
+    title: "Reporting Results",
+    icon: "edit_note",
+    points: [
+      "Each player reports their own placement after every game from the lobby panel on this page.",
+      "Keep a screenshot of the post-game scoreboard until the round is locked. Disputes without proof default to the live system result.",
+      "Duplicate placements freeze the lobby until the host or admin resolves them.",
+      "Once the host locks a lobby, the round is final unless an admin re-opens it."
+    ]
+  },
+  {
+    title: "Disputes and Disconnects",
+    icon: "gavel",
+    points: [
+      "Open a dispute from your placement panel within 30 minutes of the game ending.",
+      "Disputes need a screenshot or replay link. Bare claims are dismissed.",
+      "If you disconnect, reconnect immediately. The game continues and your in-game placement counts.",
+      "Lobby-wide crashes (Riot outage, server reset) are rescheduled or replayed at the host's discretion."
+    ]
+  },
+  {
+    title: "Code of Conduct",
+    icon: "shield",
+    points: [
+      "Be respectful in chat, voice, and Discord. Toxic behaviour, slurs, or harassment lead to bans.",
+      "Win-trading, throwing, or collusion is an instant DQ for everyone involved.",
+      "Smurfing or playing on someone else's account is forbidden. Your Riot ID must match the one registered on TFT Clash.",
+      "The host has final say on any situation not covered above. Admins can override hosts."
+    ]
+  }
+];
+
 // ─── RULES SECTIONS ──────────────────────────────────────────────────────────
 
 export var RULES_SECTIONS = [
