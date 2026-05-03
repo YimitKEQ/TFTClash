@@ -965,11 +965,24 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hi
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-                  <span
-                    className={'text-[11px] font-bold rounded px-3 py-1 uppercase tracking-widest font-label ' + badgeClass}
-                  >
-                    {phaseLabels[t.phase] || t.phase}
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={'text-[11px] font-bold rounded px-3 py-1 uppercase tracking-widest font-label ' + badgeClass}
+                    >
+                      {phaseLabels[t.phase] || t.phase}
+                    </span>
+                    {(function() {
+                      var modeLbl = null;
+                      if (teamSzNum === 4) modeLbl = 'Squads 4v4';
+                      else if (teamSzNum === 2) modeLbl = (t.points_scale === 'double_up_swiss') ? 'Double Up Swiss' : 'Double Up 2v2';
+                      if (!modeLbl) return null;
+                      return (
+                        <span className="text-[11px] font-bold rounded px-2 py-1 uppercase tracking-widest font-label bg-secondary/15 text-secondary border border-secondary/30">
+                          {modeLbl}
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <div className="flex items-center gap-2">
                     {countdownStr && (
                       <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-mono">

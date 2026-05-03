@@ -194,7 +194,7 @@ export default function FlashTournamentScreen(props) {
     if (!pid || !supabase.from) { setMyCaptainTeam(null); return; }
     var cancelled = false;
     supabase.from('teams')
-      .select('id, name, tag, captain_player_id, lineup_2v2, lineup_4v4, archived_at')
+      .select('id, name, tag, region, captain_player_id, lineup_2v2, lineup_4v4, archived_at')
       .eq('captain_player_id', pid)
       .is('archived_at', null)
       .maybeSingle()
@@ -375,7 +375,7 @@ export default function FlashTournamentScreen(props) {
           toast('No lineups submitted - captains must check in first', 'error');
           return;
         }
-        supabase.from('players').select('id, username, rank, riot_id, region').in('id', idList).then(function(pRes) {
+        supabase.from('players').select('id, username, rank, riot_id, region, auth_user_id').in('id', idList).then(function(pRes) {
           if (pRes.error || !pRes.data) { toast('Failed to load lineup players', 'error'); setActionLoading(false); return; }
           var byPid = {};
           pRes.data.forEach(function(p) { byPid[p.id] = p; });
@@ -448,9 +448,9 @@ export default function FlashTournamentScreen(props) {
                 (lobby.teams || []).forEach(function(t) {
                   var teamLabel = t.tag ? ('[' + t.tag + '] ' + t.name) : t.name;
                   (t.players || []).forEach(function(p) {
-                    if (p && p.id) {
+                    if (p && p.auth_user_id) {
                       createNotification(
-                        p.id,
+                        p.auth_user_id,
                         lobbyLabel + ' Assigned',
                         'You are starting for ' + teamLabel + ' in ' + lobbyLabel + ' for ' + (tournament ? tournament.name : 'the tournament') + '. Game on!',
                         'trophy'
@@ -512,8 +512,9 @@ export default function FlashTournamentScreen(props) {
       toast('Set your Riot ID in your profile before registering', 'error');
       return;
     }
-    if (tournament && !canRegisterInRegion(myPlayer.region, tournament.region)) {
-      var regMsg = regionMismatchMessage(myPlayer.region, tournament.region);
+    var regionToCheck = (isTeamEvent && myCaptainTeam && myCaptainTeam.region) ? myCaptainTeam.region : myPlayer.region;
+    if (tournament && !canRegisterInRegion(regionToCheck, tournament.region)) {
+      var regMsg = regionMismatchMessage(regionToCheck, tournament.region);
       toast(regMsg || 'Region mismatch. Check your account region.', 'error');
       if (!myPlayer.region) navigate('/account');
       return;
@@ -568,7 +569,7 @@ export default function FlashTournamentScreen(props) {
     }, {onConflict: 'tournament_id,player_id'}).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Registration failed: ' + res.error.message, 'error'); return; }
-      if (currentUser) { createNotification(currentUser.id, 'Registration Confirmed', 'You are registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check in when the check-in window opens.', 'controller'); }
+      if (currentUser && currentUser.auth_user_id) { createNotification(currentUser.auth_user_id, 'Registration Confirmed', 'You are registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check in when the check-in window opens.', 'controller'); }
       toast('Registered!', 'success');
       broadcastUpdate('registration');
       loadRegistrations();
@@ -606,7 +607,11 @@ export default function FlashTournamentScreen(props) {
             if (next.team_id) {
               try { notifyTeamMembers(next.team_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and your team has been promoted from the waitlist!', 'celebration'); } catch (e) {}
             } else if (next.player_id) {
-              createNotification(next.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist!', 'celebration');
+              var promoted = (players || []).find(function(pl) { return pl.id === next.player_id; });
+              var promotedAuth = promoted && (promoted.auth_user_id || promoted.authUserId);
+              if (promotedAuth) {
+                createNotification(promotedAuth, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist!', 'celebration');
+              }
             }
             loadRegistrations();
           });
@@ -1949,7 +1954,11 @@ export default function FlashTournamentScreen(props) {
                 </div>
                 <div className="grid grid-cols-2 gap-px bg-outline-variant/5">
                   {[
-                    {label: 'Format', value: tournament.seeding_method || 'snake', icon: 'shuffle'},
+                    {label: 'Mode', value: (function() {
+                      if (teamSizeNum === 4) return 'Squads 4v4';
+                      if (teamSizeNum === 2) return tournament.points_scale === 'double_up_swiss' ? 'Double Up Swiss' : 'Double Up 2v2';
+                      return 'Solo';
+                    })(), icon: 'category'},
                     {label: 'Games', value: totalGames, icon: 'videogame_asset'},
                     {label: isTeamEvent ? 'Max Teams' : 'Max Players', value: isTeamEvent ? (effectiveCap + ' teams (' + maxP + ' players)') : maxP, icon: 'group'},
                     {label: 'Lobby Host', value: tournament.lobby_host_method || 'highest rank', icon: 'star'}
