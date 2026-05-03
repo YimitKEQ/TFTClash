@@ -49,6 +49,30 @@ export default function PlayersTab() {
   var disputes = _disputes[0]
   var setDisputes = _disputes[1]
 
+  var _compTarget = useState('')
+  var compTarget = _compTarget[0]
+  var setCompTarget = _compTarget[1]
+
+  var _compPlan = useState('pro')
+  var compPlan = _compPlan[0]
+  var setCompPlan = _compPlan[1]
+
+  var _compDuration = useState('1mo')
+  var compDuration = _compDuration[0]
+  var setCompDuration = _compDuration[1]
+
+  var _compCustomDate = useState('')
+  var compCustomDate = _compCustomDate[0]
+  var setCompCustomDate = _compCustomDate[1]
+
+  var _activeSubs = useState([])
+  var activeSubs = _activeSubs[0]
+  var setActiveSubs = _activeSubs[1]
+
+  var _compBusy = useState(false)
+  var compBusy = _compBusy[0]
+  var setCompBusy = _compBusy[1]
+
   var _disputesLoading = useState(true)
   var disputesLoading = _disputesLoading[0]
   var setDisputesLoading = _disputesLoading[1]
@@ -63,6 +87,75 @@ export default function PlayersTab() {
       if (res.data) setDisputes(res.data)
     }).catch(function() { setDisputesLoading(false) })
   }, [])
+
+  function loadActiveSubs() {
+    if (!supabase || !supabase.from) return
+    supabase.from('subscriptions')
+      .select('user_id, plan, status, current_period_end, plan_started_at, cancel_at_period_end')
+      .neq('plan', 'free')
+      .order('current_period_end', { ascending: true })
+      .limit(100)
+      .then(function(res) {
+        if (res.error) { console.error('[PlayersTab] subs load failed:', res.error); return }
+        setActiveSubs(res.data || [])
+      }).catch(function(e) { console.error('[PlayersTab] subs load failed:', e); })
+  }
+
+  useEffect(loadActiveSubs, [])
+
+  function durationToTimestamp(kind, customDate) {
+    var d = new Date()
+    if (kind === '1wk') { d.setDate(d.getDate() + 7); return d.toISOString() }
+    if (kind === '1mo') { d.setMonth(d.getMonth() + 1); return d.toISOString() }
+    if (kind === '3mo') { d.setMonth(d.getMonth() + 3); return d.toISOString() }
+    if (kind === '6mo') { d.setMonth(d.getMonth() + 6); return d.toISOString() }
+    if (kind === '1yr') { d.setFullYear(d.getFullYear() + 1); return d.toISOString() }
+    if (kind === 'lifetime') { d.setFullYear(d.getFullYear() + 100); return d.toISOString() }
+    if (kind === 'custom') {
+      if (!customDate) return null
+      var parsed = new Date(customDate + 'T23:59:59')
+      return isNaN(parsed.getTime()) ? null : parsed.toISOString()
+    }
+    return null
+  }
+
+  function grantCompPass() {
+    var name = (compTarget || '').trim()
+    if (!name) { toast('Pick a player', 'error'); return }
+    var match = (players || []).find(function(p) { return (p.name || '').toLowerCase() === name.toLowerCase() })
+    if (!match) { toast('Player "' + name + '" not found', 'error'); return }
+    if (!match.authUserId) { toast(match.name + ' has no linked auth account', 'error'); return }
+    var until = durationToTimestamp(compDuration, compCustomDate)
+    if (!until) { toast('Pick a valid duration / date', 'error'); return }
+
+    setCompBusy(true)
+    supabase.rpc('admin_grant_subscription', { p_user_id: match.authUserId, p_plan: compPlan, p_until: until })
+      .then(function(res) {
+        setCompBusy(false)
+        if (res.error) { toast('Grant failed: ' + res.error.message, 'error'); return }
+        addAudit('ACTION', 'Comp pass: ' + match.name + ' -> ' + compPlan + ' until ' + new Date(until).toLocaleDateString())
+        toast(match.name + ' granted ' + compPlan + ' until ' + new Date(until).toLocaleDateString(), 'success')
+        setCompTarget('')
+        setCompCustomDate('')
+        loadActiveSubs()
+      }).catch(function(e) { setCompBusy(false); toast('Grant failed: ' + (e.message || 'unknown'), 'error') })
+  }
+
+  function revokeCompPass(userId, displayName) {
+    if (!window.confirm('Revoke subscription for ' + displayName + '?')) return
+    supabase.rpc('admin_revoke_subscription', { p_user_id: userId })
+      .then(function(res) {
+        if (res.error) { toast('Revoke failed: ' + res.error.message, 'error'); return }
+        addAudit('ACTION', 'Comp pass revoked: ' + displayName)
+        toast('Revoked ' + displayName, 'success')
+        loadActiveSubs()
+      }).catch(function(e) { toast('Revoke failed: ' + (e.message || 'unknown'), 'error') })
+  }
+
+  function playerNameForUserId(userId) {
+    var m = (players || []).find(function(p) { return p.authUserId && String(p.authUserId) === String(userId) })
+    return m ? m.name : userId.slice(0, 8) + '...'
+  }
 
   function addAudit(type, msg) {
     var entry = { ts: Date.now(), type: type, msg: msg }
@@ -452,6 +545,95 @@ export default function PlayersTab() {
                 </div>
               )
             })}
+          </div>
+        )}
+      </Panel>
+
+      <Panel>
+        <div className="flex items-center gap-2 mb-3">
+          <Icon name="card_membership" size={16} className="text-tertiary" />
+          <span className="font-bold text-sm text-on-surface">Comp Pass / Manual Subscription</span>
+        </div>
+        <div className="text-xs text-on-surface/40 mb-3">Grant Pro or Host membership manually (no payment). Player must have a linked account.</div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Player</label>
+            <Inp list="comp-player-list" value={compTarget} onChange={function(e) { setCompTarget(typeof e === 'string' ? e : e.target.value) }} placeholder="Username" />
+            <datalist id="comp-player-list">
+              {(players || []).filter(function(p) { return p.authUserId }).map(function(p) {
+                return <option key={p.id} value={p.name} />
+              })}
+            </datalist>
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Plan</label>
+            <Sel value={compPlan} onChange={function(v) { setCompPlan(v) }}>
+              <option value="pro">Pro ($4.99/mo equiv.)</option>
+              <option value="host">Host ($19.99/mo equiv.)</option>
+            </Sel>
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Duration</label>
+            <Sel value={compDuration} onChange={function(v) { setCompDuration(v) }}>
+              <option value="1wk">1 week</option>
+              <option value="1mo">1 month</option>
+              <option value="3mo">3 months</option>
+              <option value="6mo">6 months</option>
+              <option value="1yr">1 year</option>
+              <option value="lifetime">Lifetime</option>
+              <option value="custom">Custom date</option>
+            </Sel>
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">{compDuration === 'custom' ? 'Expiry date' : ' '}</label>
+            {compDuration === 'custom'
+              ? <Inp type="date" value={compCustomDate} onChange={function(e) { setCompCustomDate(typeof e === 'string' ? e : e.target.value) }} />
+              : <Btn variant="primary" onClick={grantCompPass} disabled={compBusy}>{compBusy ? 'Granting...' : 'Grant'}</Btn>
+            }
+          </div>
+          {compDuration === 'custom' && (
+            <div className="md:col-span-4">
+              <Btn variant="primary" onClick={grantCompPass} disabled={compBusy}>{compBusy ? 'Granting...' : 'Grant'}</Btn>
+            </div>
+          )}
+        </div>
+
+        <div className="text-[11px] text-on-surface/40 font-bold uppercase tracking-wider mb-2 mt-4">Active Subscriptions ({activeSubs.length})</div>
+        {activeSubs.length === 0 ? (
+          <div className="text-center py-3 text-on-surface/40 text-sm">No paid or comped subscriptions yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-outline-variant/10">
+                  {['Player', 'Plan', 'Status', 'Expires', 'Started', 'Actions'].map(function(h) {
+                    return <th key={h} className="text-left px-2 py-2 text-[11px] font-bold text-on-surface/40 uppercase tracking-wider">{h}</th>
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {activeSubs.map(function(s) {
+                  var expires = s.current_period_end ? new Date(s.current_period_end) : null
+                  var expired = expires && expires.getTime() < Date.now()
+                  return (
+                    <tr key={s.user_id} className="border-b border-outline-variant/5 hover:bg-white/[.02]">
+                      <td className="px-2 py-2 font-semibold text-on-surface">{playerNameForUserId(s.user_id)}</td>
+                      <td className="px-2 py-2 text-on-surface/70 capitalize">{s.plan}</td>
+                      <td className="px-2 py-2">
+                        <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded ' + (s.status === 'active' && !expired ? 'text-success bg-success/10' : 'text-error bg-error/10')}>
+                          {expired ? 'EXPIRED' : (s.status || 'active').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-on-surface/60">{expires ? expires.toLocaleDateString() : '-'}</td>
+                      <td className="px-2 py-2 text-on-surface/40 text-xs">{s.plan_started_at ? new Date(s.plan_started_at).toLocaleDateString() : '-'}</td>
+                      <td className="px-2 py-2">
+                        <Btn variant="ghost" size="sm" onClick={function() { revokeCompPass(s.user_id, playerNameForUserId(s.user_id)) }}>Revoke</Btn>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </Panel>
