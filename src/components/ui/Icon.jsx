@@ -1,4 +1,4 @@
-export default function Icon({ name, fill = false, size = 24, className = '' }) {
+export default function Icon({ name, children, fill = false, size = 24, className = '' }) {
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -7,7 +7,7 @@ export default function Icon({ name, fill = false, size = 24, className = '' }) 
         fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' ${size}`
       }}
     >
-      {name}
+      {name || children}
     </span>
   )
 }

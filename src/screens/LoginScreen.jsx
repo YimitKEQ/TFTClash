@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -8,6 +10,29 @@ export default function LoginScreen() {
   var toast = ctx.toast
   var setCurrentUser = ctx.setCurrentUser
   var setAuthScreen = ctx.setAuthScreen
+  var currentUser = ctx.currentUser
+  var navigate = useNavigate()
+
+  useEffect(function() {
+    if (currentUser) {
+      toast('Welcome back, ' + (currentUser.username || 'player') + '! You are already signed in.', 'info')
+      try { setAuthScreen && setAuthScreen(null) } catch (e) {}
+      navigate('/', { replace: true })
+    }
+  }, [currentUser ? currentUser.id : null])
+
+  if (currentUser) {
+    return (
+      <PageLayout showSidebar={false}>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <Icon name="check_circle" size={48} className="text-primary mx-auto" />
+            <p className="font-label uppercase tracking-widest text-on-surface-variant text-sm">Already signed in as {currentUser.username || 'player'}</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
 
   async function handleDiscordLogin() {
     var path = '/'

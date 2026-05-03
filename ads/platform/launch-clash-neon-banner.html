@@ -1,0 +1,100 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../_base.css"><style>
+.ad{width:1200px;height:628px;background:#05040f;filter:brightness(.9) saturate(.92)}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 22% 30%,rgba(255,0,170,.40) 0%,transparent 55%),
+  radial-gradient(ellipse at 82% 72%,rgba(0,240,255,.34) 0%,transparent 55%),
+  radial-gradient(ellipse at 60% 50%,rgba(240,196,109,.18) 0%,transparent 60%),
+  linear-gradient(135deg,#05040f 0%,#0f0618 60%,#1a0425 100%)}
+.grid{position:absolute;inset:0;background-image:
+  linear-gradient(rgba(0,240,255,.08) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,240,255,.08) 1px,transparent 1px);
+  background-size:55px 55px;mask-image:radial-gradient(circle at 50% 50%,#000 40%,transparent 85%)}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 4px);pointer-events:none}
+.streak{position:absolute;inset:0;pointer-events:none;background:
+  repeating-linear-gradient(115deg,transparent 0,transparent 90px,rgba(0,240,255,.05) 90px,rgba(0,240,255,.05) 91px,transparent 91px,transparent 180px,rgba(255,0,170,.05) 180px,rgba(255,0,170,.05) 181px)}
+.frame{position:absolute;inset:34px;border:1px solid rgba(0,240,255,.20);pointer-events:none}
+.frame::before,.frame::after,.frame i,.frame em{position:absolute;width:18px;height:18px;border:2px solid #00f0ff;content:'';filter:drop-shadow(0 0 10px rgba(0,240,255,.7))}
+.frame::before{top:-2px;left:-2px;border-right:0;border-bottom:0}
+.frame::after{top:-2px;right:-2px;border-left:0;border-bottom:0}
+.frame i{bottom:-2px;left:-2px;border-right:0;border-top:0}
+.frame em{bottom:-2px;right:-2px;border-left:0;border-top:0}
+
+.c{position:absolute;inset:74px 84px 70px 84px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;z-index:6;text-align:center;gap:14px}
+
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{width:46px;height:46px;filter:drop-shadow(0 0 12px rgba(0,240,255,.55)) drop-shadow(0 0 22px rgba(255,0,170,.35))}
+.brand .wm{font-family:'Russo One',sans-serif;font-style:italic;font-size:30px;line-height:1;letter-spacing:-.02em;text-transform:uppercase;display:flex;gap:8px}
+.brand .wm .l1{color:#00f0ff;text-shadow:0 0 14px rgba(0,240,255,.85),0 0 30px rgba(0,240,255,.45)}
+.brand .wm .l2{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.85),0 0 30px rgba(255,0,170,.45)}
+
+.kicker{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.45em;color:#00f0ff;text-transform:uppercase;padding:9px 22px;border:1px solid rgba(0,240,255,.5);background:rgba(0,240,255,.06);text-shadow:0 0 14px rgba(0,240,255,.7)}
+.kicker b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.7);font-weight:700}
+
+.head{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:-2px}
+.h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:96px;line-height:.86;letter-spacing:-.02em;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 26px rgba(0,240,255,.7),0 0 70px rgba(255,0,170,.45)}
+.h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:96px;line-height:.86;letter-spacing:-.02em;text-transform:uppercase;
+  color:transparent;-webkit-text-stroke:3px #ff00aa;text-shadow:0 0 22px rgba(255,0,170,.8);margin-top:-2px}
+.lede{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.42em;color:#f0c46d;text-transform:uppercase;text-shadow:0 0 12px rgba(240,196,109,.55);margin-top:14px}
+.lede span{color:#fff;opacity:.5;margin:0 9px}
+
+.prizes{display:flex;align-items:stretch;justify-content:center;gap:18px;width:100%;margin-top:-4px}
+.tile{flex:1;max-width:300px;position:relative;padding:18px 18px 16px 18px;background:linear-gradient(160deg,rgba(0,240,255,.08) 0%,rgba(255,0,170,.05) 100%);border:1px solid rgba(0,240,255,.35);overflow:hidden}
+.tile::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#00f0ff;box-shadow:0 0 14px rgba(0,240,255,.9)}
+.tile.gold{border-color:rgba(240,196,109,.55);background:linear-gradient(160deg,rgba(240,196,109,.14) 0%,rgba(255,0,170,.06) 100%)}
+.tile.gold::before{background:#f0c46d;box-shadow:0 0 18px rgba(240,196,109,.95)}
+.tile.silver{border-color:rgba(220,220,235,.45)}
+.tile.silver::before{background:#dcdceb;box-shadow:0 0 14px rgba(220,220,235,.9)}
+.tile.bronze{border-color:rgba(232,152,88,.5)}
+.tile.bronze::before{background:#e89858;box-shadow:0 0 14px rgba(232,152,88,.9)}
+.medal{font-family:'Orbitron',sans-serif;font-weight:900;font-size:34px;line-height:1;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:10px}
+.tile.gold .medal{color:#f0c46d;text-shadow:0 0 14px rgba(240,196,109,.85)}
+.tile.silver .medal{color:#dcdceb;text-shadow:0 0 14px rgba(220,220,235,.8)}
+.tile.bronze .medal{color:#e89858;text-shadow:0 0 14px rgba(232,152,88,.85)}
+.perk{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;line-height:1.1;color:#fff;text-transform:uppercase;letter-spacing:-.005em;margin-bottom:6px;text-shadow:0 0 10px rgba(255,255,255,.18)}
+.cash{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.22em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 10px rgba(0,240,255,.7)}
+.cash b{color:#ff00aa;text-shadow:0 0 10px rgba(255,0,170,.7);font-weight:700}
+
+.bot{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.tag{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.36em;color:#fff;opacity:.72;text-transform:uppercase}
+.tag b{color:#f0c46d;font-weight:700;text-shadow:0 0 10px rgba(240,196,109,.6)}
+.urlbar{font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:.32em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 14px rgba(0,240,255,.8);padding:12px 26px;border:1px solid rgba(0,240,255,.55);background:rgba(0,240,255,.08)}
+.urlbar b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.8);font-weight:700}
+.urlbar em{font-style:normal;color:#fff;opacity:.55;margin:0 10px}
+</style></head><body>
+<div class="ad"><div class="bg"></div><div class="grid"></div><div class="streak"></div><div class="scan"></div>
+  <div class="frame"><i></i><em></em></div>
+  <div class="c">
+    <div class="brand">
+      <img src="../../public/tftclash-icon.svg" alt="">
+      <div class="wm"><span class="l1">TFT</span><span class="l2">CLASH</span></div>
+    </div>
+    <div class="kicker">◆ SAT <b>·</b> MAY 9 <b>·</b> 7 PM CEST ◆</div>
+    <div class="head">
+      <div class="h1">LAUNCH</div>
+      <div class="h2">CLASH</div>
+      <div class="lede">FREE TO ENTER<span>//</span>&euro;50 PRIZE POOL<span>//</span>NA + EU</div>
+    </div>
+    <div class="prizes">
+      <div class="tile gold">
+        <div class="medal">1ST</div>
+        <div class="perk">PRO MEMBERSHIP<br>1 YEAR</div>
+        <div class="cash">+ <b>&euro;25</b> CASH</div>
+      </div>
+      <div class="tile silver">
+        <div class="medal">2ND</div>
+        <div class="perk">PRO MEMBERSHIP<br>6 MONTHS</div>
+        <div class="cash">+ <b>&euro;15</b> CASH</div>
+      </div>
+      <div class="tile bronze">
+        <div class="medal">3RD</div>
+        <div class="perk">PRO MEMBERSHIP<br>3 MONTHS</div>
+        <div class="cash">+ <b>&euro;10</b> CASH</div>
+      </div>
+    </div>
+    <div class="bot">
+      <div class="tag">THE FIRST CUSTOM TOURNAMENT <b>·</b> REGISTER FREE NOW</div>
+      <div class="urlbar">▸ TFTCLASH<b>.</b>COM</div>
+    </div>
+  </div>
+</div></body></html>

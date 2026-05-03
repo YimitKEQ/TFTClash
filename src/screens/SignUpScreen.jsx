@@ -16,13 +16,27 @@ export default function SignUpScreen() {
   var tos = tosState[0]
   var setTos = tosState[1]
 
-  // If already logged in, close signup and show welcome-back toast
+  // If already logged in, redirect home and show welcome-back toast
   useEffect(function() {
     if (currentUser) {
       toast('Welcome back, ' + (currentUser.username || 'player') + '! You are already signed in.', 'info')
-      setAuthScreen(null)
+      try { setAuthScreen && setAuthScreen(null) } catch (e) {}
+      navigate('/', { replace: true })
     }
   }, [currentUser ? currentUser.id : null])
+
+  if (currentUser) {
+    return (
+      <PageLayout showSidebar={false}>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <Icon name="check_circle" size={48} className="text-primary mx-auto" />
+            <p className="font-label uppercase tracking-widest text-on-surface-variant text-sm">Already signed in as {currentUser.username || 'player'}</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
 
   async function handleDiscordSignUp() {
     if (!tos) {

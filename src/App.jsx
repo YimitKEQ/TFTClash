@@ -86,6 +86,7 @@ var GearScreenNew = lazyWithRetry(function(){ return import('./screens/GearScree
 var SquadsSimScreen = lazyWithRetry(function(){ return import('./screens/sim/SquadsSimScreen'); });
 var TeamsScreen = lazyWithRetry(function(){ return import('./screens/TeamsScreen'); });
 var TeamProfileScreen = lazyWithRetry(function(){ return import('./screens/TeamProfileScreen'); });
+var BannerPreviewScreen = lazyWithRetry(function(){ return import('./screens/BannerPreviewScreen'); });
 import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
@@ -116,7 +117,7 @@ import CommandPalette from './components/shared/CommandPalette';
 import { Btn } from './components/ui';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
-(function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
+(function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var preserve={};var keep=["tft-cookie-consent"];keep.forEach(function(k){var val=localStorage.getItem(k);if(val!==null)preserve[k]=val;});var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});Object.keys(preserve).forEach(function(k){localStorage.setItem(k,preserve[k]);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
 
 // ─── ERROR BOUNDARY ────────────────────────────────────────────────────────────
 
@@ -255,7 +256,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -755,6 +756,8 @@ function TFTClash(){
         {screen==="stats"      &&<StatsHubScreenNew/>}
 
         {screen==="scrims"     &&<ScrimsScreenNew/>}
+
+        {screen==="banner-preview"&&<BannerPreviewScreen/>}
 
         {screen==="admin"&&<AdminScreenNew/>}
 

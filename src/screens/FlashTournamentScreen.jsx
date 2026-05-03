@@ -15,6 +15,8 @@ import RegionBadge from '../components/shared/RegionBadge'
 import LiveDashboardLayout from '../components/shared/LiveDashboardLayout'
 import SocialShareBar from '../components/shared/SocialShareBar'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
+import ConfirmModal from '../components/shared/ConfirmModal'
+import PlacementPicker from '../components/shared/PlacementPicker'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 
 export default function FlashTournamentScreen(props) {
@@ -74,6 +76,9 @@ export default function FlashTournamentScreen(props) {
   var _preflightModal = useState({open: false, loading: false, issues: [], checkedCount: 0});
   var preflightModal = _preflightModal[0];
   var setPreflightModal = _preflightModal[1];
+  var _confirmModal = useState({open: false});
+  var confirmModal = _confirmModal[0];
+  var setConfirmModal = _confirmModal[1];
   var _myCaptainTeam = useState(null);
   var myCaptainTeam = _myCaptainTeam[0];
   var setMyCaptainTeam = _myCaptainTeam[1];
@@ -949,26 +954,39 @@ export default function FlashTournamentScreen(props) {
     }
     var lobby = lobbies.find(function(l) { return l.id === lobbyId; });
     var lobbyLocked = !!(lobby && lobby.status === 'locked');
-    if (lobbyLocked) {
-      if (!confirm('This lobby is locked. Override will rewrite the report; you must Unlock and Lock the lobby again to refresh standings. Continue?')) {
-        return;
-      }
+
+    function performUpsert() {
+      supabase.from('player_reports').upsert({
+        tournament_id: tournamentId,
+        lobby_id: lobbyId,
+        game_number: currentGameNumber,
+        player_id: playerId,
+        reported_placement: p,
+        reported_at: new Date().toISOString()
+      }, {onConflict: 'lobby_id,game_number,player_id'})
+        .then(function(res) {
+          if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
+          writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: p });
+          toast('Placement overridden' + (lobbyLocked ? ' - re-lock the lobby to update standings.' : ''), 'success');
+          broadcastUpdate('report_submitted');
+          loadReports();
+        }).catch(function() { toast('Override failed', 'error'); });
     }
-    supabase.from('player_reports').upsert({
-      tournament_id: tournamentId,
-      lobby_id: lobbyId,
-      game_number: currentGameNumber,
-      player_id: playerId,
-      reported_placement: p,
-      reported_at: new Date().toISOString()
-    }, {onConflict: 'lobby_id,game_number,player_id'})
-      .then(function(res) {
-        if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
-        writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: p });
-        toast('Placement overridden' + (lobbyLocked ? ' - re-lock the lobby to update standings.' : ''), 'success');
-        broadcastUpdate('report_submitted');
-        loadReports();
-      }).catch(function() { toast('Override failed', 'error'); });
+
+    if (lobbyLocked) {
+      setConfirmModal({
+        open: true,
+        title: 'Override locked lobby?',
+        message: 'This lobby is locked. Override will rewrite the report; you must Unlock and Lock the lobby again to refresh standings.',
+        confirmLabel: 'Override',
+        destructive: true,
+        onConfirm: function() { setConfirmModal({open: false}); performUpsert(); },
+        onCancel: function() { setConfirmModal({open: false}); }
+      });
+      return;
+    }
+
+    performUpsert();
   }
 
   function isSafeUrl(url) {
@@ -988,9 +1006,28 @@ export default function FlashTournamentScreen(props) {
       toast('This tournament is already finalized. Re-open it before accepting a dispute.', 'error');
       return;
     }
-    var note = window.prompt((accept ? 'Accepting' : 'Rejecting') + ' dispute - add a resolution note (shown to the player):', '');
-    if (note === null) return;
-    note = String(note).replace(/[<>]/g, '').slice(0, 500).trim();
+    setConfirmModal({
+      open: true,
+      title: (accept ? 'Accept' : 'Reject') + ' dispute?',
+      message: 'Add a resolution note shown to the player. Leave blank to skip.',
+      confirmLabel: accept ? 'Accept Dispute' : 'Reject Dispute',
+      destructive: !accept,
+      requiresInput: true,
+      allowEmptyInput: true,
+      inputLabel: 'Resolution note (optional)',
+      inputPlaceholder: 'Why this was ' + (accept ? 'accepted' : 'rejected') + '...',
+      inputMaxLength: 500,
+      onCancel: function() { setConfirmModal({open: false}); },
+      onConfirm: function(note) {
+        setConfirmModal({open: false});
+        performResolveDispute(disputeId, accept, note || '');
+      }
+    });
+  }
+
+  function performResolveDispute(disputeId, accept, note) {
+    var d = disputes.find(function(x) { return x.id === disputeId; });
+    if (!d) return;
     var updates = {
       status: accept ? 'resolved_accepted' : 'resolved_rejected',
       resolved_by: currentUser ? currentUser.auth_user_id : null,
@@ -1049,31 +1086,14 @@ export default function FlashTournamentScreen(props) {
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
     var doForceCheckIn = function() {
-      if (!confirm('Force check-in this ' + (isTeamEvent ? 'team' : 'player') + '?')) return;
-      var patch = {status: 'checked_in', checked_in_at: new Date().toISOString()};
-      supabase.from('registrations').update(patch).eq('id', regId).then(function(res) {
-        if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
-        writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
-        if (reg.player_id) {
-          var checkedPl = (players || []).find(function(pl) { return pl.id === reg.player_id; });
-          var checkedAuth = checkedPl && (checkedPl.auth_user_id || checkedPl.authUserId);
-          if (checkedAuth) createNotification(checkedAuth, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
-        }
-        if (reg.team_id) {
-          var tName = (reg.teams && reg.teams.name) || 'Your team';
-          try {
-            notifyTeamMembers(
-              reg.team_id,
-              'Team Checked In',
-              tName + ' was checked in to ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
-              'checkmark'
-            );
-          } catch (e) {}
-        }
-        toast('Checked in', 'success');
-        broadcastUpdate('admin_force_checkin');
-        loadRegistrations();
-      }).catch(function() { toast('Network error', 'error'); });
+      setConfirmModal({
+        open: true,
+        title: 'Force check-in?',
+        message: 'Force check-in this ' + (isTeamEvent ? 'team' : 'player') + '?',
+        confirmLabel: 'Check In',
+        onCancel: function() { setConfirmModal({open: false}); },
+        onConfirm: function() { setConfirmModal({open: false}); performForceCheckIn(reg, regId); }
+      });
     };
     if (isTeamEvent) {
       var lineup = Array.isArray(reg.lineup_player_ids) ? reg.lineup_player_ids : [];
@@ -1105,11 +1125,49 @@ export default function FlashTournamentScreen(props) {
     doForceCheckIn();
   }
 
+  function performForceCheckIn(reg, regId) {
+    var patch = {status: 'checked_in', checked_in_at: new Date().toISOString()};
+    supabase.from('registrations').update(patch).eq('id', regId).then(function(res) {
+        if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
+        writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
+        if (reg.player_id) {
+          var checkedPl = (players || []).find(function(pl) { return pl.id === reg.player_id; });
+          var checkedAuth = checkedPl && (checkedPl.auth_user_id || checkedPl.authUserId);
+          if (checkedAuth) createNotification(checkedAuth, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
+        }
+        if (reg.team_id) {
+          var tName = (reg.teams && reg.teams.name) || 'Your team';
+          try {
+            notifyTeamMembers(
+              reg.team_id,
+              'Team Checked In',
+              tName + ' was checked in to ' + (tournament ? tournament.name : 'the tournament') + ' by an admin.',
+              'checkmark'
+            );
+          } catch (e) {}
+        }
+        toast('Checked in', 'success');
+        broadcastUpdate('admin_force_checkin');
+        loadRegistrations();
+      }).catch(function() { toast('Network error', 'error'); });
+  }
+
   function adminUnCheckIn(regId) {
     if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
-    if (!confirm('Revert this ' + (isTeamEvent ? 'team\'s' : 'player\'s') + ' check-in?')) return;
+    setConfirmModal({
+      open: true,
+      title: 'Revert check-in?',
+      message: 'Revert this ' + (isTeamEvent ? "team's" : "player's") + ' check-in back to registered?',
+      confirmLabel: 'Revert',
+      destructive: true,
+      onCancel: function() { setConfirmModal({open: false}); },
+      onConfirm: function() { setConfirmModal({open: false}); performUnCheckIn(reg, regId); }
+    });
+  }
+
+  function performUnCheckIn(reg, regId) {
     supabase.from('registrations').update({status: 'registered', checked_in_at: null}).eq('id', regId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       writeAuditLog('tournament.admin_uncheckin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
@@ -1134,7 +1192,18 @@ export default function FlashTournamentScreen(props) {
     if (!canManage) return;
     var reg = registrations.find(function(r) { return r.id === regId; });
     if (!reg) return;
-    if (!confirm('Force withdraw this ' + (isTeamEvent ? 'team' : 'player') + '? This deletes the registration.')) return;
+    setConfirmModal({
+      open: true,
+      title: 'Force withdraw?',
+      message: 'Force withdraw this ' + (isTeamEvent ? 'team' : 'player') + '? This deletes the registration.',
+      confirmLabel: 'Withdraw',
+      destructive: true,
+      onCancel: function() { setConfirmModal({open: false}); },
+      onConfirm: function() { setConfirmModal({open: false}); performForceWithdraw(reg, regId); }
+    });
+  }
+
+  function performForceWithdraw(reg, regId) {
     supabase.from('registrations').delete().eq('id', regId).then(function(res) {
       if (res.error) { toast('Force withdraw failed: ' + res.error.message, 'error'); return; }
       writeAuditLog('tournament.admin_force_withdraw', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
@@ -1391,16 +1460,29 @@ export default function FlashTournamentScreen(props) {
       toast('Tournament already finalized', 'info');
       return;
     }
-    if (!confirm('Finalize this tournament? This cannot be undone.')) return;
-    var isSeasonClash = tournament && tournament.type === 'season_clash';
+    var snapshot = tournament;
+    setConfirmModal({
+      open: true,
+      title: 'Finalize tournament?',
+      message: 'This locks results and notifies all players. This cannot be undone.',
+      confirmLabel: 'Finalize',
+      destructive: true,
+      onConfirm: function() { setConfirmModal({open: false}); performFinalize(snapshot); },
+      onCancel: function() { setConfirmModal({open: false}); }
+    });
+  }
+
+  function performFinalize(snapshot) {
+    var t = snapshot || tournament;
+    var isSeasonClash = t && t.type === 'season_clash';
     supabase.from('tournaments').update({phase: 'complete', completed_at: new Date().toISOString()})
       .eq('id', tournamentId).then(function(res) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
-        setTournament(Object.assign({}, tournament, {phase: 'complete'}));
+        setTournament(Object.assign({}, t || tournament, {phase: 'complete'}));
         toast('Tournament finalized!', 'success');
         broadcastUpdate('finalized');
-        supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Results Finalized', p_body: (tournament ? tournament.name : 'The tournament') + ' has been finalized. Check the results screen for your placement and points.', p_icon: 'trophy', p_statuses: ['checked_in', 'registered']}).catch(function() {});
-        var finalShape = resolveLobbyShape(tournament);
+        supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Results Finalized', p_body: (t ? t.name : 'The tournament') + ' has been finalized. Check the results screen for your placement and points.', p_icon: 'trophy', p_statuses: ['checked_in', 'registered']}).catch(function() {});
+        var finalShape = resolveLobbyShape(t);
         var finalIsDoubleUp = finalShape.mode === 'double_up_2v2';
         supabase.from('game_results').select('player_id,placement,points,round_number')
           .eq('tournament_id', tournamentId).then(function(grRes) {
@@ -1675,6 +1757,18 @@ export default function FlashTournamentScreen(props) {
     ? { left: tournament.name.split(':')[0].trim(), right: tournament.name.split(':').slice(1).join(':').trim() }
     : { left: (tournament && tournament.name) || 'Flash Tournament', right: '' };
 
+  function tournamentTypeLabel() {
+    if (!tournament) return 'Tournament';
+    var t = tournament.type;
+    var teamish = (tournament.team_size && tournament.team_size > 1) || tournament.is_team_event;
+    if (t === 'season_clash') return teamish ? 'Squads Clash' : 'Weekly Clash';
+    if (t === 'team_clash' || teamish) return 'Team Tournament';
+    if (t === 'custom') return 'Custom Tournament';
+    if (t === 'flash') return 'Flash Tournament';
+    return 'Tournament';
+  }
+  var eyebrowLabel = tournamentTypeLabel();
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <PageLayout>
@@ -1693,9 +1787,9 @@ export default function FlashTournamentScreen(props) {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div className="flex-1 min-w-0">
             <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1.5">
-              Flash Tournament
+              {eyebrowLabel}
             </div>
-            <h1 className="font-editorial text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
+            <h1 className="font-display text-on-background tracking-tight uppercase leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
               {tournament.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
@@ -2384,7 +2478,7 @@ export default function FlashTournamentScreen(props) {
                 </div>
                 {myReport ? (
                   <div>
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
                       <span className="flex items-center gap-1.5 text-tertiary font-bold text-sm">
                         <Icon name="check_circle" size={16} fill className="text-tertiary" />
                         {"You reported: #" + myReport.reported_placement}
@@ -2397,32 +2491,37 @@ export default function FlashTournamentScreen(props) {
                       </button>
                     </div>
                     {myPlacement > 0 && (
-                      <div className="flex gap-2 items-center mt-2">
-                        <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
-                          {Array.from({length: placementSlots}, function(_, i) {
-                            return (<option key={"place-" + (i + 1)} value={i + 1}>{(i + 1) + (isDoubleUpLobby ? ' (team)' : '')}</option>);
-                          })}
-                        </Sel>
-                        <Btn variant="primary" size="sm" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
-                        <Btn variant="secondary" size="sm" onClick={function() { setMyPlacement(0); }}>Cancel</Btn>
+                      <div className="space-y-3 mt-2">
+                        <PlacementPicker
+                          slots={placementSlots}
+                          value={myPlacement}
+                          onChange={function(n) { setMyPlacement(n); }}
+                          teamMode={isDoubleUpLobby}
+                          label={isDoubleUpLobby ? 'Update team placement' : 'Update your placement'}
+                        />
+                        <div className="flex gap-2">
+                          <Btn variant="primary" size="md" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
+                          <Btn variant="secondary" size="md" onClick={function() { setMyPlacement(0); }}>Cancel</Btn>
+                        </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
-                      <option value="0">{isDoubleUpLobby ? "Select team placement..." : "Select placement..."}</option>
-                      {Array.from({length: placementSlots}, function(_, i) {
-                        return (<option key={"place-" + (i + 1)} value={i + 1}>{(i + 1) + (isDoubleUpLobby ? ' (team)' : '')}</option>);
-                      })}
-                    </Sel>
+                  <div className="space-y-3">
+                    <PlacementPicker
+                      slots={placementSlots}
+                      value={myPlacement}
+                      onChange={function(n) { setMyPlacement(n); }}
+                      teamMode={isDoubleUpLobby}
+                      label={isDoubleUpLobby ? 'Tap your team placement' : 'Tap your placement'}
+                    />
                     <Btn
                       variant="primary"
-                      size="sm"
+                      size="md"
                       onClick={function() { if (myPlacement > 0) submitReport(myPlacement); else toast('Select a placement first', 'error'); }}
                       disabled={myPlacement === 0}
                     >
-                      Submit
+                      {myPlacement > 0 ? ('Submit #' + myPlacement) : 'Select a placement'}
                     </Btn>
                   </div>
                 )}
@@ -3135,6 +3234,22 @@ export default function FlashTournamentScreen(props) {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmLabel={confirmModal.confirmLabel}
+        cancelLabel={confirmModal.cancelLabel}
+        destructive={confirmModal.destructive}
+        requiresInput={confirmModal.requiresInput}
+        inputLabel={confirmModal.inputLabel}
+        inputPlaceholder={confirmModal.inputPlaceholder}
+        inputMaxLength={confirmModal.inputMaxLength}
+        allowEmptyInput={confirmModal.allowEmptyInput}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={confirmModal.onCancel}
+      />
     </PageLayout>
   );
 }
