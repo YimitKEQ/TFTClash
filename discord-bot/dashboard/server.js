@@ -255,7 +255,8 @@ export function startDashboard(client) {
         return res.status(400).json({ error: 'Unknown job. Available: standings, reminder24h, reminder1h' });
       }
 
-      var result = await jobs[job](client);
+      // Dashboard triggers are manual - bypass the "scheduled clash exists" gate
+      var result = await jobs[job](client, { manual: true });
       console.log('[dashboard] Triggered job: ' + job);
       res.json({ ok: true, job: job, result: result });
     } catch (err) {
