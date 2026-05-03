@@ -575,7 +575,8 @@ function TFTClash(){
       }
     }
     if(!isRegistered&&currentUser){
-      createNotification(currentUser.id,"Registration Confirmed","You are registered for the next clash. Check in when the check-in window opens.","controller");
+      var registrantAuth=currentUser.auth_user_id||currentUser.authUserId;
+      if(registrantAuth)createNotification(registrantAuth,"Registration Confirmed","You are registered for the next clash. Check in when the check-in window opens.","controller");
     }
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
   }
@@ -793,9 +794,9 @@ function TFTClash(){
 
       {/* Cookie Consent */}
       {!cookieConsent&&(
-        <div className="mb-16 md:mb-0" style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(17,24,39,.97)",borderTop:"1px solid rgba(155,114,207,.2)",padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:16,zIndex:9997,flexWrap:"wrap",backdropFilter:"blur(8px)"}}>
-          <span style={{fontSize:13,color:"#BECBD9",maxWidth:480}}>We use essential cookies for authentication. No tracking cookies. <button onClick={function(){navTo("privacy");}} style={{background:"none",border:"none",color:"#9B72CF",cursor:"pointer",fontFamily:"inherit",fontSize:13,textDecoration:"underline",padding:0}}>Privacy Policy</button></span>
-          <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"8px 20px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:13,flexShrink:0}}>Got it</button>
+        <div style={{position:"fixed",bottom:16,left:16,right:16,maxWidth:420,marginLeft:"auto",marginRight:16,background:"rgba(17,24,39,.97)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,zIndex:120,backdropFilter:"blur(8px)",boxShadow:"0 12px 36px rgba(0,0,0,.45)"}}>
+          <span style={{fontSize:12,color:"#BECBD9",lineHeight:1.4,flex:1,minWidth:0}}>Essential cookies only. <button onClick={function(){navTo("privacy");}} style={{background:"none",border:"none",color:"#9B72CF",cursor:"pointer",fontFamily:"inherit",fontSize:12,textDecoration:"underline",padding:0}}>Privacy</button></span>
+          <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"6px 14px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:12,flexShrink:0}}>Got it</button>
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../ui'
+import { supabase } from '../../lib/supabase.js'
 
 var KEY_PREFIX = 'tft-ai-scout-v1:'
 var CACHE_TTL_MS = 24 * 60 * 60 * 1000
@@ -60,27 +61,29 @@ export default function AiScoutReport(props) {
   function fetchReport() {
     setErr('')
     setLoading(true)
-    fetch('/api/ai-commentary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: buildPrompt(eventName, players) }),
+    supabase.auth.getSession().then(function (s) {
+      var token = s && s.data && s.data.session && s.data.session.access_token
+      if (!token) { setLoading(false); setErr('Sign in to get a scout report.'); return null }
+      return fetch('/api/ai-commentary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ prompt: buildPrompt(eventName, players) }),
+      }).then(function (r) { return r.json() })
+    }).then(function (data) {
+      if (!data) return
+      setLoading(false)
+      if (data.text) {
+        writeCached(threadId, data.text)
+        setCached({ text: data.text, ts: Date.now() })
+      } else if (data.error) {
+        setErr(data.error)
+      } else {
+        setErr('No commentary returned')
+      }
+    }).catch(function () {
+      setLoading(false)
+      setErr('Could not reach commentator')
     })
-      .then(function (r) { return r.json() })
-      .then(function (data) {
-        setLoading(false)
-        if (data && data.text) {
-          writeCached(threadId, data.text)
-          setCached({ text: data.text, ts: Date.now() })
-        } else if (data && data.error) {
-          setErr(data.error)
-        } else {
-          setErr('No commentary returned')
-        }
-      })
-      .catch(function () {
-        setLoading(false)
-        setErr('Could not reach commentator')
-      })
   }
 
   function refresh() {

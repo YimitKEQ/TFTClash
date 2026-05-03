@@ -318,8 +318,11 @@ export default function TeamsTab() {
     supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).eq('id', reg.id).then(function(res) {
       if (res.error) { if (toast) toast('Check-in failed: ' + res.error.message); return; }
       writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: reg.id }, { tournament_id: t.id, team_id: reg.team_id });
-      if (reg.player_id) {
-        createNotification(reg.player_id, 'Team Checked In by Admin', 'An admin has checked your team in to ' + (t.name || 'the tournament') + '.', 'checkmark');
+      if (reg.player_id && !reg.team_id) {
+        supabase.from('players').select('auth_user_id').eq('id', reg.player_id).maybeSingle().then(function(prRes) {
+          var auth = prRes && prRes.data && prRes.data.auth_user_id;
+          if (auth) createNotification(auth, 'Checked In by Admin', 'An admin has checked you in to ' + (t.name || 'the tournament') + '.', 'checkmark');
+        }).catch(function() {});
       }
       if (reg.team_id) {
         try {

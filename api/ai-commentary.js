@@ -1,5 +1,8 @@
 // Vercel serverless function — AI Commentary (proxies to Anthropic API)
 // Requires: ANTHROPIC_API_KEY in Vercel env vars (NOT a VITE_ prefix)
+// Auth: requires a valid Supabase Bearer token in Authorization header.
+
+import { createClient } from '@supabase/supabase-js';
 
 const RATE_WINDOW_MS = 60 * 1000;
 const RATE_MAX = 10;
@@ -36,7 +39,7 @@ export default async function handler(req, res) {
     if (allowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
     return res.status(204).end();
   }
@@ -44,8 +47,25 @@ export default async function handler(req, res) {
   if (!allowed) return res.status(403).json({ error: 'Forbidden' });
   res.setHeader('Access-Control-Allow-Origin', origin);
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? 'unknown';
-  if (isRateLimited(ip)) {
+  // Require an authenticated Supabase user — keeps this from being a free
+  // Anthropic relay if the endpoint is discovered.
+  var authHeader = req.headers['authorization'] || '';
+  if (!authHeader.startsWith('Bearer ') || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  var rateKey = 'unknown';
+  try {
+    var sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    var userRes = await sb.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (!userRes || !userRes.data || !userRes.data.user) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    rateKey = userRes.data.user.id;
+  } catch (e) {
+    return res.status(401).json({ error: 'Auth check failed' });
+  }
+
+  if (isRateLimited(rateKey)) {
     return res.status(429).json({ error: 'Too many requests. Try again later.' });
   }
 

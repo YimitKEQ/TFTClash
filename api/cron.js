@@ -28,7 +28,7 @@ var D3 = {
 var D7 = {
   variant: 'retention_d7',
   title: 'See where you stack up',
-  message: 'Seven days in. Check the live leaderboard and climb the seasonal standings with another clash this Saturday.',
+  message: 'Seven days in. Check the live leaderboard and climb the seasonal standings in the next clash.',
   action_url: '/leaderboard'
 }
 
@@ -82,9 +82,11 @@ async function notifyCohort(client, opts) {
 
   if (rows.length === 0) return { variant: opts.variant, skipped: players.length, written: 0 }
 
+  // notifications has no (user_id, variant) unique index, so onConflict on
+  // .insert() would be a silent no-op. The pre-check above is the dedup gate.
   var ins = await client
     .from('notifications')
-    .insert(rows, { onConflict: 'user_id,variant', ignoreDuplicates: true })
+    .insert(rows)
   if (ins.error) return { variant: opts.variant, error: ins.error.message }
   return { variant: opts.variant, skipped: players.length - rows.length, written: rows.length }
 }

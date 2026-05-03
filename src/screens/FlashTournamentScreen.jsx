@@ -580,9 +580,11 @@ export default function FlashTournamentScreen(props) {
     if (!myReg) return;
     if (!confirm('Are you sure you want to unregister?')) return;
     setActionLoading(true);
+    var unregSnapshot = { tournament_id: tournamentId, player_id: myReg.player_id || null, team_id: myReg.team_id || null, status: myReg.status, registered_at: myReg.registered_at || null };
     supabase.from('registrations').delete().eq('id', myReg.id).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Failed to unregister: ' + res.error.message, 'error'); return; }
+      try { writeAuditLog('tournament.player_unregister', actorContext(), { type: 'registration', id: myReg.id }, unregSnapshot); } catch (e) {}
       // Promote first waitlisted entry whose player is not banned. Skipping
       // banned entries means a banned waitlisted player cannot be promoted
       // into an active spot through another player's unregister action.
@@ -739,7 +741,9 @@ export default function FlashTournamentScreen(props) {
                   try { notifyTeamMembers(r.team_id, promoteTitle, teamBody, 'celebration'); } catch (e) {}
                 } else if (r.player_id) {
                   var soloBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!';
-                  createNotification(r.player_id, promoteTitle, soloBody, 'celebration');
+                  var promotedSolo = (players || []).find(function(pl) { return pl.id === r.player_id; });
+                  var promotedSoloAuth = promotedSolo && (promotedSolo.auth_user_id || promotedSolo.authUserId);
+                  if (promotedSoloAuth) createNotification(promotedSoloAuth, promoteTitle, soloBody, 'celebration');
                 }
               });
               loadRegistrations();
@@ -1051,7 +1055,9 @@ export default function FlashTournamentScreen(props) {
         if (res.error) { toast('Force check-in failed: ' + res.error.message, 'error'); return; }
         writeAuditLog('tournament.admin_force_checkin', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
         if (reg.player_id) {
-          createNotification(reg.player_id, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
+          var checkedPl = (players || []).find(function(pl) { return pl.id === reg.player_id; });
+          var checkedAuth = checkedPl && (checkedPl.auth_user_id || checkedPl.authUserId);
+          if (checkedAuth) createNotification(checkedAuth, 'Checked In by Admin', 'You have been checked in to ' + (tournament ? tournament.name : 'this tournament') + ' by an admin.', 'checkmark');
         }
         if (reg.team_id) {
           var tName = (reg.teams && reg.teams.name) || 'Your team';
@@ -1133,7 +1139,9 @@ export default function FlashTournamentScreen(props) {
       if (res.error) { toast('Force withdraw failed: ' + res.error.message, 'error'); return; }
       writeAuditLog('tournament.admin_force_withdraw', actorContext(), { type: 'registration', id: regId }, { tournament_id: tournamentId, player_id: reg.player_id, team_id: reg.team_id || null });
       if (reg.player_id) {
-        createNotification(reg.player_id, 'Removed from Tournament', 'An admin has removed you from ' + (tournament ? tournament.name : 'the tournament') + '.', 'bell');
+        var removedPl = (players || []).find(function(pl) { return pl.id === reg.player_id; });
+        var removedAuth = removedPl && (removedPl.auth_user_id || removedPl.authUserId);
+        if (removedAuth) createNotification(removedAuth, 'Removed from Tournament', 'An admin has removed you from ' + (tournament ? tournament.name : 'the tournament') + '.', 'bell');
       }
       if (reg.team_id) {
         var tName3 = (reg.teams && reg.teams.name) || 'Your team';
@@ -1161,7 +1169,9 @@ export default function FlashTournamentScreen(props) {
               var teamBody = 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + '. Your team has been moved off the waitlist - the captain must complete check-in.';
               try { notifyTeamMembers(head.team_id, promoteTitle, teamBody, 'celebration'); } catch (e) {}
             } else if (head.player_id) {
-              createNotification(head.player_id, promoteTitle, 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been moved off the waitlist.', 'celebration');
+              var headPl = (players || []).find(function(pl) { return pl.id === head.player_id; });
+              var headAuth = headPl && (headPl.auth_user_id || headPl.authUserId);
+              if (headAuth) createNotification(headAuth, promoteTitle, 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been moved off the waitlist.', 'celebration');
             }
             loadRegistrations();
           }).catch(function() { loadRegistrations(); });

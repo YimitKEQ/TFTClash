@@ -117,26 +117,26 @@ function TableRow({ player, rank, isMe, onClick }) {
 
   return (
     <tr id={rowId} className={rowClass} onClick={onClick}>
-      <td className={'px-4 sm:px-8 py-4 sm:py-5 font-mono text-sm ' + rankColor}>{rankLabel}</td>
-      <td className="px-4 sm:px-8 py-4 sm:py-5">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+      <td className={'px-2 sm:px-8 py-4 sm:py-5 font-mono text-xs sm:text-sm ' + rankColor}>{rankLabel}</td>
+      <td className="px-2 sm:px-8 py-4 sm:py-5">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <div className={initialClass}>
             <span className={initialTextClass}>{(player.name || '?').charAt(0).toUpperCase()}</span>
           </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className={'font-bold truncate ' + nameColor}>{player.name}</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className={'font-bold truncate min-w-0 ' + nameColor}>{player.name}</span>
             {isMe && (
               <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase flex-shrink-0">You</span>
             )}
           </div>
         </div>
       </td>
-      <td className={'px-4 sm:px-8 py-4 sm:py-5 font-mono text-sm whitespace-nowrap ' + ptsColor}>{(player.pts || 0) + ' pts'}</td>
+      <td className={'px-2 sm:px-8 py-4 sm:py-5 font-mono text-xs sm:text-sm whitespace-nowrap ' + ptsColor}>{(player.pts || 0) + ' pts'}</td>
       <td className={'hidden sm:table-cell px-8 py-5 font-mono text-sm ' + avgColor}>{stats.avgPlacement}</td>
       <td className="hidden md:table-cell px-4 py-4 text-right">
         <WatchButton name={player.name} size="sm" />
       </td>
-      <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
+      <td className="px-2 sm:px-8 py-4 sm:py-5 text-right">
         <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
       </td>
     </tr>
@@ -146,7 +146,7 @@ function TableRow({ player, rank, isMe, onClick }) {
 function TierDividerRow({ divider }) {
   return (
     <tr className={divider.bg + ' ' + divider.border}>
-      <td colSpan={6} className="px-4 sm:px-8 py-3">
+      <td colSpan={6} className="px-2 sm:px-8 py-3">
         <div className="flex items-center justify-between">
           <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
           <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
@@ -188,7 +188,8 @@ export default function LeaderboardScreen(props) {
     return f.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   }, [players, search, regionFilter, tierFilter])
 
-  var top3 = sorted.slice(0, 3)
+  var competedSorted = sorted.filter(function(p) { return (p.games || 0) > 0 || (p.pts || 0) > 0 || (p.wins || 0) > 0 })
+  var top3 = competedSorted.slice(0, 3)
 
   var myIdx = currentUser
     ? sorted.findIndex(function(p) { return p.name === currentUser.username })
@@ -344,21 +345,21 @@ export default function LeaderboardScreen(props) {
             <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
               <table className="w-full text-left border-collapse table-fixed">
                 <colgroup>
-                  <col className="w-20 sm:w-28" />
+                  <col className="w-14 sm:w-28" />
                   <col />
-                  <col className="w-28 sm:w-40" />
+                  <col className="w-20 sm:w-40" />
                   <col className="hidden sm:table-column w-32" />
                   <col className="hidden md:table-column w-32" />
-                  <col className="w-16 sm:w-24" />
+                  <col className="w-12 sm:w-24" />
                 </colgroup>
                 <thead className="bg-surface-container-lowest/50">
                   <tr>
-                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
-                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
-                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Points</th>
+                    <th className="px-2 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
+                    <th className="px-2 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
+                    <th className="px-2 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Pts</th>
                     <th className="hidden sm:table-cell px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Avg Place</th>
                     <th className="hidden md:table-cell px-4 py-4 font-label text-outline text-xs tracking-widest uppercase text-right">Watch</th>
-                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
+                    <th className="px-2 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
                   </tr>
                 </thead>
                 {TIER_DIVIDERS.map(function(divider) {

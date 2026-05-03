@@ -476,44 +476,39 @@ export async function setMemberRole(memberId, role, callerPlayerId) {
 }
 
 export async function transferCaptaincy(teamId, fromMemberId, toMemberId) {
-  // Two-step: demote old captain to 'main', promote new member, update teams row.
-  var demote = await supabase
-    .from('team_members')
-    .update({ role: 'main' })
-    .eq('id', fromMemberId)
-    .select('id, player_id, team_id')
-    .single();
-  if (demote.error) throw demote.error;
-
-  var promote = await supabase
-    .from('team_members')
-    .update({ role: 'captain' })
-    .eq('id', toMemberId)
-    .select('id, player_id, team_id')
-    .single();
-  if (promote.error) throw promote.error;
-
-  var teamRes = await supabase
-    .from('teams')
-    .update({ captain_player_id: promote.data.player_id })
-    .eq('id', teamId)
-    .select('id, captain_player_id')
-    .single();
-  if (teamRes.error) throw teamRes.error;
-
-  return { team: teamRes.data, newCaptainMemberId: toMemberId };
+  // Atomic via SECURITY DEFINER RPC (migration 109). Old client-side three-step
+  // could orphan the team if the second update failed. fromMemberId is now
+  // derived server-side; kept in the signature for caller compatibility.
+  void fromMemberId;
+  var res = await supabase.rpc('transfer_captaincy', {
+    p_team_id: teamId,
+    p_to_member_id: toMemberId
+  });
+  if (res.error) throw res.error;
+  var row = Array.isArray(res.data) ? res.data[0] : res.data;
+  if (!row) throw new Error('Captaincy transfer returned no row');
+  return {
+    team: { id: row.team_id, captain_player_id: row.new_captain_player_id },
+    newCaptainMemberId: row.new_captain_member_id
+  };
 }
 
 export async function leaveTeam(memberId, reason) {
-  var nowIso = new Date().toISOString();
-  var res = await supabase
-    .from('team_members')
-    .update({ removed_at: nowIso, removed_reason: reason || 'left_voluntarily' })
-    .eq('id', memberId)
-    .select('id, team_id, player_id, removed_at')
-    .single();
+  // Atomic via SECURITY DEFINER RPC (migration 109). Refuses if the leaving
+  // member is the captain (must transfer captaincy first).
+  var res = await supabase.rpc('leave_team', {
+    p_member_id: memberId,
+    p_reason: reason || 'left_voluntarily'
+  });
   if (res.error) throw res.error;
-  return res.data;
+  var row = Array.isArray(res.data) ? res.data[0] : res.data;
+  if (!row) throw new Error('Leave team returned no row');
+  return {
+    id: row.member_id,
+    team_id: row.team_id,
+    player_id: row.player_id,
+    removed_at: row.removed_at
+  };
 }
 
 export async function kickMember(memberId, reason) {

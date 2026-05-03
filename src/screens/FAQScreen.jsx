@@ -70,10 +70,9 @@ export default function FAQScreen() {
 
       {/* Hero Header & Search */}
       <section className="text-center mb-16 mt-4">
-        <h1 className="text-5xl md:text-7xl font-display font-bold text-on-background mb-6 leading-tight">
-          {'How can we '}
-          <span className="text-primary font-editorial">assist</span>
-          {' you?'}
+        <h1 className="text-5xl md:text-7xl font-display text-on-background mb-6 leading-tight tracking-tight uppercase">
+          {'Player '}
+          <span className="text-primary">Handbook</span>
         </h1>
         <p className="text-on-surface-variant text-lg max-w-2xl mx-auto mb-10 font-body">
           Everything you need to know about the TFT Clash ecosystem, from your first roll to the Grandmaster podium.

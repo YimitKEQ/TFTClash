@@ -2123,10 +2123,14 @@ function ClashIdleView(props) {
               <div className="text-xs text-on-surface/60">Check back soon. Hosts post the next clash here when it's set.</div>
             </>
           )}
-          <div className="inline-flex items-center px-3 py-1 rounded-full border border-on-surface/20 text-on-surface/40 text-[10px] cond font-bold uppercase tracking-widest mt-4 mb-2">
-            No Active Clash
-          </div>
-          <div className="text-xs text-on-surface/40 mt-1">Registration opens when the next clash is scheduled.</div>
+          {!scheduledClashTs && (
+            <>
+              <div className="inline-flex items-center px-3 py-1 rounded-full border border-on-surface/20 text-on-surface/40 text-[10px] cond font-bold uppercase tracking-widest mt-4 mb-2">
+                No Active Clash
+              </div>
+              <div className="text-xs text-on-surface/40 mt-1">Registration opens when the next clash is scheduled.</div>
+            </>
+          )}
         </div>
       </Panel>
 

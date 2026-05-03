@@ -304,7 +304,7 @@ export default function Navbar() {
                 <button
                   key={l.id}
                   onClick={function() { navTo(l.id); }}
-                  className={'px-4 py-1.5 border-none cursor-pointer transition-all duration-200 font-label uppercase tracking-widest text-sm font-semibold rounded relative ' +
+                  className={'px-4 py-1.5 border-none cursor-pointer transition-all duration-200 font-label uppercase tracking-widest text-sm font-semibold rounded relative whitespace-nowrap ' +
                     (isLive
                       ? 'text-primary bg-primary/10'
                       : isActive

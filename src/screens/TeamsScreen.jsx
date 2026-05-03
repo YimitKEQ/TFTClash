@@ -26,6 +26,7 @@ import {
   listLftPosts, getMyLftPost, upsertLftPost, archiveMyLftPost,
   listMyRingerInvites, respondTeamRingerInvite
 } from '../lib/teams.js';
+import { supabase } from '../lib/supabase.js';
 
 var REGIONS = ['EUW', 'NA', 'KR', 'EUNE', 'OCE', 'BR', 'JP', 'LAN', 'LAS', 'TR', 'RU'];
 
@@ -902,7 +903,24 @@ export default function TeamsScreen() {
   var [lftPosts, setLftPosts] = useState([]);
   var [reload, setReload] = useState(0);
   var [joiningCode, setJoiningCode] = useState(false);
+  var [resolvedPlayerId, setResolvedPlayerId] = useState(null);
   var navigate = useNavigate();
+
+  // currentUser.id may be the players.id (when get_my_player RPC succeeds)
+  // OR the auth.users.id (when the RPC falls back). Both are UUIDs. Team
+  // helpers expect players.id, so resolve once via OR-match and cache.
+  useEffect(function() {
+    if (!currentUser) { setResolvedPlayerId(null); return; }
+    var raw = currentUser.id;
+    var auth = currentUser.auth_user_id || currentUser.authUserId || raw;
+    if (!raw && !auth) { setResolvedPlayerId(null); return; }
+    var filter = [];
+    if (raw) filter.push('id.eq.' + raw);
+    if (auth) filter.push('auth_user_id.eq.' + auth);
+    supabase.from('players').select('id').or(filter.join(',')).limit(1).maybeSingle().then(function(r) {
+      setResolvedPlayerId(r && r.data ? r.data.id : null);
+    }).catch(function() { setResolvedPlayerId(null); });
+  }, [currentUser ? (currentUser.id + ':' + (currentUser.auth_user_id || '')) : null]);
 
   useEffect(function() {
     if (!subRoute || subRoute.indexOf('join-') !== 0) return;
@@ -939,7 +957,7 @@ export default function TeamsScreen() {
   useEffect(function() {
     var cancelled = false;
     setLoading(true);
-    var playerId = currentUser ? currentUser.id : null;
+    var playerId = resolvedPlayerId;
     Promise.all([
       playerId ? getMyTeam(playerId) : Promise.resolve(null),
       playerId ? listMyInvites(playerId) : Promise.resolve([]),
@@ -988,11 +1006,11 @@ export default function TeamsScreen() {
       if (toast) toast('Could not load teams: ' + (err.message || 'unknown error'));
     });
     return function() { cancelled = true; };
-  }, [currentUser ? currentUser.id : null, reload]);
+  }, [resolvedPlayerId, reload]);
 
   function handleCancelSent(inviteId) {
     if (!window.confirm('Cancel this invite?')) return;
-    respondInvite(inviteId, 'cancel', currentUser ? currentUser.id : null)
+    respondInvite(inviteId, 'cancel', resolvedPlayerId)
       .then(function() { if (toast) toast('Invite cancelled.'); refresh(); })
       .catch(function(err) { if (toast) toast('Cancel failed: ' + (err.message || 'unknown error')); });
   }
@@ -1018,7 +1036,7 @@ export default function TeamsScreen() {
   }
 
   function handleRespond(inviteId, action) {
-    var playerId = currentUser ? currentUser.id : null;
+    var playerId = resolvedPlayerId;
     respondInvite(inviteId, action, playerId)
       .then(function() {
         if (toast) toast(action === 'accept' ? 'Joined team.' : 'Invite ' + action + 'd.');
@@ -1045,7 +1063,7 @@ export default function TeamsScreen() {
 
   function handleLeave() {
     if (!myTeam || !currentUser) return;
-    var me = myTeam.members.find(function(m){ return m.player_id === currentUser.id; });
+    var me = myTeam.members.find(function(m){ return m.player_id === resolvedPlayerId; });
     if (!me) return;
     if (me.role === 'captain') {
       if (toast) toast('Transfer captaincy before leaving.');
@@ -1098,7 +1116,7 @@ export default function TeamsScreen() {
   }
 
   var amCaptain = !!(myTeam && myTeam.captain_player_id === currentUser.id);
-  var myMember = myTeam ? myTeam.members.find(function(m){ return m.player_id === currentUser.id; }) : null;
+  var myMember = myTeam ? myTeam.members.find(function(m){ return m.player_id === resolvedPlayerId; }) : null;
 
   return (
     <PageLayout>

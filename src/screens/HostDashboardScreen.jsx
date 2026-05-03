@@ -1281,6 +1281,7 @@ export default function HostDashboardScreen() {
                           supabase.from('tournaments')
                             .update({ phase: 'registration', registration_open_at: new Date().toISOString() })
                             .eq('id', t.dbId)
+                            .eq('host_id', currentUser ? currentUser.auth_user_id : null)
                             .then(function(r) {
                               if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); return; }
                               setTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'registration', status: 'upcoming' }) : x; }); });
@@ -1299,6 +1300,7 @@ export default function HostDashboardScreen() {
                           supabase.from('tournaments')
                             .update({ phase: 'check_in', checkin_open_at: new Date().toISOString() })
                             .eq('id', t.dbId)
+                            .eq('host_id', currentUser ? currentUser.auth_user_id : null)
                             .then(function(r) {
                               if (r.error) { toast('Open check-in failed: ' + r.error.message, 'error'); return; }
                               setTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'check_in', status: 'live' }) : x; }); });

@@ -204,9 +204,10 @@ export default function HofScreen(props) {
   })
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
-  var king = sorted[0] || null
+  var competedSorted = sorted.filter(function(p) { return (p.games || 0) > 0 || (p.pts || 0) > 0 || (p.wins || 0) > 0 })
+  var king = competedSorted[0] || null
   var kingStats = king ? getStats(king) : null
-  var challengers = sorted.slice(1, 4)
+  var challengers = competedSorted.slice(1, 4)
   var kingGap = challengers[0] ? (king.pts || 0) - (challengers[0].pts || 0) : 0
 
   function openProfile(name) {

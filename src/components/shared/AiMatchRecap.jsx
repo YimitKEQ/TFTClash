@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../ui'
+import { supabase } from '../../lib/supabase.js'
 
 var KEY_PREFIX = 'tft-ai-recap-v1:'
 var CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
@@ -62,12 +63,17 @@ export default function AiMatchRecap(props) {
   function fetchRecap() {
     setErr('')
     setLoading(true)
-    fetch('/api/ai-commentary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: buildPrompt(eventName, podium) }),
+    supabase.auth.getSession().then(function (s) {
+      var token = s && s.data && s.data.session && s.data.session.access_token
+      if (!token) { setLoading(false); setErr('Sign in to get a match recap.'); return null }
+      return fetch('/api/ai-commentary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ prompt: buildPrompt(eventName, podium) }),
+      })
     })
       .then(function (r) {
+        if (!r) return null
         if (!r.ok) {
           setLoading(false)
           setErr('Server error (' + r.status + ')')
