@@ -51,13 +51,13 @@ export default async function handler(req, res) {
       .limit(100)
     if (hostFilter) {
       query = query.eq('host', hostFilter)
-      calLabel = 'TFT Clash — ' + hostFilter
+      calLabel = 'TFT Clash - ' + hostFilter
     }
     var resp = await query
     if (resp.data) rows = resp.data
 
     if (playerFilter) {
-      calLabel = 'TFT Clash — ' + playerFilter
+      calLabel = 'TFT Clash - ' + playerFilter
       var pResp = await sb
         .from('players')
         .select('id')
