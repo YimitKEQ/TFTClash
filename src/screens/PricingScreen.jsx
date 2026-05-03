@@ -395,16 +395,16 @@ export default function PricingScreen() {
         </section>
 
         {/* FAQ Section */}
-        <section className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div>
+        <section className="mt-24 grid grid-cols-1 md:grid-cols-5 gap-10 lg:gap-14 items-start">
+          <div className="md:col-span-2 md:sticky md:top-24">
             <h4 className="font-label uppercase tracking-widest text-xs text-primary mb-2">
               Inquiries
             </h4>
-            <h2 className="font-editorial text-4xl mb-6">Frequently Asked Questions</h2>
-            <p className="text-on-surface-variant text-sm">
+            <h2 className="font-display uppercase tracking-tight text-3xl md:text-4xl mb-4 leading-tight">Frequently Asked Questions</h2>
+            <p className="text-on-surface-variant text-sm leading-relaxed">
               Still unsure? Our support team is active on Discord.
             </p>
-            <div className="mt-8 flex gap-4 flex-wrap">
+            <div className="mt-6 flex gap-3 flex-wrap">
               <Btn variant="secondary" size="md" href="mailto:contact@tftclash.com">
                 Email Support
               </Btn>
@@ -419,12 +419,12 @@ export default function PricingScreen() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="md:col-span-3 space-y-3">
             {FAQ_ITEMS.map(function(item) {
               return (
                 <Panel key={item.q} padding="tight">
                   <h5 className="font-bold mb-2 text-sm">{item.q}</h5>
-                  <p className="text-sm text-on-surface-variant">{item.a}</p>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">{item.a}</p>
                 </Panel>
               )
             })}

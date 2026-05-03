@@ -658,28 +658,47 @@ export default function HomeScreen() {
 
           {/* Dual-region command deck */}
           <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-              <RegionCommandCard
-                region="EU"
-                tournament={euTournament}
-                tournamentState={tournamentState}
-                currentUser={currentUser}
-                userRegion={linkedUserRegion}
-                onSignUp={handleSignUp}
-                onNavigateDashboard={handleNavigateDashboard}
-                onViewDetail={handleViewTournament}
-              />
-              <RegionCommandCard
-                region="NA"
-                tournament={naTournament}
-                tournamentState={tournamentStateNa}
-                currentUser={currentUser}
-                userRegion={linkedUserRegion}
-                onSignUp={handleSignUp}
-                onNavigateDashboard={handleNavigateDashboard}
-                onViewDetail={handleViewTournament}
-              />
-            </div>
+            {(!euTournament && !naTournament) ? (
+              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low/60 px-6 py-10 text-center space-y-4">
+                <div className="inline-flex items-center gap-2 font-label uppercase tracking-widest text-[10px] text-on-surface-variant">
+                  <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+                  Between clashes
+                </div>
+                <div className="font-display text-2xl sm:text-3xl text-on-surface leading-tight">No clash on the schedule yet</div>
+                <p className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed">
+                  The next weekly tournament drops soon. Sign up now so you're ready the moment registration opens.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                  {!currentUser && (
+                    <Btn variant="primary" size="md" onClick={handleSignUp}>Sign up</Btn>
+                  )}
+                  <Btn variant="secondary" size="md" onClick={handleViewStandings}>View standings</Btn>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <RegionCommandCard
+                  region="EU"
+                  tournament={euTournament}
+                  tournamentState={tournamentState}
+                  currentUser={currentUser}
+                  userRegion={linkedUserRegion}
+                  onSignUp={handleSignUp}
+                  onNavigateDashboard={handleNavigateDashboard}
+                  onViewDetail={handleViewTournament}
+                />
+                <RegionCommandCard
+                  region="NA"
+                  tournament={naTournament}
+                  tournamentState={tournamentStateNa}
+                  currentUser={currentUser}
+                  userRegion={linkedUserRegion}
+                  onSignUp={handleSignUp}
+                  onNavigateDashboard={handleNavigateDashboard}
+                  onViewDetail={handleViewTournament}
+                />
+              </div>
+            )}
 
             <div className="flex flex-wrap justify-center items-center gap-4 mt-5 text-xs text-on-surface-variant">
               <button
