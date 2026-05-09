@@ -10,7 +10,7 @@
  * tournaments that share a similar name.
  */
 
-import { ChannelType, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, PermissionFlagsBits, OverwriteType } from 'discord.js';
 import { supabase } from './supabase.js';
 
 function slugify(s) {
@@ -69,11 +69,16 @@ export async function createTournamentChannels(guild, tournament) {
   var hostRole = guild.roles.cache.find(function(r) { return r.name === 'Host'; });
 
   var basePerms = [
-    { id: guild.roles.everyone.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+    {
+      id: guild.roles.everyone.id,
+      type: OverwriteType.Role,
+      allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages],
+    },
   ];
   if (hostRole) {
     basePerms.push({
       id: hostRole.id,
+      type: OverwriteType.Role,
       allow: [
         PermissionFlagsBits.ViewChannel,
         PermissionFlagsBits.SendMessages,
@@ -172,6 +177,26 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
     }
   }
 
+  // Pre-fetch every Discord member that's about to get an overwrite. discord.js
+  // throws "Supplied parameter is not a cached User or Role" if the snowflake
+  // can't be resolved at create time, so we warm the cache here and silently
+  // skip anyone who isn't actually in the guild.
+  var validDiscordIds = {};
+  var uniqueDids = Object.keys(playerDiscordMap).reduce(function(acc, pid) {
+    var did = playerDiscordMap[pid];
+    if (did && acc.indexOf(did) === -1) acc.push(did);
+    return acc;
+  }, []);
+  for (var f = 0; f < uniqueDids.length; f++) {
+    var did = uniqueDids[f];
+    try {
+      var member = await guild.members.fetch(did);
+      if (member) validDiscordIds[did] = true;
+    } catch (_e) {
+      // Member left guild or never joined; skip silently.
+    }
+  }
+
   var created = 0;
   var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -184,13 +209,19 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
     });
     if (existing) continue;
 
-    var overwrites = [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] }];
+    var overwrites = [{
+      id: guild.roles.everyone.id,
+      type: OverwriteType.Role,
+      deny: [PermissionFlagsBits.ViewChannel],
+    }];
     if (hostRole) {
       overwrites.push({
         id: hostRole.id,
+        type: OverwriteType.Role,
         allow: [
           PermissionFlagsBits.ViewChannel,
           PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ManageMessages,
           PermissionFlagsBits.Connect,
           PermissionFlagsBits.Speak,
         ],
@@ -199,10 +230,11 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
 
     var ids = Array.isArray(lobby.player_ids) ? lobby.player_ids : [];
     ids.forEach(function(pid) {
-      var did = playerDiscordMap[pid];
-      if (did) {
+      var pdid = playerDiscordMap[pid];
+      if (pdid && validDiscordIds[pdid]) {
         overwrites.push({
-          id: did,
+          id: pdid,
+          type: OverwriteType.Member,
           allow: [
             PermissionFlagsBits.ViewChannel,
             PermissionFlagsBits.SendMessages,
