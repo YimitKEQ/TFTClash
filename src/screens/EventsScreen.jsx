@@ -1187,49 +1187,135 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
   )
 }
 
-// ── Archive tab (past clashes) ─────────────────────────────────────────────────
+// ── Archive tab (past clashes + past flash tournaments) ──────────────────────
 
 function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
-  var clashes = pastClashes || []
+  var _flash = useState([])
+  var flashPast = _flash[0]
+  var setFlashPast = _flash[1]
+  var _loading = useState(true)
+  var loading = _loading[0]
+  var setLoading = _loading[1]
 
-  if (clashes.length === 0) {
+  useEffect(function() {
+    var alive = true
+    // Pull every completed or archived custom/flash tournament so they show up
+    // here too (Archive used to be season-clash-only).
+    supabase
+      .from('tournaments')
+      .select('id, name, date, region, type, phase, archived_at, champion')
+      .eq('type', 'flash_tournament')
+      .or('phase.eq.complete,archived_at.not.is.null')
+      .order('date', { ascending: false })
+      .limit(100)
+      .then(function(res) {
+        if (!alive) return
+        setLoading(false)
+        if (res.data) setFlashPast(res.data)
+      })
+    return function() { alive = false }
+  }, [])
+
+  var clashes = (pastClashes || []).map(function(c) {
+    return {
+      kind: 'clash',
+      id: c.id,
+      name: c.name,
+      date: c.date,
+      winner: c.champion,
+      playerCount: c.players,
+      raw: c
+    }
+  })
+  var flashRows = flashPast.map(function(t) {
+    return {
+      kind: 'flash',
+      id: t.id,
+      name: t.name,
+      date: t.date,
+      region: t.region,
+      winner: t.champion || '',
+      archived: !!t.archived_at,
+      raw: t
+    }
+  })
+
+  var combined = clashes.concat(flashRows).sort(function(a, b) {
+    var ad = a.date ? new Date(a.date).getTime() : 0
+    var bd = b.date ? new Date(b.date).getTime() : 0
+    return bd - ad
+  })
+
+  if (loading && combined.length === 0) {
     return (
-      <Panel padding="none" className="p-16 text-center">
-        <Icon name="archive" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
-        <div className="font-display text-2xl font-bold text-on-surface mb-2">No Past Clashes</div>
-        <div className="text-sm text-on-surface-variant">Completed clashes will be archived here.</div>
+      <Panel padding="none" className="p-12 text-center">
+        <Icon name="hourglass_empty" size={28} className="text-on-surface-variant/30 animate-spin block mx-auto mb-3" />
+        <div className="text-sm text-on-surface-variant uppercase tracking-widest font-label">Loading archive...</div>
       </Panel>
     )
   }
 
+  if (combined.length === 0) {
+    return (
+      <Panel padding="none" className="p-16 text-center">
+        <Icon name="archive" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
+        <div className="font-display text-2xl font-bold text-on-surface mb-2">No Past Events</div>
+        <div className="text-sm text-on-surface-variant">Completed clashes and tournaments will show here.</div>
+      </Panel>
+    )
+  }
+
+  function openItem(item) {
+    if (item.kind === 'flash') {
+      navigate('/tournament/' + item.id)
+    } else {
+      navigate('/results', { state: { clash: item.raw } })
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {clashes.map(function(clash, idx) {
+      {combined.map(function(item, idx) {
+        var isFlash = item.kind === 'flash'
+        var dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
         return (
           <Panel
-            key={clash.id || clash.name}
+            key={item.kind + '-' + (item.id || item.name || idx)}
             padding="none"
             className="px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
-            onClick={function() { navigate('/results', { state: { clash: clash } }) }}
+            onClick={function() { openItem(item) }}
           >
-            <div className="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-primary font-mono text-sm">
-              {'#' + (clashes.length - idx)}
+            <div className="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/20 flex items-center justify-center text-primary">
+              <Icon name={isFlash ? 'flash_on' : 'sports_esports'} size={18} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-display font-bold text-base text-on-surface mb-0.5">
-                {clash.name || ('Clash #' + (clashes.length - idx))}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="font-display font-bold text-base text-on-surface truncate">
+                  {item.name || (isFlash ? 'Tournament' : 'Clash')}
+                </div>
+                {isFlash && (
+                  <span className="text-[9px] font-label uppercase tracking-widest px-2 py-0.5 bg-secondary-container/20 text-secondary border border-secondary/30">
+                    Tournament
+                  </span>
+                )}
+                {item.archived && (
+                  <span className="text-[9px] font-label uppercase tracking-widest px-2 py-0.5 bg-surface-variant/40 text-on-surface-variant border border-outline-variant/30">
+                    Archived
+                  </span>
+                )}
               </div>
-              <div className="font-label text-[11px] text-on-surface-variant uppercase tracking-wider">
-                {clash.date || ''}
-                {clash.playerCount ? (' - ' + clash.playerCount + ' players') : ''}
+              <div className="font-label text-[11px] text-on-surface-variant uppercase tracking-wider mt-0.5">
+                {dateStr}
+                {item.region ? (' · ' + item.region) : ''}
+                {item.playerCount ? (' · ' + item.playerCount + ' players') : ''}
               </div>
             </div>
-            {clash.winner && (
+            {item.winner && (
               <div className="text-right flex-shrink-0">
                 <div className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest mb-0.5">Winner</div>
                 <div className="text-xs font-bold text-primary flex items-center gap-1 justify-end">
                   <Icon name="trophy" size={14} />
-                  {clash.winner}
+                  {item.winner}
                 </div>
               </div>
             )}
