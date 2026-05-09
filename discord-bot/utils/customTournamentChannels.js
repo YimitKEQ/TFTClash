@@ -13,8 +13,6 @@
 import { ChannelType, PermissionFlagsBits } from 'discord.js';
 import { supabase } from './supabase.js';
 
-var TOURNAMENT_TOPIC_PREFIX = 'tft-clash:tournament:';
-
 function slugify(s) {
   return String(s || '')
     .toLowerCase()
@@ -23,20 +21,32 @@ function slugify(s) {
     .slice(0, 50) || 'tournament';
 }
 
-function categoryNameFor(tournament) {
-  var label = tournament && tournament.name ? tournament.name : 'TOURNAMENT';
-  return ('🏆 ' + String(label).toUpperCase()).slice(0, 95);
+function shortIdFor(tournamentId) {
+  return String(tournamentId || '').replace(/-/g, '').slice(-8);
 }
 
-function topicMarkerFor(tournamentId) {
-  return TOURNAMENT_TOPIC_PREFIX + String(tournamentId);
+function categoryMarkerFor(tournamentId) {
+  return '#' + shortIdFor(tournamentId);
+}
+
+function categoryNameFor(tournament) {
+  var label = tournament && tournament.name ? tournament.name : 'TOURNAMENT';
+  var marker = categoryMarkerFor(tournament && tournament.id);
+  var suffix = ' ' + marker;
+  var maxLabel = 95 - suffix.length - 2;
+  var safeLabel = String(label).toUpperCase().slice(0, maxLabel);
+  return ('🏆 ' + safeLabel + suffix).slice(0, 95);
 }
 
 function findCategoryFor(guild, tournamentId) {
   if (!guild || !tournamentId) return null;
-  var marker = topicMarkerFor(tournamentId);
+  var marker = categoryMarkerFor(tournamentId);
+  var legacyTopic = 'tft-clash:tournament:' + String(tournamentId);
   return guild.channels.cache.find(function(c) {
-    return c.type === ChannelType.GuildCategory && c.topic && c.topic.indexOf(marker) === 0;
+    if (c.type !== ChannelType.GuildCategory) return false;
+    if (c.name && c.name.indexOf(marker) !== -1) return true;
+    if (c.topic && c.topic.indexOf(legacyTopic) === 0) return true;
+    return false;
   }) || null;
 }
 
@@ -78,7 +88,6 @@ export async function createTournamentChannels(guild, tournament) {
     category = await guild.channels.create({
       name: categoryNameFor(tournament),
       type: ChannelType.GuildCategory,
-      topic: topicMarkerFor(tournament.id),
       permissionOverwrites: basePerms,
     });
   } catch (e) {
@@ -93,15 +102,29 @@ export async function createTournamentChannels(guild, tournament) {
   ];
 
   for (var i = 0; i < spec.length; i++) {
+    var childSpec = spec[i];
     try {
       await guild.channels.create({
-        name: spec[i].name.slice(0, 95),
+        name: childSpec.name.slice(0, 95),
         type: ChannelType.GuildText,
         parent: category.id,
-        topic: spec[i].topic,
+        topic: childSpec.topic,
       });
     } catch (e) {
-      console.error('[customTournamentChannels] child channel ' + spec[i].name + ' failed:', e && e.message);
+      var msg = (e && e.message) || '';
+      if (msg.indexOf('CHANNEL_TOPIC_INVALID') !== -1) {
+        try {
+          await guild.channels.create({
+            name: childSpec.name.slice(0, 95),
+            type: ChannelType.GuildText,
+            parent: category.id,
+          });
+        } catch (e2) {
+          console.error('[customTournamentChannels] child channel ' + childSpec.name + ' retry failed:', e2 && e2.message);
+        }
+      } else {
+        console.error('[customTournamentChannels] child channel ' + childSpec.name + ' failed:', msg);
+      }
     }
   }
 
@@ -190,22 +213,39 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
       }
     });
 
+    var textCh = null;
     try {
-      var textCh = await guild.channels.create({
+      textCh = await guild.channels.create({
         name: ('💬-' + lobbySlug).slice(0, 95),
         type: ChannelType.GuildText,
         parent: category.id,
         topic: 'Lobby ' + letter + ' chat for ' + (tournament.name || 'tournament') + '.',
         permissionOverwrites: overwrites,
       });
+    } catch (e) {
+      var lobbyMsg = (e && e.message) || '';
+      if (lobbyMsg.indexOf('CHANNEL_TOPIC_INVALID') !== -1) {
+        try {
+          textCh = await guild.channels.create({
+            name: ('💬-' + lobbySlug).slice(0, 95),
+            type: ChannelType.GuildText,
+            parent: category.id,
+            permissionOverwrites: overwrites,
+          });
+        } catch (e2) {
+          console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' retry failed:', e2 && e2.message);
+        }
+      } else {
+        console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' failed:', lobbyMsg);
+      }
+    }
+    if (textCh) {
       var welcome = '**Lobby ' + letter + '** - ' + (tournament.name || 'Tournament') + '\nGood luck! This channel auto-cleans up after the tournament ends.';
       try {
-        var msg = await textCh.send(welcome);
-        await msg.pin().catch(function() {});
+        var pinned = await textCh.send(welcome);
+        await pinned.pin().catch(function() {});
       } catch (_e) {}
       created++;
-    } catch (e) {
-      console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' failed:', e && e.message);
     }
 
     try {
