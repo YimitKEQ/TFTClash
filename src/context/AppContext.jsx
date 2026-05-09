@@ -757,7 +757,7 @@ export function AppProvider(props) {
       loadDebounceTimer=setTimeout(function(){
         loadDebounceTimer=null;
         loadPlayersFromTable();
-      },600);
+      },5000);
     }
     var playersCh=supabase.channel('players_realtime')
       .on('postgres_changes',{event:'*',schema:'public',table:'players'},scheduleLoadPlayers)

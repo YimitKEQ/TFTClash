@@ -101,6 +101,23 @@ export default function FlashTournamentScreen(props) {
   var ringerReload = _ringerReload[0];
   var setRingerReload = _ringerReload[1];
   var channelRef = useRef(null);
+  var refetchTimerRef = useRef(null);
+  var refetchPendingRef = useRef({});
+
+  function scheduleRefetch(kind) {
+    refetchPendingRef.current[kind] = true;
+    if (refetchTimerRef.current) return;
+    refetchTimerRef.current = setTimeout(function() {
+      var pending = refetchPendingRef.current;
+      refetchPendingRef.current = {};
+      refetchTimerRef.current = null;
+      if (pending.registrations) loadRegistrations();
+      if (pending.lobbies) loadLobbies();
+      if (pending.tournament) loadTournament();
+      if (pending.results) loadResults();
+      if (pending.reports) loadReports();
+    }, 4000);
+  }
 
   // Derived management gate: admins always; tournament host on their own non-season tournament.
   var iAmTournamentHost = !!(currentUser && currentUser.auth_user_id && tournament && tournament.host_id === currentUser.auth_user_id);
@@ -173,19 +190,23 @@ export default function FlashTournamentScreen(props) {
     channelRef.current = channel;
     channel.on('broadcast', {event: 'update'}, function(payload) {
       var type = payload.payload ? payload.payload.type : '';
-      if (type === 'phase_change') loadTournament();
-      if (type === 'registration') loadRegistrations();
-      if (type === 'lobbies_generated') loadLobbies();
-      if (type === 'report_submitted') loadReports();
-      if (type === 'lobby_locked') { loadLobbies(); loadResults(); }
-      if (type === 'next_game') { loadTournament(); loadLobbies(); loadReports(); }
-      if (type === 'finalized') { loadTournament(); loadResults(); }
+      if (type === 'phase_change') scheduleRefetch('tournament');
+      if (type === 'registration') scheduleRefetch('registrations');
+      if (type === 'lobbies_generated') scheduleRefetch('lobbies');
+      if (type === 'report_submitted') scheduleRefetch('reports');
+      if (type === 'lobby_locked') { scheduleRefetch('lobbies'); scheduleRefetch('results'); }
+      if (type === 'next_game') { scheduleRefetch('tournament'); scheduleRefetch('lobbies'); scheduleRefetch('reports'); }
+      if (type === 'finalized') { scheduleRefetch('tournament'); scheduleRefetch('results'); }
     });
     channel.on('postgres_changes', {event: '*', schema: 'public', table: 'registrations', filter: 'tournament_id=eq.' + tournamentId}, function() {
-      loadRegistrations();
+      scheduleRefetch('registrations');
     });
     channel.subscribe();
-    return function() { supabase.removeChannel(channel); channelRef.current = null; };
+    return function() {
+      if (refetchTimerRef.current) { clearTimeout(refetchTimerRef.current); refetchTimerRef.current = null; }
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
   }, [tournamentId]);
 
   useEffect(function() {
