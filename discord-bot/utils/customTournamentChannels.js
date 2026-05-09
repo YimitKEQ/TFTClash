@@ -198,16 +198,45 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
   }
 
   var created = 0;
+  var updated = 0;
+  var deleted = 0;
   var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
+  // Build the desired set of lobby slugs so we can reconcile (delete stale,
+  // update existing, create missing) on every reseed.
+  var desiredSlugs = {};
+  for (var d = 0; d < lobbies.length; d++) {
+    var dLetter = letters[d] || ('' + (d + 1));
+    desiredSlugs['lobby-' + dLetter.toLowerCase()] = true;
+  }
+
+  // Phase 1: delete any existing lobby-* channels whose lobby no longer exists.
+  var staleEntries = [];
+  guild.channels.cache.forEach(function(c) {
+    if (c.parentId !== category.id) return;
+    if (!c.name) return;
+    if (c.name.indexOf('lobby-') === -1) return;
+    var matchedSlug = null;
+    Object.keys(desiredSlugs).forEach(function(slug) {
+      if (c.name.indexOf(slug) !== -1) matchedSlug = slug;
+    });
+    if (!matchedSlug) staleEntries.push(c);
+  });
+  for (var s = 0; s < staleEntries.length; s++) {
+    try {
+      await staleEntries[s].delete('Lobby reseed - lobby no longer exists');
+      deleted++;
+    } catch (e) {
+      console.error('[customTournamentChannels] failed to delete stale ' + staleEntries[s].name + ':', e && e.message);
+    }
+  }
+
+  // Phase 2: for each desired lobby, sync overwrites on existing channels or
+  // create missing ones from scratch.
   for (var i = 0; i < lobbies.length; i++) {
     var lobby = lobbies[i];
     var letter = letters[i] || ('' + (i + 1));
     var lobbySlug = 'lobby-' + letter.toLowerCase();
-    var existing = guild.channels.cache.find(function(c) {
-      return c.parentId === category.id && c.name && c.name.indexOf(lobbySlug) !== -1;
-    });
-    if (existing) continue;
 
     var overwrites = [{
       id: guild.roles.everyone.id,
@@ -245,55 +274,83 @@ export async function createTournamentLobbyChannels(guild, tournament, lobbies) 
       }
     });
 
-    var textCh = null;
-    try {
-      textCh = await guild.channels.create({
-        name: ('💬-' + lobbySlug).slice(0, 95),
-        type: ChannelType.GuildText,
-        parent: category.id,
-        topic: 'Lobby ' + letter + ' chat for ' + (tournament.name || 'tournament') + '.',
-        permissionOverwrites: overwrites,
-      });
-    } catch (e) {
-      var lobbyMsg = (e && e.message) || '';
-      if (lobbyMsg.indexOf('CHANNEL_TOPIC_INVALID') !== -1) {
-        try {
-          textCh = await guild.channels.create({
-            name: ('💬-' + lobbySlug).slice(0, 95),
-            type: ChannelType.GuildText,
-            parent: category.id,
-            permissionOverwrites: overwrites,
-          });
-        } catch (e2) {
-          console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' retry failed:', e2 && e2.message);
+    var existingText = guild.channels.cache.find(function(c) {
+      return c.parentId === category.id
+        && c.type === ChannelType.GuildText
+        && c.name && c.name.indexOf(lobbySlug) !== -1;
+    });
+    var existingVoice = guild.channels.cache.find(function(c) {
+      return c.parentId === category.id
+        && c.type === ChannelType.GuildVoice
+        && c.name && c.name.toLowerCase().indexOf('lobby ' + letter.toLowerCase()) !== -1;
+    });
+
+    if (existingText) {
+      try {
+        await existingText.permissionOverwrites.set(overwrites, 'Lobby reseed - sync permissions');
+        updated++;
+      } catch (e) {
+        console.error('[customTournamentChannels] failed to sync overwrites for ' + lobbySlug + ' text:', e && e.message);
+      }
+    } else {
+      var textCh = null;
+      try {
+        textCh = await guild.channels.create({
+          name: ('💬-' + lobbySlug).slice(0, 95),
+          type: ChannelType.GuildText,
+          parent: category.id,
+          topic: 'Lobby ' + letter + ' chat for ' + (tournament.name || 'tournament') + '.',
+          permissionOverwrites: overwrites,
+        });
+      } catch (e) {
+        var lobbyMsg = (e && e.message) || '';
+        if (lobbyMsg.indexOf('CHANNEL_TOPIC_INVALID') !== -1) {
+          try {
+            textCh = await guild.channels.create({
+              name: ('💬-' + lobbySlug).slice(0, 95),
+              type: ChannelType.GuildText,
+              parent: category.id,
+              permissionOverwrites: overwrites,
+            });
+          } catch (e2) {
+            console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' retry failed:', e2 && e2.message);
+          }
+        } else {
+          console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' failed:', lobbyMsg);
         }
-      } else {
-        console.error('[customTournamentChannels] lobby text channel ' + lobbySlug + ' failed:', lobbyMsg);
+      }
+      if (textCh) {
+        var welcome = '**Lobby ' + letter + '** - ' + (tournament.name || 'Tournament') + '\nGood luck! This channel auto-cleans up after the tournament ends.';
+        try {
+          var pinned = await textCh.send(welcome);
+          await pinned.pin().catch(function() {});
+        } catch (_e) {}
+        created++;
       }
     }
-    if (textCh) {
-      var welcome = '**Lobby ' + letter + '** - ' + (tournament.name || 'Tournament') + '\nGood luck! This channel auto-cleans up after the tournament ends.';
-      try {
-        var pinned = await textCh.send(welcome);
-        await pinned.pin().catch(function() {});
-      } catch (_e) {}
-      created++;
-    }
 
-    try {
-      await guild.channels.create({
-        name: ('🎮 Lobby ' + letter).slice(0, 95),
-        type: ChannelType.GuildVoice,
-        parent: category.id,
-        permissionOverwrites: overwrites,
-      });
-    } catch (e) {
-      console.error('[customTournamentChannels] lobby voice channel ' + lobbySlug + ' failed:', e && e.message);
+    if (existingVoice) {
+      try {
+        await existingVoice.permissionOverwrites.set(overwrites, 'Lobby reseed - sync permissions');
+      } catch (e) {
+        console.error('[customTournamentChannels] failed to sync overwrites for ' + lobbySlug + ' voice:', e && e.message);
+      }
+    } else {
+      try {
+        await guild.channels.create({
+          name: ('🎮 Lobby ' + letter).slice(0, 95),
+          type: ChannelType.GuildVoice,
+          parent: category.id,
+          permissionOverwrites: overwrites,
+        });
+      } catch (e) {
+        console.error('[customTournamentChannels] lobby voice channel ' + lobbySlug + ' failed:', e && e.message);
+      }
     }
   }
 
-  console.log('[customTournamentChannels] Lobby channels: created ' + created + ' for "' + (tournament.name || tournament.id) + '"');
-  return { created: created };
+  console.log('[customTournamentChannels] Lobby reconcile for "' + (tournament.name || tournament.id) + '": ' + created + ' created, ' + updated + ' updated, ' + deleted + ' deleted');
+  return { created: created, updated: updated, deleted: deleted };
 }
 
 /**
