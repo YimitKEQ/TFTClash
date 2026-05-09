@@ -78,7 +78,7 @@ export async function createTournamentChannels(guild, tournament) {
     category = await guild.channels.create({
       name: categoryNameFor(tournament),
       type: ChannelType.GuildCategory,
-      topic: topicMarkerFor(tournament.id) + ' :: auto-managed by TFT Clash bot',
+      topic: topicMarkerFor(tournament.id),
       permissionOverwrites: basePerms,
     });
   } catch (e) {

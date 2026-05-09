@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
-import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS, DEFAULT_TFT_RULES } from '../lib/constants.js'
+import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS, DEFAULT_TFT_RULES, DISCORD_URL } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
@@ -1831,6 +1831,33 @@ export default function FlashTournamentScreen(props) {
             <SocialShareBar url={shareUrl} text={shareText} referrer={(currentUser && currentUser.username) || (myPlayer && myPlayer.username)} />
           </div>
         </div>
+
+        {(phase === 'registration' || phase === 'check_in' || phase === 'checkin' || phase === 'lobby_setup') && (
+          <div className="mb-6 rounded-lg border border-secondary/30 bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="shrink-0 w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
+                <Icon name="forum" size={22} className="text-secondary" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1">
+                  Required: join + verify in Discord
+                </div>
+                <div className="text-sm text-on-surface leading-snug">
+                  Make sure you've joined the TFT Clash Discord server and completed verification before the tournament starts. Our bot uses your Discord membership to drop you into your private lobby channel. No Discord, no lobby chat or voice.
+                </div>
+              </div>
+            </div>
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-secondary text-on-secondary text-xs font-label font-bold tracking-wider uppercase hover:brightness-110 transition-all whitespace-nowrap"
+            >
+              <Icon name="open_in_new" size={14} />
+              Join Discord
+            </a>
+          </div>
+        )}
 
         {prizes.length > 0 && (
           <div className="mb-6">
