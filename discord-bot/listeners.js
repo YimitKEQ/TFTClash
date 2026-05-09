@@ -249,10 +249,12 @@ export function startListeners(client) {
         // In progress → create per-lobby channels for this tournament's lobbies
         if (phaseNext === 'in_progress' && phaseNext !== phasePrev) {
           try {
+            var currentGame = next.current_round || 1;
             var lobbiesRes = await supabase
               .from('lobbies')
-              .select('id, lobby_number, player_ids, host_player_id')
+              .select('id, lobby_number, player_ids, host_player_id, game_number')
               .eq('tournament_id', next.id)
+              .eq('game_number', currentGame)
               .order('lobby_number', { ascending: true });
             var lobbies = (lobbiesRes && lobbiesRes.data) || [];
             createTournamentLobbyChannels(g, next, lobbies).catch(function(e) {
@@ -305,7 +307,7 @@ export function startListeners(client) {
           try {
             var tRes = await supabase
               .from('tournaments')
-              .select('id, name, type, phase')
+              .select('id, name, type, phase, current_round')
               .eq('id', tid)
               .single();
             if (tRes.error || !tRes.data) return;
@@ -313,10 +315,12 @@ export function startListeners(client) {
             if (t.type === 'season_clash') return;
             if (t.phase !== 'in_progress' && t.phase !== 'check_in') return;
 
+            var currentGame = t.current_round || 1;
             var lRes = await supabase
               .from('lobbies')
-              .select('id, lobby_number, player_ids, host_player_id')
+              .select('id, lobby_number, player_ids, host_player_id, game_number')
               .eq('tournament_id', tid)
+              .eq('game_number', currentGame)
               .order('lobby_number', { ascending: true });
             var lobbies = (lRes && lRes.data) || [];
             if (lobbies.length === 0) return;
