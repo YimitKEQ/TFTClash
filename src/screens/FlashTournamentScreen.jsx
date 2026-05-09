@@ -103,6 +103,10 @@ export default function FlashTournamentScreen(props) {
   var channelRef = useRef(null);
   var refetchTimerRef = useRef(null);
   var refetchPendingRef = useRef({});
+  // Tracks the latest tournament so refetchers invoked by realtime callbacks
+  // (which capture stale closures) read the current round, not whatever
+  // round was live the first time the channel subscribed.
+  var tournamentRef = useRef(null);
 
   function scheduleRefetch(kind) {
     refetchPendingRef.current[kind] = true;
@@ -149,7 +153,10 @@ export default function FlashTournamentScreen(props) {
   }
 
   function loadReports() {
-    var gameNum = tournament ? (tournament.current_round || 1) : 1;
+    // Read from ref so realtime callbacks (which captured this closure when
+    // tournament was still null) still see the live current_round.
+    var t = tournamentRef.current;
+    var gameNum = t ? (t.current_round || 1) : 1;
     return supabase.from('player_reports').select('*').eq('tournament_id', tournamentId).eq('game_number', gameNum)
       .then(function(res) {
         if (res.data) setReports(res.data);
@@ -179,6 +186,10 @@ export default function FlashTournamentScreen(props) {
   useEffect(function() {
     Promise.all([loadTournament(), loadRegistrations(), loadLobbies(), loadDisputes(), loadResults()]).then(function() { setLoading(false); }).catch(function() { setLoading(false); });
   }, [tournamentId]);
+
+  useEffect(function() {
+    tournamentRef.current = tournament;
+  }, [tournament]);
 
   useEffect(function() {
     if (!tournament) return;
