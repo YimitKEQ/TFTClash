@@ -2813,10 +2813,12 @@ export default function FlashTournamentScreen(props) {
 
                               {/* Admin / host override */}
                               {(isAdmin || iAmHost) && isLive && !isLocked && (
-                                <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-2 shrink-0">
-                                  <option value="">{"Set #"}</option>
-                                  {Array.from({length: isDoubleUpLobby ? 4 : (lobby.player_ids || []).length}, function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
-                                </Sel>
+                                <div className="ml-2 shrink-0 w-24">
+                                  <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }}>
+                                    <option value="">{"Set #"}</option>
+                                    {Array.from({length: isDoubleUpLobby ? 4 : (lobby.player_ids || []).length}, function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
+                                  </Sel>
+                                </div>
                               )}
                             </div>
                           );
