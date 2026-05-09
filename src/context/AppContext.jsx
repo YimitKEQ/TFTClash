@@ -538,7 +538,7 @@ export function AppProvider(props) {
     }
     // Load host applications from host_applications table
     if(isAdmin){
-      supabase.from("host_applications").select("*").order("applied_at",{ascending:false}).then(function(res){
+      supabase.from("host_applications").select("*").order("submitted_at",{ascending:false}).then(function(res){
         if(res.data)setHostApps(res.data);
       });
     } else if(hasUuid){

@@ -610,7 +610,10 @@ export default function FlashTournamentScreen(props) {
     supabase.from('registrations').delete().eq('id', myReg.id).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Failed to unregister: ' + res.error.message, 'error'); return; }
-      try { writeAuditLog('tournament.player_unregister', actorContext(), { type: 'registration', id: myReg.id }, unregSnapshot); } catch (e) {}
+      // audit_log RLS only permits admin inserts; player-driven unregisters skip it.
+      if (isAdmin) {
+        try { writeAuditLog('tournament.player_unregister', actorContext(), { type: 'registration', id: myReg.id }, unregSnapshot); } catch (e) {}
+      }
       // Promote first waitlisted entry whose player is not banned. Skipping
       // banned entries means a banned waitlisted player cannot be promoted
       // into an active spot through another player's unregister action.

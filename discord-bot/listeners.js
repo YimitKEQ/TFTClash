@@ -123,7 +123,8 @@ export function startListeners(client) {
         const row = payload.new;
         if (!row) return;
 
-        // Resolve tournament metadata: type, name, clash_number, team_size
+        // Resolve tournament metadata: type, name, team_size
+        // (clash_number isn't on tournaments; derive from name digits.)
         let tournamentType = 'season_clash';
         let tournamentName = null;
         let clashNum = '?';
@@ -131,15 +132,14 @@ export function startListeners(client) {
         if (row.tournament_id) {
           const { data: tour } = await supabase
             .from('tournaments')
-            .select('type,clash_number,name,team_size')
+            .select('type,name,team_size')
             .eq('id', row.tournament_id)
             .single();
           if (tour) {
             tournamentType = tour.type || 'season_clash';
             tournamentName = tour.name || null;
             teamSize = tour.team_size || 1;
-            if (tour.clash_number) clashNum = tour.clash_number;
-            else if (tournamentType === 'season_clash' && tour.name) clashNum = tour.name.replace(/\D+/g, '') || '?';
+            if (tournamentType === 'season_clash' && tour.name) clashNum = tour.name.replace(/\D+/g, '') || '?';
           }
         }
         if (clashNum === '?' && tournamentType === 'season_clash') {
