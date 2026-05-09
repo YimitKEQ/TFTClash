@@ -4,51 +4,120 @@ import { toPng } from 'html-to-image'
 import { supabase } from '../lib/supabase'
 import { computeFlashStandings } from '../lib/tournament.js'
 
-// Beautiful, screenshot-ready recap card.
-//   /recap/<tournamentId>
-// Renders podium (top 3 with prizes) + top 10 leaderboard + brand mark.
-// Includes a Download PNG button and a Copy Image button so hosts can post
-// a clean result image straight to socials.
-
-function ordinalSuffix(n) {
-  var s = ['th', 'st', 'nd', 'rd']
-  var v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0])
-}
+// Recap card -- shareable on-brand image at /recap/<tournamentId>.
+// Mirrors the rest of the site (Subtle font, gold-on-near-black, sharp
+// chevron rule, no gradients, no AI-generic flourishes). Top 3 + Top 10
+// + prize labels. Download PNG / Copy / X share.
 
 function pickPlayerName(p) {
   if (!p) return 'Unknown'
   return p.username || p.name || 'Unknown'
 }
 
-function PodiumStep(props) {
+function PodiumColumn(props) {
   var place = props.place
   var entry = props.entry
   var prize = props.prize
-  var heightClass = place === 1 ? 'h-44' : (place === 2 ? 'h-32' : 'h-24')
-  var medal = place === 1 ? '🥇' : (place === 2 ? '🥈' : '🥉')
-  var accentColor = place === 1 ? '#E8A838' : (place === 2 ? '#C0C0C0' : '#CD7F32')
-  var name = entry ? entry.name : 'TBD'
+  var isGold = place === 1
+  var label = place === 1 ? '1st' : (place === 2 ? '2nd' : '3rd')
+  var height = place === 1 ? 132 : (place === 2 ? 96 : 72)
+  var name = entry ? entry.name : ''
   var pts = entry ? entry.totalPts : 0
+  var ranks = entry ? (entry.wins + ' wins · ' + entry.top4 + ' top4') : ''
+
+  var chipColor = isGold ? '#FFC66B' : 'rgba(255,255,255,0.55)'
+  var chipBorder = isGold ? '#FFC66B' : 'rgba(255,255,255,0.18)'
+
   return (
-    <div className="flex flex-col items-center justify-end">
-      <div className="text-3xl mb-2">{medal}</div>
-      <div className="font-display text-xl text-white text-center max-w-[10rem] truncate uppercase tracking-tight" title={name}>{name}</div>
-      <div className="font-mono text-xs uppercase tracking-widest mt-1" style={{ color: accentColor }}>{pts} pts</div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 132 }}>
+      <div
+        style={{
+          fontSize: 11,
+          letterSpacing: 3,
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: chipColor,
+          padding: '4px 10px',
+          border: '1px solid ' + chipBorder,
+          marginBottom: 12
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: isGold ? 22 : 17,
+          fontWeight: 700,
+          letterSpacing: '-0.01em',
+          textTransform: 'uppercase',
+          color: '#FFFFFF',
+          textAlign: 'center',
+          maxWidth: 168,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          lineHeight: 1.1
+        }}
+        title={name}
+      >
+        {name || '--'}
+      </div>
+      <div style={{ fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+        {ranks}
+      </div>
+      <div
+        style={{
+          marginTop: 10,
+          fontSize: 13,
+          fontWeight: 700,
+          color: isGold ? '#FFC66B' : '#FFFFFF',
+          letterSpacing: 0.5
+        }}
+      >
+        {pts}<span style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.4)', marginLeft: 4 }}>PTS</span>
+      </div>
       {prize && (
-        <div className="font-label uppercase tracking-widest text-[10px] text-white/70 mt-1 px-3 py-1 rounded border max-w-[14rem] text-center" style={{ borderColor: accentColor + '66' }}>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 9,
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.6)',
+            textAlign: 'center',
+            maxWidth: 168,
+            padding: '5px 8px',
+            border: '1px dashed rgba(255,198,107,0.25)'
+          }}
+        >
           {prize}
         </div>
       )}
       <div
-        className={'w-32 mt-3 rounded-t-lg flex items-start justify-center pt-2 ' + heightClass}
         style={{
-          background: 'linear-gradient(180deg, ' + accentColor + 'B0 0%, ' + accentColor + '40 100%)',
-          border: '1px solid ' + accentColor + '66',
-          borderBottom: 'none'
+          width: 110,
+          height: height,
+          marginTop: 14,
+          background: isGold ? 'rgba(255,198,107,0.10)' : 'rgba(255,255,255,0.04)',
+          borderTop: '2px solid ' + (isGold ? '#FFC66B' : 'rgba(255,255,255,0.22)'),
+          borderLeft: '1px solid rgba(255,255,255,0.04)',
+          borderRight: '1px solid rgba(255,255,255,0.04)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          paddingTop: 8
         }}
       >
-        <span className="font-display text-3xl font-bold text-black/60">{place}</span>
+        <span
+          style={{
+            fontSize: isGold ? 32 : 24,
+            fontWeight: 700,
+            color: isGold ? '#FFC66B' : 'rgba(255,255,255,0.4)',
+            letterSpacing: '-0.02em'
+          }}
+        >
+          0{place}
+        </span>
       </div>
     </div>
   )
@@ -133,10 +202,18 @@ export default function TournamentRecapScreen() {
     return function() { alive = false }
   }, [tid])
 
+  function exportPng(then) {
+    if (!cardRef.current) return Promise.reject(new Error('No card'))
+    return toPng(cardRef.current, {
+      pixelRatio: 2,
+      backgroundColor: '#06060A',
+      cacheBust: true
+    })
+  }
+
   function downloadPng() {
-    if (!cardRef.current) return
     setBusy(true)
-    toPng(cardRef.current, { pixelRatio: 2, backgroundColor: '#0B0B12', cacheBust: true }).then(function(dataUrl) {
+    exportPng().then(function(dataUrl) {
       var link = document.createElement('a')
       var safeName = ((tournament && tournament.name) || 'recap').replace(/[^a-z0-9]+/gi, '-').toLowerCase()
       link.download = 'tftclash-' + safeName + '-recap.png'
@@ -151,13 +228,12 @@ export default function TournamentRecapScreen() {
   }
 
   function copyImage() {
-    if (!cardRef.current) return
     if (typeof window.ClipboardItem !== 'function') {
       flash('Browser does not support image clipboard')
       return
     }
     setBusy(true)
-    toPng(cardRef.current, { pixelRatio: 2, backgroundColor: '#0B0B12', cacheBust: true }).then(function(dataUrl) {
+    exportPng().then(function(dataUrl) {
       return fetch(dataUrl).then(function(r) { return r.blob() })
     }).then(function(blob) {
       var item = new window.ClipboardItem({ 'image/png': blob })
@@ -182,21 +258,21 @@ export default function TournamentRecapScreen() {
 
   if (!tid) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0B0B12', color: '#FFFFFF', padding: 32, fontFamily: 'system-ui' }}>
+      <div style={{ minHeight: '100vh', background: '#06060A', color: '#FFFFFF', padding: 32 }}>
         Missing tournament id. URL should be /recap/&lt;tournamentId&gt;
       </div>
     )
   }
   if (err) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0B0B12', color: '#ff7a7a', padding: 32, fontFamily: 'system-ui' }}>
+      <div style={{ minHeight: '100vh', background: '#06060A', color: '#ff7a7a', padding: 32 }}>
         Recap error: {err}
       </div>
     )
   }
   if (!tournament) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0B0B12', color: '#888', padding: 32, fontFamily: 'system-ui' }}>
+      <div style={{ minHeight: '100vh', background: '#06060A', color: '#888', padding: 32 }}>
         Loading recap...
       </div>
     )
@@ -207,16 +283,18 @@ export default function TournamentRecapScreen() {
   var top10 = standings.slice(0, 10)
   var prizeByPlace = {}
   prizes.forEach(function(p) { prizeByPlace[p.placement] = p.label })
+  var idShort = tournament.id ? tournament.id.slice(0, 8) : ''
 
   return (
-    <div className="min-h-screen w-full" style={{ background: '#06060A', padding: '32px 16px' }}>
+    <div className="min-h-screen w-full bg-background text-on-background" style={{ background: '#06060A', padding: '32px 16px' }}>
       <div className="max-w-3xl mx-auto">
 
         {/* Toolbar (excluded from screenshot) */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <button
             onClick={function() { navigate('/tournament/' + tournament.id) }}
-            className="text-xs uppercase tracking-widest font-label text-white/60 hover:text-white"
+            className="text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface"
+            style={{ letterSpacing: 2 }}
           >
             ← Back to tournament
           </button>
@@ -224,23 +302,23 @@ export default function TournamentRecapScreen() {
             <button
               onClick={downloadPng}
               disabled={busy}
-              className="px-4 py-2 rounded bg-primary text-on-primary font-label uppercase tracking-widest text-xs disabled:opacity-50"
-              style={{ background: '#E8A838', color: '#1a1a1a' }}
+              className="px-4 py-2 uppercase tracking-widest text-xs font-bold disabled:opacity-50"
+              style={{ background: '#FFC66B', color: '#1a1a1a', letterSpacing: 2 }}
             >
               {busy ? 'Working...' : 'Download PNG'}
             </button>
             <button
               onClick={copyImage}
               disabled={busy}
-              className="px-4 py-2 rounded bg-surface-container-high font-label uppercase tracking-widest text-xs disabled:opacity-50"
-              style={{ background: 'rgba(255,255,255,0.08)', color: '#FFFFFF' }}
+              className="px-4 py-2 uppercase tracking-widest text-xs font-bold disabled:opacity-50"
+              style={{ background: 'rgba(255,255,255,0.06)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.12)', letterSpacing: 2 }}
             >
               Copy Image
             </button>
             <button
               onClick={shareTwitter}
-              className="px-4 py-2 rounded font-label uppercase tracking-widest text-xs"
-              style={{ background: 'rgba(255,255,255,0.08)', color: '#FFFFFF' }}
+              className="px-4 py-2 uppercase tracking-widest text-xs font-bold"
+              style={{ background: 'rgba(255,255,255,0.06)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.12)', letterSpacing: 2 }}
             >
               Share on X
             </button>
@@ -248,112 +326,138 @@ export default function TournamentRecapScreen() {
         </div>
 
         {toastMsg && (
-          <div className="mb-4 px-4 py-2 rounded text-xs uppercase tracking-widest font-label" style={{ background: 'rgba(232,168,56,0.12)', color: '#E8A838', border: '1px solid rgba(232,168,56,0.4)' }}>
+          <div
+            className="mb-4 px-4 py-2 text-xs uppercase"
+            style={{ background: 'rgba(255,198,107,0.08)', color: '#FFC66B', border: '1px solid rgba(255,198,107,0.3)', letterSpacing: 2 }}
+          >
             {toastMsg}
           </div>
         )}
 
-        {/* Card (this is what gets exported) */}
+        {/* Card -- this is what gets exported. Uses Subtle font + brand palette. */}
         <div
           ref={cardRef}
           style={{
-            background: 'linear-gradient(160deg, #0F0F1A 0%, #14132A 60%, #1A1430 100%)',
-            border: '1px solid rgba(232,168,56,0.25)',
-            borderRadius: 20,
-            padding: 36,
+            background: '#0A0A10',
             color: '#FFFFFF',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+            padding: 36,
+            border: '1px solid rgba(255,255,255,0.06)',
+            position: 'relative',
+            overflow: 'hidden'
           }}
         >
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#E8A838', marginBottom: 6, fontWeight: 600 }}>
-                Final Results {dateLabel ? '· ' + dateLabel : ''}
-              </div>
-              <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, textTransform: 'uppercase' }}>
-                {tournament.name}
-              </div>
-              {tournament.region && (
-                <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginTop: 6 }}>
-                  Region · {tournament.region}
+          {/* Subtle grid texture (drawn inline so it always survives PNG export). */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'linear-gradient(rgba(255,198,107,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,198,107,0.025) 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+              pointerEvents: 'none'
+            }}
+          />
+          {/* Top accent bar */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: '#FFC66B' }} />
+
+          <div style={{ position: 'relative' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: '#FFC66B', marginBottom: 8, fontWeight: 700 }}>
+                  Final Results {dateLabel ? '· ' + dateLabel : ''}
                 </div>
-              )}
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em', color: '#E8A838', textTransform: 'uppercase' }}>TFT Clash</div>
-              <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)' }}>tftclash.com</div>
-            </div>
-          </div>
-
-          {/* Podium */}
-          {top3.length > 0 && (
-            <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 14, padding: '20px 12px', marginBottom: 24, border: '1px solid rgba(255,255,255,0.04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 24, minHeight: 240 }}>
-                {top3[1] ? <PodiumStep place={2} entry={top3[1]} prize={prizeByPlace[2]} /> : <div style={{ width: 128 }} />}
-                {top3[0] ? <PodiumStep place={1} entry={top3[0]} prize={prizeByPlace[1]} /> : <div style={{ width: 128 }} />}
-                {top3[2] ? <PodiumStep place={3} entry={top3[2]} prize={prizeByPlace[3]} /> : <div style={{ width: 128 }} />}
+                <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.05, textTransform: 'uppercase', color: '#FFFFFF' }}>
+                  {tournament.name}
+                </div>
+                {tournament.region && (
+                  <div style={{ fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginTop: 8 }}>
+                    Region · {tournament.region}
+                  </div>
+                )}
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: 1.5, color: '#FFC66B', textTransform: 'uppercase' }}>TFT Clash</div>
+                <div style={{ fontSize: 9, letterSpacing: 2.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>tftclash.com</div>
               </div>
             </div>
-          )}
 
-          {/* Top 10 leaderboard */}
-          <div>
-            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: 12, fontWeight: 600 }}>
-              Top 10
+            {/* Chevron rule */}
+            <div style={{ position: 'relative', height: 1, background: 'linear-gradient(90deg, transparent 0%, rgba(255,198,107,0.4) 8%, rgba(255,198,107,0.1) 60%, transparent 100%)', marginBottom: 28 }}>
+              <div style={{ position: 'absolute', left: 0, top: '50%', width: 12, height: 12, transform: 'translateY(-50%) rotate(45deg)', borderTop: '2px solid #FFC66B', borderRight: '2px solid #FFC66B' }} />
             </div>
-            {top10.length === 0 && (
-              <div style={{ padding: 20, textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>
-                No game results recorded.
+
+            {/* Podium */}
+            {top3.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 20, marginBottom: 36, flexWrap: 'wrap' }}>
+                {top3[1] ? <PodiumColumn place={2} entry={top3[1]} prize={prizeByPlace[2]} /> : null}
+                {top3[0] ? <PodiumColumn place={1} entry={top3[0]} prize={prizeByPlace[1]} /> : null}
+                {top3[2] ? <PodiumColumn place={3} entry={top3[2]} prize={prizeByPlace[3]} /> : null}
               </div>
             )}
-            <div>
-              {top10.map(function(s, i) {
-                var place = i + 1
-                var rowBg = place <= 3 ? 'rgba(232,168,56,0.06)' : 'rgba(255,255,255,0.02)'
-                var placeColor = place === 1 ? '#E8A838' : (place === 2 ? '#C0C0C0' : (place === 3 ? '#CD7F32' : 'rgba(255,255,255,0.45)'))
-                return (
-                  <div
-                    key={s.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 14,
-                      padding: '12px 16px',
-                      background: rowBg,
-                      borderRadius: 8,
-                      marginBottom: 6,
-                      border: '1px solid rgba(255,255,255,0.04)'
-                    }}
-                  >
-                    <span style={{ width: 36, fontFamily: 'monospace', fontSize: 18, fontWeight: 700, color: placeColor }}>
-                      {ordinalSuffix(place)}
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {s.name}
-                      </div>
-                      <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
-                        {s.rank || ''} · {s.wins} wins · {s.top4} top4
-                      </div>
-                    </div>
-                    <span style={{ fontFamily: 'monospace', fontSize: 18, fontWeight: 700, color: '#E8A838' }}>
-                      {s.totalPts}
-                    </span>
-                    <span style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
-                      pts
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
-            <span>Free to play. Built for the community.</span>
-            <span>tftclash.com/tournament/{tournament.id.slice(0, 8)}</span>
+            {/* Top 10 leaderboard */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div style={{ fontSize: 10, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontWeight: 700 }}>
+                  Top {Math.min(10, top10.length)}
+                </div>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+              </div>
+
+              {top10.length === 0 && (
+                <div style={{ padding: 20, textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>
+                  No game results recorded.
+                </div>
+              )}
+
+              <div>
+                {top10.map(function(s, i) {
+                  var place = i + 1
+                  var isGold = place === 1
+                  var placeColor = isGold ? '#FFC66B' : 'rgba(255,255,255,0.5)'
+                  return (
+                    <div
+                      key={s.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                        padding: '11px 14px',
+                        background: isGold ? 'rgba(255,198,107,0.05)' : 'rgba(255,255,255,0.015)',
+                        borderLeft: '2px solid ' + (isGold ? '#FFC66B' : 'rgba(255,255,255,0.06)'),
+                        marginBottom: 4
+                      }}
+                    >
+                      <span style={{ width: 28, fontSize: 14, fontWeight: 700, color: placeColor, letterSpacing: '-0.01em' }}>
+                        {place < 10 ? '0' + place : place}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.005em' }}>
+                          {s.name}
+                        </div>
+                        <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                          {(s.rank || '')}{s.rank ? ' · ' : ''}{s.wins} wins · {s.top4} top4
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: isGold ? '#FFC66B' : '#FFFFFF', letterSpacing: '-0.01em' }}>
+                        {s.totalPts}
+                      </span>
+                      <span style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', width: 24 }}>
+                        pts
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{ marginTop: 28, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9, letterSpacing: 2.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+              <span>Free to play · Built for the community</span>
+              <span>tftclash.com/tournament/{idShort}</span>
+            </div>
           </div>
         </div>
       </div>
