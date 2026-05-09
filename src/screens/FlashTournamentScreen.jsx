@@ -1391,7 +1391,14 @@ export default function FlashTournamentScreen(props) {
       .then(function(res) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
         var seedMethod = tournament.seeding_method || 'snake';
-        if (seedMethod === 'snake') {
+        // Mid-tournament Swiss reshuffle: regardless of seeding method, when we
+        // pass the halfway mark we re-seed lobbies by current standings so the
+        // back half plays competitive matchups. For a 4-game tourney this fires
+        // when transitioning from Game 2 to Game 3.
+        var totalGames = tournament.round_count || 3;
+        var reshuffleAfterGame = Math.floor(totalGames / 2);
+        var shouldReshuffle = (seedMethod === 'snake') || (currentGameNumber === reshuffleAfterGame);
+        if (shouldReshuffle) {
           var _standMap = {};
           gameResults.forEach(function(g) {
             if (!_standMap[g.player_id]) {
