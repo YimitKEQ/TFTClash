@@ -13,6 +13,12 @@ import {
   createTournamentLobbyChannels,
   destroyTournamentChannels,
 } from './utils/customTournamentChannels.js';
+import {
+  ensureTournamentRole,
+  syncTournamentRoleMembers,
+  destroyTournamentRole,
+  findTournamentRole,
+} from './utils/tournamentRoles.js';
 import { resolveChannel } from './utils/channels.js';
 
 var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
@@ -246,6 +252,13 @@ export function startListeners(client) {
           });
         }
 
+        // Check-in or in-progress → ensure tournament role exists + sync members
+        if (phaseNext && phaseNext !== phasePrev && (phaseNext === 'check_in' || phaseNext === 'in_progress')) {
+          syncTournamentRoleMembers(g, next).catch(function(e) {
+            console.error('[listener] syncTournamentRoleMembers failed:', e && e.message);
+          });
+        }
+
         // In progress → create per-lobby channels for this tournament's lobbies
         if (phaseNext === 'in_progress' && phaseNext !== phasePrev) {
           try {
@@ -272,14 +285,20 @@ export function startListeners(client) {
             destroyTournamentChannels(g, tid).catch(function(e) {
               console.error('[listener] destroyTournamentChannels failed:', e && e.message);
             });
+            destroyTournamentRole(g, tid).catch(function(e) {
+              console.error('[listener] destroyTournamentRole failed:', e && e.message);
+            });
           }, 30 * 60 * 1000);
-          console.log('[listener] Tournament "' + (next.name || tid) + '" channels will be cleaned up in 30 minutes');
+          console.log('[listener] Tournament "' + (next.name || tid) + '" channels and role will be cleaned up in 30 minutes');
         }
 
-        // Tournament deleted → wipe channels immediately
+        // Tournament deleted → wipe channels + role immediately
         if (payload.eventType === 'DELETE' && payload.old && payload.old.id) {
           destroyTournamentChannels(g, payload.old.id).catch(function(e) {
             console.error('[listener] destroyTournamentChannels (delete) failed:', e && e.message);
+          });
+          destroyTournamentRole(g, payload.old.id).catch(function(e) {
+            console.error('[listener] destroyTournamentRole (delete) failed:', e && e.message);
           });
         }
       } catch (err) {
@@ -340,6 +359,46 @@ export function startListeners(client) {
         }, 1500);
       } catch (err) {
         console.error('[listener] lobby insert error:', err);
+      }
+    })
+    .subscribe();
+
+  // ─── Registration changes → re-sync tournament role membership ─────────────
+  // Debounce per tournament so a flurry of check-ins / drops triggers one sync.
+  var roleSyncTimers = {};
+  supabase
+    .channel('bot_registration_role_sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, function(payload) {
+      try {
+        var row = payload.new || payload.old;
+        if (!row || !row.tournament_id) return;
+        var tid = row.tournament_id;
+        if (roleSyncTimers[tid]) clearTimeout(roleSyncTimers[tid]);
+        roleSyncTimers[tid] = setTimeout(async function() {
+          delete roleSyncTimers[tid];
+          try {
+            var tRes = await supabase
+              .from('tournaments')
+              .select('id, name, type, phase')
+              .eq('id', tid)
+              .single();
+            if (tRes.error || !tRes.data) return;
+            var t = tRes.data;
+            if (t.type === 'season_clash') return;
+            // Only sync when the role is actually relevant.
+            if (t.phase !== 'check_in' && t.phase !== 'in_progress' && t.phase !== 'registration') return;
+            var g = guild();
+            if (!g) return;
+            // Skip auto-create during 'registration' if the role doesn't exist yet —
+            // we wait for check_in to materialize it. But re-sync if it already exists.
+            if (t.phase === 'registration' && !findTournamentRole(g, t.id)) return;
+            await syncTournamentRoleMembers(g, t);
+          } catch (e) {
+            console.error('[listener] registration role sync failed:', e && e.message);
+          }
+        }, 3000);
+      } catch (err) {
+        console.error('[listener] registration role sync error:', err);
       }
     })
     .subscribe();
