@@ -286,6 +286,60 @@ export function startListeners(client) {
     })
     .subscribe();
 
+  // ─── Lobby inserts → ensure Discord channels exist ─────────────────────────
+  // Catches the race where lobbies are inserted AFTER the tournament has
+  // already transitioned to in_progress (e.g. admin start → manual seeding,
+  // or admin reseed mid-event). Debounces per tournament so a batch of
+  // INSERTs only triggers one channel-creation pass.
+  var lobbyInsertTimers = {};
+  supabase
+    .channel('bot_lobby_inserts')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lobbies' }, function(payload) {
+      try {
+        var row = payload.new;
+        if (!row || !row.tournament_id) return;
+        var tid = row.tournament_id;
+        if (lobbyInsertTimers[tid]) clearTimeout(lobbyInsertTimers[tid]);
+        lobbyInsertTimers[tid] = setTimeout(async function() {
+          delete lobbyInsertTimers[tid];
+          try {
+            var tRes = await supabase
+              .from('tournaments')
+              .select('id, name, type, phase')
+              .eq('id', tid)
+              .single();
+            if (tRes.error || !tRes.data) return;
+            var t = tRes.data;
+            if (t.type === 'season_clash') return;
+            if (t.phase !== 'in_progress' && t.phase !== 'check_in') return;
+
+            var lRes = await supabase
+              .from('lobbies')
+              .select('id, lobby_number, player_ids, host_player_id')
+              .eq('tournament_id', tid)
+              .order('lobby_number', { ascending: true });
+            var lobbies = (lRes && lRes.data) || [];
+            if (lobbies.length === 0) return;
+
+            var g = guild();
+            if (!g) return;
+            createTournamentLobbyChannels(g, t, lobbies).then(function(res) {
+              if (res && res.created) {
+                console.log('[listener] Created ' + res.created + ' Discord lobby channels for "' + (t.name || tid) + '"');
+              }
+            }).catch(function(e) {
+              console.error('[listener] createTournamentLobbyChannels (insert) failed:', e && e.message);
+            });
+          } catch (e) {
+            console.error('[listener] lobby insert handler failed:', e && e.message);
+          }
+        }, 1500);
+      } catch (err) {
+        console.error('[listener] lobby insert error:', err);
+      }
+    })
+    .subscribe();
+
   // ─── Game results published ──────────────────────────────────────────────────
   supabase
     .channel('bot_game_results')

@@ -321,6 +321,125 @@ export default function FlashTournamentScreen(props) {
     }).catch(function() { toast('Failed to save code', 'error'); });
   }
 
+  // Reseed lobbies for the current round. Only safe before any game results
+  // have been reported in this round. Destroys this round's lobbies + their
+  // pending player_reports, then rebuilds from currently checked-in players.
+  function reseedLobbies() {
+    if (!isAdmin && !iAmTournamentHost) return;
+    var round = currentGameNumber || 1;
+    if (!confirm('Reseed lobbies for Round ' + round + '? This DELETES the current ' + currentGameLobbies.length + ' lobbies and rebuilds them from ' + checkedInCount + ' checked-in players. Pending placement reports for this round will be cleared. Game results already saved are NOT affected.')) return;
+    setActionLoading(true);
+    var tid = tournamentId;
+    supabase.from('game_results').select('id', { count: 'exact', head: true }).eq('tournament_id', tid).eq('round_number', round)
+      .then(function(grRes) {
+        if (grRes.error) { setActionLoading(false); toast('Failed safety check: ' + grRes.error.message, 'error'); return; }
+        if ((grRes.count || 0) > 0) { setActionLoading(false); toast('Cannot reseed: results already exist for round ' + round + '. Roll back the round first.', 'error'); return; }
+        var lobbyIds = currentGameLobbies.map(function(l) { return l.id; });
+        var clearReports = lobbyIds.length > 0
+          ? supabase.from('player_reports').delete().in('lobby_id', lobbyIds)
+          : Promise.resolve({ error: null });
+        clearReports.then(function(prRes) {
+          if (prRes && prRes.error) { setActionLoading(false); toast('Failed to clear pending reports: ' + prRes.error.message, 'error'); return; }
+          var delLobbies = lobbyIds.length > 0
+            ? supabase.from('lobbies').delete().in('id', lobbyIds)
+            : Promise.resolve({ error: null });
+          delLobbies.then(function(dlRes) {
+            if (dlRes && dlRes.error) { setActionLoading(false); toast('Failed to delete lobbies: ' + dlRes.error.message, 'error'); return; }
+            supabase.from('registrations').select('player_id, players(id, username, rank, riot_id, region)')
+              .eq('tournament_id', tid)
+              .eq('status', 'checked_in')
+              .then(function(res) {
+                if (res.error || !res.data) { setActionLoading(false); toast('Failed to load players', 'error'); return; }
+                var pool = res.data.map(function(r) { return r.players; }).filter(Boolean);
+                if (pool.length === 0) { setActionLoading(false); toast('No checked-in players to seed', 'error'); return; }
+                var result = buildFlashLobbies(pool, tournament.seeding_method || 'snake');
+                var lobbyRows = result.lobbies.map(function(lobbyPlayers, idx) {
+                  var host = lobbyPlayers.reduce(function(best, p) {
+                    return RANKS.indexOf(p.rank || 'Iron') > RANKS.indexOf(best.rank || 'Iron') ? p : best;
+                  }, lobbyPlayers[0]);
+                  return {
+                    tournament_id: tid,
+                    round_number: round,
+                    lobby_number: idx + 1,
+                    player_ids: lobbyPlayers.map(function(p) { return p.id; }),
+                    host_player_id: host ? host.id : null,
+                    status: 'pending',
+                    game_number: round
+                  };
+                });
+                supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes) {
+                  setActionLoading(false);
+                  if (lRes.error) { toast('Reseed failed: ' + lRes.error.message, 'error'); return; }
+                  toast('Reseeded into ' + lobbyRows.length + ' lobbies', 'success');
+                  broadcastUpdate('lobbies_reseeded');
+                  loadLobbies();
+                  supabase.rpc('notify_tournament_players', {p_tournament_id: tid, p_title: 'Lobby Reassigned', p_body: 'Round ' + round + ' lobbies have been reshuffled. Check your new lobby now.', p_icon: 'shuffle', p_statuses: ['checked_in']}).catch(function() {});
+                }).catch(function() { setActionLoading(false); toast('Reseed insert failed', 'error'); });
+              }).catch(function() { setActionLoading(false); toast('Failed to load players', 'error'); });
+          }).catch(function() { setActionLoading(false); toast('Failed to delete lobbies', 'error'); });
+        }).catch(function() { setActionLoading(false); toast('Failed to clear reports', 'error'); });
+      }).catch(function() { setActionLoading(false); toast('Failed safety check', 'error'); });
+  }
+
+  // Remove a player from a lobby and (optionally) mark their registration as
+  // dropped. Useful for handling no-shows mid-round without rebuilding the
+  // entire bracket. Lobby host_player_id is reassigned if the kicked player
+  // was the host.
+  function kickPlayerFromLobby(lobbyId, playerId, alsoDrop) {
+    if (!isAdmin && !iAmTournamentHost) return;
+    var lobby = (lobbies || []).find(function(l) { return l.id === lobbyId; });
+    if (!lobby) { toast('Lobby not found', 'error'); return; }
+    var label = alsoDrop ? ' and mark them as withdrawn' : '';
+    if (!confirm('Remove this player from the lobby' + label + '? Players already checked in are not auto-replaced.')) return;
+    setActionLoading(true);
+    var nextIds = (lobby.player_ids || []).filter(function(pid) { return pid !== playerId; });
+    var nextHost = lobby.host_player_id;
+    if (lobby.host_player_id === playerId) {
+      var nextHostP = nextIds.map(function(pid) { return getPlayerById(pid); }).reduce(function(best, p) {
+        if (!best) return p;
+        return RANKS.indexOf(p.rank || 'Iron') > RANKS.indexOf(best.rank || 'Iron') ? p : best;
+      }, null);
+      nextHost = nextHostP ? nextHostP.id : null;
+    }
+    supabase.from('lobbies').update({ player_ids: nextIds, host_player_id: nextHost }).eq('id', lobbyId).then(function(res) {
+      if (res.error) { setActionLoading(false); toast('Failed to remove player: ' + res.error.message, 'error'); return; }
+      var followup = alsoDrop
+        ? supabase.from('registrations').update({ status: 'dropped', dropped_at: new Date().toISOString() }).eq('tournament_id', tournamentId).eq('player_id', playerId)
+        : Promise.resolve({ error: null });
+      followup.then(function(fRes) {
+        setActionLoading(false);
+        if (fRes && fRes.error) { toast('Removed from lobby; mark-withdrawn failed: ' + fRes.error.message, 'error'); }
+        else { toast(alsoDrop ? 'Player removed and withdrawn' : 'Player removed from lobby', 'success'); }
+        broadcastUpdate('lobby_player_removed');
+        loadLobbies();
+        loadRegistrations();
+      }).catch(function() { setActionLoading(false); toast('Removed from lobby; follow-up failed', 'error'); });
+    }).catch(function() { setActionLoading(false); toast('Failed to remove player', 'error'); });
+  }
+
+  // Re-trigger Discord channel creation for this tournament's lobbies.
+  // Works by flipping the tournament phase off-and-on so the bot's existing
+  // tournaments-table listener fires its in_progress handler again. The
+  // newer lobby-INSERT listener in the bot also covers this for any future
+  // reseed event.
+  function recreateDiscordChannels() {
+    if (!isAdmin && !iAmTournamentHost) return;
+    if (!confirm('Re-trigger Discord channel creation for this tournament? Existing channels are preserved; only missing ones get created.')) return;
+    var savedPhase = phase;
+    if (savedPhase !== 'in_progress') { toast('Tournament must be in progress to recreate lobby channels', 'error'); return; }
+    setActionLoading(true);
+    supabase.from('tournaments').update({ phase: 'check_in' }).eq('id', tournamentId).then(function(r1) {
+      if (r1.error) { setActionLoading(false); toast('Trigger failed: ' + r1.error.message, 'error'); return; }
+      setTimeout(function() {
+        supabase.from('tournaments').update({ phase: 'in_progress' }).eq('id', tournamentId).then(function(r2) {
+          setActionLoading(false);
+          if (r2.error) { toast('Restore failed: ' + r2.error.message + ' - flip phase back manually', 'error'); return; }
+          toast('Discord channel sync triggered. Channels appear in ~10s.', 'success');
+        }).catch(function() { setActionLoading(false); toast('Restore phase failed', 'error'); });
+      }, 350);
+    }).catch(function() { setActionLoading(false); toast('Trigger failed', 'error'); });
+  }
+
   function generateLobbies() {
     var ts = tournament && tournament.team_size != null ? parseInt(tournament.team_size, 10) : 1;
     var teamSize = Number.isFinite(ts) && ts > 0 ? ts : 1;
@@ -2820,6 +2939,18 @@ export default function FlashTournamentScreen(props) {
                                   </Sel>
                                 </div>
                               )}
+
+                              {/* Admin: remove player from lobby (no-show) */}
+                              {(isAdmin || iAmTournamentHost) && isLive && !isLocked && (
+                                <button
+                                  type="button"
+                                  onClick={function() { kickPlayerFromLobby(lobby.id, p.id, true); }}
+                                  className="ml-1 shrink-0 text-[10px] font-label font-bold tracking-wider uppercase rounded px-2 py-1 border border-error/40 text-error bg-error/5 hover:bg-error/10"
+                                  title="Mark as no-show and remove from lobby"
+                                >
+                                  No-show
+                                </button>
+                              )}
                             </div>
                           );
                         })}
@@ -3129,6 +3260,16 @@ export default function FlashTournamentScreen(props) {
                 {isLive && allLobbiesLocked && isLastGame && (
                   <Btn variant="tertiary" size="sm" onClick={finalizeTournament}>
                     Finalize Tournament
+                  </Btn>
+                )}
+                {isLive && currentGameLobbies.length > 0 && (
+                  <Btn variant="secondary" size="sm" onClick={reseedLobbies} disabled={actionLoading}>
+                    <Icon name="shuffle" size={14} className="mr-1" />Reseed Round {currentGameNumber}
+                  </Btn>
+                )}
+                {isLive && (
+                  <Btn variant="secondary" size="sm" onClick={recreateDiscordChannels} disabled={actionLoading}>
+                    <Icon name="sync" size={14} className="mr-1" />Recreate Discord Channels
                   </Btn>
                 )}
               </div>
