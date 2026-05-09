@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS, DOUBLE_UP_PTS, DOUBLE_UP_MULTIPLIERS, DEFAULT_TFT_RULES, DISCORD_URL } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
-import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape } from '../lib/tournament.js'
+import { buildFlashLobbies, buildTeamLobbies, resolveLobbyShape, computeFlashStandings } from '../lib/tournament.js'
 import { createNotification, writeAuditLog } from '../lib/notifications.js'
 import { notifyTeamMembers, registerTeamWithRosterRsvps, listTeamRingers, inviteTeamRinger } from '../lib/teams.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -1780,61 +1780,8 @@ export default function FlashTournamentScreen(props) {
 
   var canUnregister = myReg && (phase === 'registration' || phase === 'check_in') && myReg.status !== 'dropped';
 
-  // Compute standings from gameResults
-  var standings = [];
-  if (gameResults.length > 0) {
-    var _playerMap = {};
-    gameResults.forEach(function(g) {
-      if (!_playerMap[g.player_id]) {
-        var pi = g.players || getPlayerById(g.player_id);
-        _playerMap[g.player_id] = {
-          id: g.player_id,
-          name: (pi && (pi.username || pi.name)) || 'Unknown',
-          rank: (pi && pi.rank) || 'Iron',
-          riotId: (pi && (pi.riot_id || pi.riotId)) || '',
-          totalPts: 0, wins: 0, top4: 0, games: 0, avgPlace: 0, placements: [], gameDetails: []
-        };
-      }
-      var _p = _playerMap[g.player_id];
-      _p.totalPts += (g.points || 0);
-      _p.games += 1;
-      if (g.placement === 1) _p.wins += 1;
-      if (g.placement <= 4) _p.top4 += 1;
-      _p.placements.push(g.placement);
-      _p.gameDetails.push({game: g.game_number, placement: g.placement, points: g.points});
-    });
-    standings = Object.keys(_playerMap).map(function(k) {
-      var _p = _playerMap[k];
-      _p.avgPlace = _p.games > 0 ? (_p.placements.reduce(function(s, v) { return s + v; }, 0) / _p.games) : 0;
-      var _last = 9;
-      var _lastG = -1;
-      _p.gameDetails.forEach(function(d) { if ((d.game || 0) > _lastG) { _lastG = d.game || 0; _last = d.placement || 9; } });
-      _p.lastPlacement = _last;
-      return _p;
-    });
-    standings.sort(function(a, b) {
-      if (b.totalPts !== a.totalPts) return b.totalPts - a.totalPts;
-      if (isDoubleUpLobby) {
-        var aTop2 = a.placements.filter(function(p) { return p <= 2; }).length;
-        var bTop2 = b.placements.filter(function(p) { return p <= 2; }).length;
-        if (bTop2 !== aTop2) return bTop2 - aTop2;
-        var aFour = a.placements.filter(function(p) { return p === 4; }).length;
-        var bFour = b.placements.filter(function(p) { return p === 4; }).length;
-        if (aFour !== bFour) return aFour - bFour;
-        if (b.wins !== a.wins) return b.wins - a.wins;
-        return (a.lastPlacement || 9) - (b.lastPlacement || 9);
-      }
-      var aScore = a.wins * 2 + a.top4;
-      var bScore = b.wins * 2 + b.top4;
-      if (bScore !== aScore) return bScore - aScore;
-      for (var _pl = 1; _pl <= 8; _pl++) {
-        var aC = a.placements.filter(function(p) { return p === _pl; }).length;
-        var bC = b.placements.filter(function(p) { return p === _pl; }).length;
-        if (bC !== aC) return bC - aC;
-      }
-      return 0;
-    });
-  }
+  // Compute standings from gameResults using shared helper (official rulebook tiebreakers).
+  var standings = computeFlashStandings(gameResults, { doubleUp: isDoubleUpLobby, playerLookup: getPlayerById });
 
   var currentGameLobbies = lobbies.filter(function(l) { return l.game_number === currentGameNumber; });
   var allLobbiesLocked = currentGameLobbies.length > 0 && currentGameLobbies.every(function(l) { return l.status === 'locked'; });

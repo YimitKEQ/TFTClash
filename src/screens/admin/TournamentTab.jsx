@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
-import { TOURNAMENT_FORMATS } from '../../lib/tournament.js'
+import { TOURNAMENT_FORMATS, computeFlashStandings } from '../../lib/tournament.js'
 import { PRIZE_TYPES, PRIZE_CURRENCIES, normalizePrizeRow, computeCashPool, currencySymbol } from '../../lib/prizes.js'
 
 // Rough duration: ~18 min per TFT game + 5 min lobby/room setup between games.
@@ -508,8 +508,8 @@ export default function TournamentTab() {
     if (!t || !t.id) return
     if (!window.confirm('Generate prize claims from current standings for ' + t.name + '?\n\nThis creates claim rows winners can redeem. Safe to re-run (upserts by placement).')) return
     Promise.all([
-      supabase.from('tournaments').select('prize_pool_json, name').eq('id', t.id).single(),
-      supabase.from('game_results').select('player_id, placement, points').eq('tournament_id', t.id)
+      supabase.from('tournaments').select('prize_pool_json, name, team_size, format').eq('id', t.id).single(),
+      supabase.from('game_results').select('player_id, placement, points, game_number').eq('tournament_id', t.id)
     ]).then(function(results) {
       var tRes = results[0]; var grRes = results[1]
       if (tRes.error) { toast('Tournament fetch failed: ' + tRes.error.message, 'error'); return }
@@ -518,18 +518,9 @@ export default function TournamentTab() {
       if (prizePool.length === 0) { toast('No prizes configured for this tournament', 'error'); return }
       var gr = grRes.data || []
       if (gr.length === 0) { toast('No game results recorded yet', 'error'); return }
-      var agg = {}
-      gr.forEach(function(g) {
-        var pid = g.player_id; if (!pid) return
-        if (!agg[pid]) agg[pid] = { player_id: pid, points: 0, wins: 0, top4: 0 }
-        agg[pid].points += (g.points || 0)
-        if (g.placement === 1) agg[pid].wins += 1
-        if (g.placement >= 1 && g.placement <= 4) agg[pid].top4 += 1
-      })
-      var ranked = Object.keys(agg).map(function(k) { return agg[k] }).sort(function(a, b) {
-        if (b.points !== a.points) return b.points - a.points
-        var aS = a.wins * 2 + a.top4; var bS = b.wins * 2 + b.top4
-        return bS - aS
+      var isDoubleUp = (tRes.data && tRes.data.team_size === 2) || (tRes.data && String(tRes.data.format || '').toLowerCase().indexOf('double') !== -1)
+      var ranked = computeFlashStandings(gr, { doubleUp: isDoubleUp }).map(function(s) {
+        return { player_id: s.id, points: s.totalPts, wins: s.wins, top4: s.top4 }
       })
       var claims = []
       prizePool.forEach(function(p) {

@@ -41,6 +41,95 @@ export var TOURNAMENT_FORMATS = {
   double_up_swiss: {name:"Double Up (2v2) Swiss",description:"4 teams of 2 per lobby, 5 games with reshuffles + late multipliers (R4 1.25x, R5 1.5x). Host configures cut line.",games:5,stages:2,maxPlayers:64,cutEnabled:false,cutLine:0,cutAfterGame:3,seeding:"random",teamSize:2,teamsPerLobby:4,pointsScale:"double_up_swiss"}
 };
 
+// Compute final standings from raw game_results rows using the official
+// EMEA tiebreaker chain. Returns players sorted; each entry includes
+// totalPts, wins, top4, placements[], gameDetails[], lastPlacement.
+//
+// Tiebreakers (in order):
+//   1. Total points
+//   2. Wins x 2 + Top4
+//   3. Most of each placement (1st, then 2nd, ...)
+//   4. Most recent game finish (best placement in highest game_number)
+//   5. (For double-up only) team-mode counts before #2/#3
+//
+// `playerLookup(id)` is optional and is used to enrich the entry with a name/rank.
+export function computeFlashStandings(gameResults, opts) {
+  opts = opts || {};
+  var doubleUp = !!opts.doubleUp;
+  var playerLookup = typeof opts.playerLookup === 'function' ? opts.playerLookup : null;
+
+  var rows = Array.isArray(gameResults) ? gameResults : [];
+  if (rows.length === 0) return [];
+
+  var byPlayer = {};
+  rows.forEach(function(g) {
+    var pid = g.player_id;
+    if (!pid) return;
+    if (!byPlayer[pid]) {
+      var pi = g.players || (playerLookup ? playerLookup(pid) : null);
+      byPlayer[pid] = {
+        id: pid,
+        name: (pi && (pi.username || pi.name)) || 'Unknown',
+        rank: (pi && pi.rank) || 'Iron',
+        riotId: (pi && (pi.riot_id || pi.riotId)) || '',
+        totalPts: 0,
+        wins: 0,
+        top4: 0,
+        games: 0,
+        avgPlace: 0,
+        placements: [],
+        gameDetails: [],
+        lastGame: -1,
+        lastPlacement: 9
+      };
+    }
+    var p = byPlayer[pid];
+    p.totalPts += (g.points || 0);
+    p.games += 1;
+    if (g.placement === 1) p.wins += 1;
+    if (g.placement <= 4) p.top4 += 1;
+    p.placements.push(g.placement);
+    p.gameDetails.push({ game: g.game_number, placement: g.placement, points: g.points });
+    var gn = g.game_number || 0;
+    if (gn > p.lastGame) {
+      p.lastGame = gn;
+      p.lastPlacement = g.placement || 9;
+    }
+  });
+
+  var standings = Object.keys(byPlayer).map(function(k) {
+    var p = byPlayer[k];
+    p.avgPlace = p.games > 0 ? (p.placements.reduce(function(s, v) { return s + v; }, 0) / p.games) : 0;
+    return p;
+  });
+
+  standings.sort(function(a, b) {
+    if (b.totalPts !== a.totalPts) return b.totalPts - a.totalPts;
+    if (doubleUp) {
+      var aTop2 = a.placements.filter(function(p) { return p <= 2; }).length;
+      var bTop2 = b.placements.filter(function(p) { return p <= 2; }).length;
+      if (bTop2 !== aTop2) return bTop2 - aTop2;
+      var aFour = a.placements.filter(function(p) { return p === 4; }).length;
+      var bFour = b.placements.filter(function(p) { return p === 4; }).length;
+      if (aFour !== bFour) return aFour - bFour;
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      return (a.lastPlacement || 9) - (b.lastPlacement || 9);
+    }
+    var aScore = a.wins * 2 + a.top4;
+    var bScore = b.wins * 2 + b.top4;
+    if (bScore !== aScore) return bScore - aScore;
+    for (var pl = 1; pl <= 8; pl++) {
+      var aC = a.placements.filter(function(p) { return p === pl; }).length;
+      var bC = b.placements.filter(function(p) { return p === pl; }).length;
+      if (bC !== aC) return bC - aC;
+    }
+    // Official 4th tiebreaker: most recent game finish (best placement in last game).
+    return (a.lastPlacement || 9) - (b.lastPlacement || 9);
+  });
+
+  return standings;
+}
+
 // Snake seeding: distributes players across lobbies so each has a mix of skill levels
 export function snakeSeed(sortedPlayers, lobbySize) {
   var lobbyCount = Math.ceil(sortedPlayers.length / lobbySize);
