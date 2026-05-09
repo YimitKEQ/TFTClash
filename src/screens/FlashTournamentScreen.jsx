@@ -2987,6 +2987,24 @@ export default function FlashTournamentScreen(props) {
         {activeTab === 'standings' && (
           <div className="space-y-6">
 
+            {/* Share-friendly recap card link */}
+            {isComplete && standings.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-container-low rounded border border-primary/15 px-4 py-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Icon name="share" size={18} className="text-primary" />
+                  <span className="text-on-surface">Share these results as a clean image</span>
+                </div>
+                <Btn
+                  variant="primary"
+                  size="sm"
+                  icon="open_in_new"
+                  onClick={function() { window.open('/recap/' + tournamentId, '_blank', 'noopener'); }}
+                >
+                  Open Share Card
+                </Btn>
+              </div>
+            )}
+
             {/* Podium for complete tournaments */}
             {isComplete && standings.length >= 3 && (
               <div className="bg-surface-container-low rounded border border-primary/15 px-5 pt-8 pb-5 overflow-hidden relative">

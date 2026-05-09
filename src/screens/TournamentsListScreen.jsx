@@ -239,8 +239,10 @@ function TournamentCard(props) {
   var pct = Math.min(100, Math.round((regCount / maxP) * 100));
   var countdown = getCountdown(t.date);
   var dateStr = t.date ? new Date(t.date).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}) : 'TBD';
-  var badgeClass = phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface';
-  var phaseLabel = phaseLabels[t.phase] || t.phase;
+  var badgeClass = t.archived_at
+    ? 'bg-surface-variant/40 text-on-surface-variant border border-outline-variant/30'
+    : (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface');
+  var phaseLabel = t.archived_at ? 'Archived' : (phaseLabels[t.phase] || t.phase);
   var cardTeamBadge = teamBadgeFor(t);
 
   var fillColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF';
@@ -316,7 +318,8 @@ var FILTER_TABS = [
   {key: 'all', label: 'All'},
   {key: 'registration', label: 'Open'},
   {key: 'in_progress', label: 'Live'},
-  {key: 'complete', label: 'Completed'}
+  {key: 'complete', label: 'Completed'},
+  {key: 'past', label: 'Past'}
 ];
 
 export default function TournamentsListScreen() {
@@ -341,7 +344,6 @@ export default function TournamentsListScreen() {
       .from('tournaments')
       .select('*')
       .eq('type', 'flash_tournament')
-      .is('archived_at', null)
       .order('date', {ascending: false})
       .then(function(res) {
         if (res.data) setTournaments(res.data);
@@ -371,13 +373,28 @@ export default function TournamentsListScreen() {
     return true;
   });
 
-  var activeTournament = visible.find(function(t) {
+  // Active feeds (featured spotlight, "almost full" strip) ignore archived rows.
+  var liveVisible = visible.filter(function(t) { return !t.archived_at; });
+
+  var activeTournament = liveVisible.find(function(t) {
     return t.phase === 'registration' || t.phase === 'in_progress' || t.phase === 'live' || t.status === 'upcoming';
   });
   var featured = activeTournament || null;
 
   var filtered = visible.filter(function(t) {
-    if (activeFilter !== 'all' && t.phase !== activeFilter) return false;
+    var isArchived = !!t.archived_at;
+    if (activeFilter === 'past') {
+      // "Past" surfaces archived + completed history.
+      if (!isArchived && t.phase !== 'complete') return false;
+    } else if (activeFilter === 'all') {
+      if (isArchived) return false;
+    } else if (activeFilter === 'complete') {
+      if (t.phase !== 'complete') return false;
+      if (isArchived) return false;
+    } else {
+      if (t.phase !== activeFilter) return false;
+      if (isArchived) return false;
+    }
     if (regionFilter === 'mine' && userRegion && !canRegisterInRegion(userRegion, t.region)) return false;
     if (regionFilter === 'EU' && normalizeRegion(t.region) !== 'EU') return false;
     if (regionFilter === 'NA' && normalizeRegion(t.region) !== 'NA') return false;
@@ -426,7 +443,7 @@ export default function TournamentsListScreen() {
             )}
 
             <AlmostFullStrip
-              tournaments={visible}
+              tournaments={liveVisible}
               regCounts={regCounts}
               navigate={navigate}
             />
