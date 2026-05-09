@@ -181,7 +181,11 @@ export default function FlashTournamentScreen(props) {
   }, [tournamentId]);
 
   useEffect(function() {
-    if (tournament) loadReports();
+    if (!tournament) return;
+    // Clear stale reports immediately on round change so the UI never paints
+    // a previous round's placements while the new round's fetch is in flight.
+    setReports([]);
+    loadReports();
   }, [tournament && tournament.current_round, tournament && tournament.id]);
 
   useEffect(function() {
@@ -973,7 +977,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function lockLobby(lobbyId) {
-    var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobbyId; });
+    var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobbyId && r.game_number === currentGameNumber; });
     var shape = resolveLobbyShape(tournament);
     var isDoubleUp = shape.mode === 'double_up_2v2';
     if (isDoubleUp) {
@@ -2828,7 +2832,7 @@ export default function FlashTournamentScreen(props) {
                   var isLocked = lobby.status === 'locked' || lobby.status === 'completed';
                   var codeKey = lobby.id;
                   var codeInput = lobbyCodeInputs[codeKey] || '';
-                  var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobby.id; });
+                  var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobby.id && r.game_number === currentGameNumber; });
                   var reportedCount = lobbyReports.length;
                   var totalCount = (lobby.player_ids || []).length;
                   var allReported = reportedCount === totalCount && totalCount > 0;
