@@ -1,195 +1,218 @@
 /**
- * lobbies.js — Auto-create/destroy Discord channels for tournament lobbies.
- * Creates a temp category "CLASH LIVE" with text + voice per lobby.
- * Permission-locked to lobby players only (requires discord_user_id link).
+ * lobbies.js — Persistent lobby channels, role-gated.
+ *
+ * Channels live under "🔴 LIVE CLASH" forever. Visibility is controlled by
+ * the "Clash Live" role (clashLiveRole.js) — granted to participants when a
+ * clash starts, revoked when it ends. No per-user permission overwrites
+ * (Discord caps at ~100 per channel — old model broke at 128p × 16 lobbies).
+ *
+ * Public surface:
+ *   setupLobbyRound(guild, ts)   — ensure channels, grant role, pin roster
+ *   closeLobbyRound(guild)       — revoke role only (channels persist)
+ *   clearLobbyChannels(guild)    — destructive: delete category + children
+ *
+ * Backwards-compat aliases for existing callers:
+ *   createLobbyChannels  -> setupLobbyRound
+ *   destroyLobbyChannels -> closeLobbyRound
  */
 
 import { ChannelType, PermissionFlagsBits } from 'discord.js';
-import { supabase } from './supabase.js';
+import { ensureClashLiveRole, grantClashLiveToActive, revokeAllClashLive } from './clashLiveRole.js';
 
 var CATEGORY_NAME = '🔴 LIVE CLASH';
-// Legacy names we still match when destroying so older categories get cleaned.
 var LEGACY_CATEGORY_NAMES = ['--- CLASH LIVE ---', 'CLASH LIVE'];
 var LOBBY_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-/**
- * Create lobby channels for the current tournament.
- * Reads lobbies from tournament_state in site_settings.
- * @param {import('discord.js').Guild} guild
- * @param {object} ts - Tournament state object
- */
-export async function createLobbyChannels(guild, ts) {
-  if (!guild || !ts) return { created: 0 };
+function letterFor(i) { return LOBBY_LETTERS[i] || String(i + 1); }
+function lobbyTextName(i) { return '💬-lobby-' + letterFor(i).toLowerCase(); }
+function lobbyVoiceName(i) { return '🎮 Lobby ' + letterFor(i); }
 
-  // Get lobbies from tournament state
-  var lobbies = ts.lockedLobbies || ts.savedLobbies || [];
-  if (!lobbies.length) {
-    console.log('[lobbies] No lobbies found in tournament state');
-    return { created: 0 };
-  }
-
-  // Clean up any existing lobby channels first
-  await destroyLobbyChannels(guild);
-
-  // Fetch player discord IDs for permission locking
-  var allPlayerIds = [];
-  lobbies.forEach(function(lobby) {
-    if (lobby.player_ids) {
-      allPlayerIds = allPlayerIds.concat(lobby.player_ids);
-    } else if (Array.isArray(lobby)) {
-      lobby.forEach(function(p) {
-        if (p.id) allPlayerIds.push(p.id);
-      });
-    }
+function buildOverwrites(guild, clashRole, hostRole) {
+  var ows = [{ id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] }];
+  if (clashRole) ows.push({
+    id: clashRole.id,
+    allow: [
+      PermissionFlagsBits.ViewChannel,
+      PermissionFlagsBits.SendMessages,
+      PermissionFlagsBits.AttachFiles,
+      PermissionFlagsBits.EmbedLinks,
+      PermissionFlagsBits.AddReactions,
+      PermissionFlagsBits.ReadMessageHistory,
+      PermissionFlagsBits.Connect,
+      PermissionFlagsBits.Speak,
+    ],
   });
-
-  // Batch fetch discord user IDs
-  var playerDiscordMap = {};
-  if (allPlayerIds.length) {
-    var res = await supabase
-      .from('players')
-      .select('id,discord_user_id')
-      .in('id', allPlayerIds)
-      .not('discord_user_id', 'is', null);
-    if (res.data) {
-      res.data.forEach(function(p) {
-        playerDiscordMap[p.id] = p.discord_user_id;
-      });
-    }
-  }
-
-  // Create the category
-  var hostRole = guild.roles.cache.find(function(r) { return r.name === 'Host'; });
-  var category = await guild.channels.create({
-    name: CATEGORY_NAME,
-    type: ChannelType.GuildCategory,
-    permissionOverwrites: [
-      { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
-      hostRole ? { id: hostRole.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] } : null,
-    ].filter(Boolean),
+  if (hostRole) ows.push({
+    id: hostRole.id,
+    allow: [
+      PermissionFlagsBits.ViewChannel,
+      PermissionFlagsBits.SendMessages,
+      PermissionFlagsBits.ManageMessages,
+      PermissionFlagsBits.Connect,
+      PermissionFlagsBits.Speak,
+      PermissionFlagsBits.MoveMembers,
+    ],
   });
-
-  var created = 0;
-
-  for (var i = 0; i < lobbies.length; i++) {
-    var lobby = lobbies[i];
-    var letter = LOBBY_LETTERS[i] || ('' + (i + 1));
-    var lobbyName = 'lobby-' + letter.toLowerCase();
-
-    // Get player IDs for this lobby
-    var playerIds = [];
-    if (lobby.player_ids) {
-      playerIds = lobby.player_ids;
-    } else if (Array.isArray(lobby)) {
-      playerIds = lobby.map(function(p) { return p.id; }).filter(Boolean);
-    }
-
-    // Build permission overwrites for this lobby
-    var overwrites = [
-      { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
-    ];
-
-    if (hostRole) {
-      overwrites.push({
-        id: hostRole.id,
-        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
-      });
-    }
-
-    // Add each lobby player
-    playerIds.forEach(function(pid) {
-      var discordId = playerDiscordMap[pid];
-      if (discordId) {
-        overwrites.push({
-          id: discordId,
-          allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
-        });
-      }
-    });
-
-    // Create text channel
-    try {
-      var textCh = await guild.channels.create({
-        name: '💬-' + lobbyName,
-        type: ChannelType.GuildText,
-        parent: category.id,
-        topic: 'Lobby ' + letter + ' - Clash #' + (ts.clashNumber || '?') + ' - Good luck!',
-        permissionOverwrites: overwrites,
-      });
-
-      // Pin a welcome message with lobby info
-      var playerNames = [];
-      if (Array.isArray(lobby) && lobby[0] && lobby[0].name) {
-        playerNames = lobby.map(function(p) { return p.name; });
-      }
-      var welcomeMsg = '**Lobby ' + letter + '** - Clash #' + (ts.clashNumber || '?') + '\n\n';
-      if (playerNames.length) {
-        welcomeMsg += 'Players: ' + playerNames.join(', ') + '\n\n';
-      }
-      welcomeMsg += 'Good luck! This channel will be removed after the clash ends.';
-      var msg = await textCh.send(welcomeMsg);
-      await msg.pin().catch(function() {});
-
-      created++;
-    } catch (e) {
-      console.error('[lobbies] Failed to create text channel for lobby ' + letter + ':', e.message);
-    }
-
-    // Create voice channel
-    try {
-      await guild.channels.create({
-        name: '🎮 Lobby ' + letter,
-        type: ChannelType.GuildVoice,
-        parent: category.id,
-        permissionOverwrites: overwrites,
-      });
-    } catch (e) {
-      console.error('[lobbies] Failed to create voice channel for lobby ' + letter + ':', e.message);
-    }
-  }
-
-  console.log('[lobbies] Created ' + created + ' lobby channels (' + lobbies.length + ' lobbies)');
-  return { created: created, category: category.name };
+  return ows;
 }
 
-/**
- * Destroy all lobby channels (category + children).
- * @param {import('discord.js').Guild} guild
- */
-export async function destroyLobbyChannels(guild) {
-  if (!guild) return { destroyed: 0 };
+async function ensureCategory(guild) {
+  var clashRole = await ensureClashLiveRole(guild);
+  var hostRole = guild.roles.cache.find(function(r) { return r.name === 'Host'; });
+  var ows = buildOverwrites(guild, clashRole, hostRole);
 
-  // Match the new category name AND any legacy names so old "--- CLASH LIVE ---"
-  // categories from before the Phase 2 rename still get cleaned up.
+  var category = guild.channels.cache.find(function(c) {
+    return c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME;
+  });
+
+  if (category) {
+    // Re-sync overwrites in case the role was just created or perms drifted.
+    try { await category.permissionOverwrites.set(ows); } catch (_e) {}
+    return category;
+  }
+
+  return await guild.channels.create({
+    name: CATEGORY_NAME,
+    type: ChannelType.GuildCategory,
+    permissionOverwrites: ows,
+  });
+}
+
+async function ensureLobbyChannels(guild, n) {
+  if (!guild || !n) return { ensured: 0 };
+  var category = await ensureCategory(guild);
+  var ensured = 0;
+
+  for (var i = 0; i < n; i++) {
+    var textName = lobbyTextName(i);
+    var voiceName = lobbyVoiceName(i);
+
+    var existingText = guild.channels.cache.find(function(c) {
+      return c.type === ChannelType.GuildText && c.parentId === category.id && c.name === textName;
+    });
+    if (!existingText) {
+      try {
+        await guild.channels.create({
+          name: textName,
+          type: ChannelType.GuildText,
+          parent: category.id,
+          topic: 'Lobby ' + letterFor(i) + ' chat. Drop your end-screen here when the game finishes.',
+        });
+        ensured++;
+      } catch (e) {
+        console.error('[lobbies] ensure text ' + textName + ' failed: ' + ((e && e.message) || e));
+      }
+    }
+
+    var existingVoice = guild.channels.cache.find(function(c) {
+      return c.type === ChannelType.GuildVoice && c.parentId === category.id && c.name === voiceName;
+    });
+    if (!existingVoice) {
+      try {
+        await guild.channels.create({
+          name: voiceName,
+          type: ChannelType.GuildVoice,
+          parent: category.id,
+        });
+      } catch (e) {
+        console.error('[lobbies] ensure voice ' + voiceName + ' failed: ' + ((e && e.message) || e));
+      }
+    }
+  }
+
+  return { ensured: ensured, category: category.name };
+}
+
+async function postLobbyRosters(guild, lobbies, ts) {
+  var category = guild.channels.cache.find(function(c) {
+    return c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME;
+  });
+  if (!category) return;
+
+  for (var i = 0; i < lobbies.length; i++) {
+    var name = lobbyTextName(i);
+    var ch = guild.channels.cache.find(function(c) {
+      return c.type === ChannelType.GuildText && c.parentId === category.id && c.name === name;
+    });
+    if (!ch) continue;
+
+    // Unpin previous roster posts so the channel doesn't accumulate them.
+    try {
+      var pins = await ch.messages.fetchPinned();
+      var meId = guild.client.user.id;
+      for (var entry of pins) {
+        var pin = entry[1];
+        if (pin.author && pin.author.id === meId) {
+          try { await pin.unpin(); } catch (_e) {}
+        }
+      }
+    } catch (_e) {}
+
+    var lobby = lobbies[i];
+    var letter = letterFor(i);
+    var playerNames = [];
+    if (Array.isArray(lobby) && lobby[0] && lobby[0].name) {
+      playerNames = lobby.map(function(p) { return p.name; });
+    } else if (lobby && Array.isArray(lobby.players)) {
+      playerNames = lobby.players.map(function(p) { return p && p.name; }).filter(Boolean);
+    }
+
+    var body = '**Lobby ' + letter + '** - Clash #' + ((ts && ts.clashNumber) || '?') + '\n\n';
+    if (playerNames.length) body += 'Players: ' + playerNames.join(', ') + '\n\n';
+    body += 'Drop your end-screen screenshot here when your game finishes - keeps results honest. GL HF.';
+
+    try {
+      var msg = await ch.send({ content: body, allowedMentions: { roles: [], users: [], parse: [] } });
+      try { await msg.pin(); } catch (_e) {}
+    } catch (e) {
+      console.warn('[lobbies] roster post failed for ' + name + ': ' + ((e && e.message) || e));
+    }
+  }
+}
+
+export async function setupLobbyRound(guild, ts) {
+  if (!guild || !ts) return { ok: false, reason: 'missing-args' };
+  var lobbies = ts.lockedLobbies || ts.savedLobbies || [];
+  if (!lobbies.length) {
+    console.log('[lobbies] setup: no lobbies in tournament state');
+    return { ok: false, reason: 'no-lobbies' };
+  }
+  var ens = await ensureLobbyChannels(guild, lobbies.length);
+  var role = await grantClashLiveToActive(guild, ts);
+  await postLobbyRosters(guild, lobbies, ts);
+  console.log('[lobbies] round setup ok (' + lobbies.length + ' lobbies, +' + (role.added || 0) + ' role grants)');
+  return { ok: true, lobbies: lobbies.length, ensured: ens.ensured, granted: role.added || 0 };
+}
+
+export async function closeLobbyRound(guild) {
+  if (!guild) return { ok: false };
+  var res = await revokeAllClashLive(guild);
+  return { ok: true, removed: res.removed };
+}
+
+export async function clearLobbyChannels(guild) {
+  if (!guild) return { destroyed: 0 };
   var matches = guild.channels.cache.filter(function(c) {
     if (c.type !== ChannelType.GuildCategory) return false;
     if (c.name === CATEGORY_NAME) return true;
     return LEGACY_CATEGORY_NAMES.indexOf(c.name) !== -1;
   });
-
   if (matches.size === 0) return { destroyed: 0 };
-
   var destroyed = 0;
-
   for (var catEntry of matches) {
     var category = catEntry[1];
     var children = guild.channels.cache.filter(function(c) { return c.parentId === category.id; });
-    for (var _ref of children) {
-      var ch = _ref[1];
-      try {
-        await ch.delete('Clash ended - lobby cleanup');
-        destroyed++;
-      } catch (e) {
-        console.error('[lobbies] Failed to delete channel ' + ch.name + ':', e.message);
-      }
+    for (var childEntry of children) {
+      var ch = childEntry[1];
+      try { await ch.delete('Force clear lobby channels'); destroyed++; }
+      catch (e) { console.error('[lobbies] delete ' + ch.name + ' failed: ' + e.message); }
     }
-    try {
-      await category.delete('Clash ended - lobby cleanup');
-    } catch (e) {
-      console.error('[lobbies] Failed to delete category ' + category.name + ':', e.message);
-    }
+    try { await category.delete('Force clear lobby category'); }
+    catch (e) { console.error('[lobbies] delete category ' + category.name + ' failed: ' + e.message); }
   }
-
-  console.log('[lobbies] Destroyed ' + destroyed + ' lobby channels');
   return { destroyed: destroyed };
 }
+
+// Backwards-compat names so existing callers keep working with new semantics.
+export var createLobbyChannels = setupLobbyRound;
+export var destroyLobbyChannels = closeLobbyRound;

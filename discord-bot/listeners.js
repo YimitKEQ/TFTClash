@@ -128,13 +128,14 @@ export function startListeners(client) {
               });
             }, 60 * 1000);
           }
-          // Delay cleanup by 30 min so players can chat after the clash
+          // Delay role revoke by 30 min so players can chat after the clash.
+          // Channels persist between tournaments; only role membership cycles.
           setTimeout(function() {
             destroyLobbyChannels(g).catch(function(e) {
-              console.error('[listener] Lobby channel cleanup failed:', e.message);
+              console.error('[listener] Lobby role revoke failed:', e.message);
             });
           }, 30 * 60 * 1000);
-          console.log('[listener] Lobby channels will be cleaned up in 30 minutes');
+          console.log('[listener] Clash Live role will be revoked in 30 minutes (channels persist)');
         }
 
         console.log('[listener] Phase changed to: ' + val.phase);

@@ -12,7 +12,7 @@ import { getStandings, getSeasonConfig, getTournamentState, getRegistrations, ge
 import { standingsEmbed, resultsEmbed, clashInfoEmbed, GOLD, PURPLE, TEAL } from '../utils/embeds.js';
 import { postStandings, postReminder24h, postReminder1h } from '../scheduler.js';
 import { syncAllRoles, syncPlayerRoles, manualRoleAssign, getMemberRoles, ALL_MANAGED } from '../utils/roles.js';
-import { createLobbyChannels, destroyLobbyChannels } from '../utils/lobbies.js';
+import { createLobbyChannels, destroyLobbyChannels, clearLobbyChannels } from '../utils/lobbies.js';
 import { supabase } from '../utils/supabase.js';
 import { mentionFor, NOTIFY_KINDS } from '../utils/notifyRoles.js';
 
@@ -450,13 +450,31 @@ export function startDashboard(client) {
   });
 
   // ─── POST /api/lobbies/destroy ──────────────────────────────────────────────
+  // Now: revoke the Clash Live role from every member. Channels persist —
+  // visibility just disappears for non-host members until next setup.
   app.post('/api/lobbies/destroy', async function(req, res) {
     try {
       var guild = getGuild();
       if (!guild) return res.status(400).json({ error: 'Guild not found' });
 
       var result = await destroyLobbyChannels(guild);
-      console.log('[dashboard] Lobby channels destroyed: ' + result.destroyed);
+      console.log('[dashboard] Clash Live role revoked: ' + (result.removed || 0));
+      res.json({ ok: true, result: result });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/lobbies/clear ────────────────────────────────────────────────
+  // Nuclear: actually delete the category and all lobby channels. Use only
+  // when you want to wipe and rebuild from scratch.
+  app.post('/api/lobbies/clear', async function(req, res) {
+    try {
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+
+      var result = await clearLobbyChannels(guild);
+      console.log('[dashboard] Lobby channels deleted: ' + result.destroyed);
       res.json({ ok: true, result: result });
     } catch (err) {
       res.status(500).json({ error: err.message });
