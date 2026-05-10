@@ -38,7 +38,7 @@ async function ensureRole(guild, name) {
   try {
     var created = await guild.roles.create({
       name: name,
-      color: ROLE_COLOR[name] || 0x95A5A6,
+      colors: { primaryColor: ROLE_COLOR[name] || 0x95A5A6 },
       mentionable: true,
       reason: 'TFT Clash bot — notify role bootstrap',
     });
