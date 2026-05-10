@@ -3,7 +3,7 @@
  * Start: node index.js
  */
 
-import { Client, GatewayIntentBits, Collection, Events, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Events, ActivityType, Partials } from 'discord.js';
 import { readdirSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
@@ -14,6 +14,8 @@ import { startListeners } from './listeners.js';
 import { startDashboard } from './dashboard/server.js';
 import { syncAllRoles } from './utils/roles.js';
 import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
+import { ensureNotifyRoles, addNotifyRole, removeNotifyRole } from './utils/notifyRoles.js';
+import { hydratePanel, reactionToKind } from './utils/reactionRoles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Client({
@@ -21,7 +23,9 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageReactions,
   ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
 // ─── Load slash commands ──────────────────────────────────────────────────────
@@ -56,8 +60,58 @@ client.once(Events.ClientReady, function(c) {
       var changed = results.filter(function(r) { return r.added && (r.added.length || r.removed.length); });
       console.log('[roles] Startup sync complete: ' + results.length + ' players checked, ' + changed.length + ' updated');
     }).catch(function(e) { console.error('[roles] Startup sync failed:', e.message); });
+
+    // Bootstrap notify + Pre-Game roles, then hydrate the reaction-role panel.
+    ensureNotifyRoles(guild).then(function(res) {
+      if (!res.ok) {
+        console.warn('[notifyRoles] startup not OK — hierarchy=' + res.hierarchyOk + ' manage=' + res.manageOk + '. Reactions will still register but role grants may fail until fixed.');
+      } else {
+        console.log('[notifyRoles] all 4 managed roles present, hierarchy OK');
+      }
+      // Hydrate panel cache so reaction events fire after restart.
+      hydratePanel(client).then(function(h) {
+        if (h.ok) console.log('[reactionRoles] panel ready');
+        else console.log('[reactionRoles] no panel hydrated (' + (h.reason || 'unknown') + ') — run /setupnotify');
+      }).catch(function(e) { console.warn('[reactionRoles] hydrate failed: ' + ((e && e.message) || e)); });
+    }).catch(function(e) { console.error('[notifyRoles] bootstrap failed: ' + ((e && e.message) || e)); });
   }
 });
+
+// ─── Reaction roles ──────────────────────────────────────────────────────────
+async function handleReaction(reaction, user, action) {
+  if (!reaction || !user || user.bot) return;
+  try {
+    if (reaction.partial) {
+      try { await reaction.fetch(); } catch (e) { return; }
+    }
+    if (reaction.message && reaction.message.partial) {
+      try { await reaction.message.fetch(); } catch (e) { return; }
+    }
+    var msg = reaction.message;
+    var guild = msg.guild;
+    if (!guild) return;
+    // Only respond to reactions on the persisted notify panel
+    var loadPanelId = (await import('./utils/reactionRoles.js')).loadPanelMessageId;
+    var panelId = await loadPanelId();
+    if (!panelId || msg.id !== panelId) return;
+
+    var emojiName = (reaction.emoji && (reaction.emoji.name || reaction.emoji.toString())) || '';
+    var kind = reactionToKind(emojiName);
+    if (!kind) return;
+    var member = await guild.members.fetch(user.id).catch(function() { return null; });
+    if (!member) return;
+    if (action === 'add') {
+      await addNotifyRole(member, kind);
+    } else {
+      await removeNotifyRole(member, kind);
+    }
+  } catch (e) {
+    console.warn('[reactionRoles] handler ' + action + ' failed: ' + ((e && e.message) || e));
+  }
+}
+
+client.on(Events.MessageReactionAdd, function(reaction, user) { handleReaction(reaction, user, 'add'); });
+client.on(Events.MessageReactionRemove, function(reaction, user) { handleReaction(reaction, user, 'remove'); });
 
 // ─── Slash commands ───────────────────────────────────────────────────────────
 client.on(Events.InteractionCreate, async function(interaction) {

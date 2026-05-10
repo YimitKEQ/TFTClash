@@ -1,5 +1,6 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { PTS } from './data.js';
+import { brandEmbed, placeBadge, STATUS_COLOR, divider } from './embedKit.js';
 
 export const PURPLE = 0x9B72CF;
 export const GOLD   = 0xE8A838;
@@ -265,35 +266,33 @@ var WIN_QUOTES = [
 export function resultsEmbed(clashNum, placements) {
   const sorted = [].concat(placements).sort(function(a, b) { return a.place - b.place; });
   const winner = sorted[0];
-
   const winQuote = WIN_QUOTES[Math.floor(Math.random() * WIN_QUOTES.length)];
 
   const podium = sorted.slice(0, 3).map(function(p) {
     const pts = PTS[p.place] || 0;
-    return (PLACE_ICONS[p.place] || '') + ' **' + p.name + '** +' + pts + ' pts';
+    return placeBadge(p.place) + '  **' + p.name + '** +' + pts + ' pts';
   }).join('\n');
 
   const rest = sorted.slice(3).map(function(p) {
     const pts = PTS[p.place] || 0;
-    return (PLACE_ICONS[p.place] || '') + ' ' + p.name + '  +' + pts + 'pts';
+    return placeBadge(p.place) + '  ' + p.name + '  +' + pts + ' pts';
   }).join('\n');
 
-  // Calculate total points awarded
   var totalPts = 0;
   sorted.forEach(function(p) { totalPts += (PTS[p.place] || 0); });
 
-  return new EmbedBuilder()
-    .setColor(GOLD)
-    .setAuthor({ name: 'TFT Clash - Clash #' + clashNum + ' Results' })
-    .setTitle('👑  ' + (winner ? winner.name : '?') + ' wins Clash #' + clashNum + '!')
-    .setDescription('*' + (winner ? winner.name : 'Winner') + ' - ' + winQuote + '.*')
-    .addFields(
-      { name: '🏆 Podium',   value: podium || '-',     inline: false },
-      { name: '📋 Rest',     value: rest || '-',        inline: false },
-      { name: '\u200b',       value: totalPts + ' points awarded across ' + sorted.length + ' players. Use `/standings` for the full leaderboard.' },
-    )
-    .setFooter({ text: 'TFT Clash - GG WP' })
-    .setTimestamp();
+  return brandEmbed({
+    color: STATUS_COLOR.complete,
+    author: 'TFT Clash · Clash #' + clashNum + ' Results',
+    title: (winner ? winner.name : '?') + ' wins Clash #' + clashNum,
+    body: '*' + (winner ? winner.name : 'Winner') + ' — ' + winQuote + '.*\n' + divider(),
+    fields: [
+      { name: 'Podium',  value: podium || '-', inline: false },
+      { name: 'Rest',    value: rest || '-',   inline: false },
+      { name: '\u200b',  value: totalPts + ' points awarded across ' + sorted.length + ' players. Use `/standings` for the full leaderboard.' },
+    ],
+    footerNote: 'GG WP',
+  });
 }
 
 // ─── REMINDERS ────────────────────────────────────────────────────────────────
@@ -404,20 +403,20 @@ export function leaderboardEmbed(players, season) {
 export function phaseChangeEmbed(phase, ts) {
   const clashNum = (ts && ts.clashNumber) || '?';
   const labels = {
-    registration: { title: '📋 Registration is now OPEN', color: TEAL, desc: 'Clash #' + clashNum + ' registration has opened! Head to [tftclash.com](' + SITE_URL + '/#/clash) to sign up.' },
-    checkin: { title: '🔵 Check-in is now OPEN', color: 0x3498DB, desc: 'Clash #' + clashNum + ' check-in is live! Make sure to check in or you will lose your spot.' },
-    inprogress: { title: '🔴 Clash #' + clashNum + ' is LIVE', color: RED, desc: 'The clash has started! Good luck to all players. May the best player win.' },
-    complete: { title: '✅ Clash #' + clashNum + ' is COMPLETE', color: GOLD, desc: 'Results are in! Use `/standings` to see updated rankings.' },
+    registration: { title: 'Registration is now OPEN',     desc: 'Clash #' + clashNum + ' registration has opened. Head to [tftclash.com](' + SITE_URL + '/#/clash) to sign up.' },
+    checkin:      { title: 'Check-in is now OPEN',         desc: 'Clash #' + clashNum + ' check-in is live. Make sure to check in or you will lose your spot.' },
+    inprogress:   { title: 'Clash #' + clashNum + ' is LIVE', desc: 'The clash has started. Good luck to all players. May the best player win.' },
+    complete:     { title: 'Clash #' + clashNum + ' is COMPLETE', desc: 'Results are in. Use `/standings` to see updated rankings.' },
   };
+  const info = labels[phase] || { title: 'Tournament Update', desc: 'Phase changed to: ' + phase };
+  var color = (STATUS_COLOR && STATUS_COLOR[phase]) ? STATUS_COLOR[phase] : STATUS_COLOR.notice;
 
-  const info = labels[phase] || { title: 'Tournament Update', color: PURPLE, desc: 'Phase changed to: ' + phase };
-
-  return new EmbedBuilder()
-    .setColor(info.color)
-    .setTitle(info.title)
-    .setDescription(info.desc)
-    .setFooter({ text: 'TFT Clash' })
-    .setTimestamp();
+  return brandEmbed({
+    color: color,
+    title: info.title,
+    body: info.desc,
+    footerNote: 'phase: ' + phase,
+  });
 }
 
 export function newRegistrationEmbed(playerName, regCount, clashNum) {

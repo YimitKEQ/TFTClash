@@ -20,6 +20,9 @@ import {
   findTournamentRole,
 } from './utils/tournamentRoles.js';
 import { resolveChannel } from './utils/channels.js';
+import { mentionFor, sweepPreGameRole } from './utils/notifyRoles.js';
+import { sendCheckinNudge, clearCheckinNudge } from './utils/checkinNudge.js';
+import { promoteNextStandby } from './utils/standby.js';
 
 var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
 
@@ -80,12 +83,32 @@ export function startListeners(client) {
         const schedCh = ch('clash-schedule');
         const annCh = ch('announcements');
 
+        var clashMention = mentionFor(guild(), 'clash');
         if (schedCh) {
-          const mention = val.phase === 'inprogress' ? '@everyone ' : val.phase === 'checkin' ? '@here ' : '';
-          await schedCh.send({ content: mention || undefined, embeds: [embed] });
+          // Opt-in only: ping Clash Notify role on registration + inprogress.
+          // Checkin gets no mention (channel post only) — registered players
+          // already get a DM nudge via checkinNudge.js.
+          var schedPing = (val.phase === 'registration' || val.phase === 'inprogress') ? (clashMention + ' ') : '';
+          await schedCh.send({ content: schedPing || undefined, embeds: [embed], allowedMentions: { roles: clashMention ? [clashMention.replace(/[<@&>]/g, '')] : [] } });
         }
         if (annCh && (val.phase === 'registration' || val.phase === 'inprogress')) {
-          await annCh.send({ embeds: [embed] });
+          await annCh.send({ content: clashMention ? (clashMention + ' ') : undefined, embeds: [embed], allowedMentions: { roles: clashMention ? [clashMention.replace(/[<@&>]/g, '')] : [] } });
+        }
+        if (val.phase === 'complete') {
+          sweepPreGameRole(guild()).catch(function(e) { console.warn('[listener] Pre-Game sweep failed: ' + ((e && e.message) || e)); });
+        }
+
+        // Phase 4: DM blast when check-in opens. Dedupe via site_settings so
+        // a bot restart mid-window doesn't re-blast everyone.
+        if (val.phase === 'checkin' && val.dbTournamentId) {
+          sendCheckinNudge(client, { id: val.dbTournamentId, name: 'Clash #' + (val.clashNumber || '?') }, 'checkin').catch(function(e) {
+            console.warn('[listener] checkin DM nudge failed: ' + ((e && e.message) || e));
+          });
+        }
+        // Reset nudge dedupe when registration re-opens (admin reset).
+        if (val.phase === 'registration' && val.dbTournamentId) {
+          clearCheckinNudge(val.dbTournamentId, 'checkin').catch(function() {});
+          clearCheckinNudge(val.dbTournamentId, 'pregame').catch(function() {});
         }
 
         // Auto lobby channels
@@ -399,6 +422,54 @@ export function startListeners(client) {
         }, 3000);
       } catch (err) {
         console.error('[listener] registration role sync error:', err);
+      }
+    })
+    .subscribe();
+
+  // ─── Registration DQ → promote next standby ──────────────────────────────
+  // Fires when a registration transitions to disqualified=true (typically a
+  // no-show). Pulls the oldest standby player via the claim_standby_seat RPC
+  // (atomic, FOR UPDATE) and DMs both the demoted player and the promoted one.
+  supabase
+    .channel('bot_registration_dq')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'registrations' }, async function(payload) {
+      try {
+        var prev = payload.old || {};
+        var next = payload.new || {};
+        if (!next.tournament_id) return;
+        var becameDQ = !!next.disqualified && !prev.disqualified;
+        if (!becameDQ) return;
+
+        // Look up tournament cap (max_players if defined) so we don't
+        // promote past it.
+        var tRes = await supabase
+          .from('tournaments')
+          .select('id, name, max_players')
+          .eq('id', next.tournament_id)
+          .single();
+        if (tRes.error || !tRes.data) return;
+        var seatCap = tRes.data.max_players || null;
+
+        var promo = await promoteNextStandby(next.tournament_id, seatCap);
+        if (!promo.ok) {
+          if (promo.reason && promo.reason !== 'empty') {
+            console.log('[listener] standby promote skipped: ' + promo.reason);
+          }
+          return;
+        }
+
+        // DM the promoted player so they know to register/check in.
+        if (promo.promoted && promo.promoted.discordUserId) {
+          try {
+            var user = await client.users.fetch(promo.promoted.discordUserId);
+            await user.send('You were just promoted from standby into **' + (tRes.data.name || 'the active clash') + '**. Head to the platform and check in before the window closes.');
+          } catch (e) {
+            console.warn('[listener] standby promotion DM failed: ' + ((e && e.message) || e));
+          }
+        }
+        console.log('[listener] standby promoted: ' + (promo.promoted && promo.promoted.username) + ' → tournament ' + next.tournament_id);
+      } catch (err) {
+        console.error('[listener] standby promotion error:', err);
       }
     })
     .subscribe();

@@ -25,8 +25,12 @@ import { data as lobby }        from './commands/lobby.js';
 import { data as submit }       from './commands/submit.js';
 import { data as dispute }      from './commands/dispute.js';
 import { data as tournament }   from './commands/tournament.js';
+import { data as notify }       from './commands/notify.js';
+import { data as setupnotify }  from './commands/setupnotify.js';
+import { data as layout }       from './commands/layout.js';
+import { data as standby }      from './commands/standby.js';
 
-const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown, compare, hype, stats, top, lobby, submit, dispute, tournament].map(function(c) { return c.toJSON(); });
+const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown, compare, hype, stats, top, lobby, submit, dispute, tournament, notify, setupnotify, layout, standby].map(function(c) { return c.toJSON(); });
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 

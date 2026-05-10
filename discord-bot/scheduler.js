@@ -3,6 +3,7 @@ import { EmbedBuilder } from 'discord.js';
 import { standingsEmbed, reminderEmbed } from './utils/embeds.js';
 import { getStandings, getSeasonConfig, getTournamentState, getRegistrations } from './utils/data.js';
 import { requireChannel } from './utils/channels.js';
+import { mentionFor } from './utils/notifyRoles.js';
 
 function getGuild(client) {
   return client.guilds.cache.get(process.env.GUILD_ID);
@@ -66,7 +67,8 @@ export async function postReminder24h(client, opts) {
   var ts = await getTournamentState();
   var manual = opts && opts.manual;
   if (!manual && !isClashScheduled(ts)) { console.log('[sched] 24h skipped - no scheduled clash'); return { skipped: true, reason: 'no-clash' }; }
-  await c.send({ content: '@everyone', embeds: [reminderEmbed(24, ts)] });
+  var ping24 = mentionFor(guild, 'clash');
+  await c.send({ content: ping24 || undefined, embeds: [reminderEmbed(24, ts)], allowedMentions: { roles: ping24 ? [ping24.replace(/[<@&>]/g, '')] : [], parse: [] } });
   console.log('[sched] 24h reminder posted');
   return { channel: c.name, action: 'reminder24h' };
 }
@@ -79,7 +81,8 @@ export async function postReminder1h(client, opts) {
   var ts = await getTournamentState();
   var manual = opts && opts.manual;
   if (!manual && !isClashScheduled(ts)) { console.log('[sched] 1h skipped - no scheduled clash'); return { skipped: true, reason: 'no-clash' }; }
-  await c.send({ content: '@here', embeds: [reminderEmbed(1, ts)] });
+  var ping1 = mentionFor(guild, 'clash');
+  await c.send({ content: ping1 || undefined, embeds: [reminderEmbed(1, ts)], allowedMentions: { roles: ping1 ? [ping1.replace(/[<@&>]/g, '')] : [], parse: [] } });
   console.log('[sched] 1h reminder posted');
   return { channel: c.name, action: 'reminder1h' };
 }

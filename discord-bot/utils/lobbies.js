@@ -7,7 +7,9 @@
 import { ChannelType, PermissionFlagsBits } from 'discord.js';
 import { supabase } from './supabase.js';
 
-var CATEGORY_NAME = '--- CLASH LIVE ---';
+var CATEGORY_NAME = '🔴 LIVE CLASH';
+// Legacy names we still match when destroying so older categories get cleaned.
+var LEGACY_CATEGORY_NAMES = ['--- CLASH LIVE ---', 'CLASH LIVE'];
 var LOBBY_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 /**
@@ -157,31 +159,35 @@ export async function createLobbyChannels(guild, ts) {
 export async function destroyLobbyChannels(guild) {
   if (!guild) return { destroyed: 0 };
 
-  var category = guild.channels.cache.find(function(c) {
-    return c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME;
+  // Match the new category name AND any legacy names so old "--- CLASH LIVE ---"
+  // categories from before the Phase 2 rename still get cleaned up.
+  var matches = guild.channels.cache.filter(function(c) {
+    if (c.type !== ChannelType.GuildCategory) return false;
+    if (c.name === CATEGORY_NAME) return true;
+    return LEGACY_CATEGORY_NAMES.indexOf(c.name) !== -1;
   });
 
-  if (!category) return { destroyed: 0 };
+  if (matches.size === 0) return { destroyed: 0 };
 
   var destroyed = 0;
 
-  // Delete all children first
-  var children = guild.channels.cache.filter(function(c) { return c.parentId === category.id; });
-  for (var _ref of children) {
-    var ch = _ref[1];
-    try {
-      await ch.delete('Clash ended - lobby cleanup');
-      destroyed++;
-    } catch (e) {
-      console.error('[lobbies] Failed to delete channel ' + ch.name + ':', e.message);
+  for (var catEntry of matches) {
+    var category = catEntry[1];
+    var children = guild.channels.cache.filter(function(c) { return c.parentId === category.id; });
+    for (var _ref of children) {
+      var ch = _ref[1];
+      try {
+        await ch.delete('Clash ended - lobby cleanup');
+        destroyed++;
+      } catch (e) {
+        console.error('[lobbies] Failed to delete channel ' + ch.name + ':', e.message);
+      }
     }
-  }
-
-  // Delete the category
-  try {
-    await category.delete('Clash ended - lobby cleanup');
-  } catch (e) {
-    console.error('[lobbies] Failed to delete category:', e.message);
+    try {
+      await category.delete('Clash ended - lobby cleanup');
+    } catch (e) {
+      console.error('[lobbies] Failed to delete category ' + category.name + ':', e.message);
+    }
   }
 
   console.log('[lobbies] Destroyed ' + destroyed + ' lobby channels');
