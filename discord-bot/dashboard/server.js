@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { EmbedBuilder } from 'discord.js';
@@ -72,12 +73,23 @@ console.error = function() {
 export function startDashboard(client) {
   var app = express();
   var port = parseInt(process.env.DASHBOARD_PORT) || 3737;
+  var host = process.env.DASHBOARD_HOST || '127.0.0.1';
 
-  app.use(express.json());
+  app.disable('x-powered-by');
+  // Trust loopback proxies only (rate-limit needs req.ip set correctly when reverse-proxied).
+  app.set('trust proxy', 'loopback');
+
+  app.use(express.json({ limit: '64kb' }));
   app.use(express.static(path.join(__dirname, 'public')));
 
   // ─── Dashboard auth (optional DASHBOARD_SECRET env var) ─────────────────────
   var dashSecret = process.env.DASHBOARD_SECRET || '';
+  var exposed = host !== '127.0.0.1' && host !== 'localhost';
+  if (exposed && !dashSecret) {
+    console.error('[dashboard] ⚠️  DANGER: bound to ' + host + ' WITHOUT DASHBOARD_SECRET. Anyone with network access can post messages, assign roles, and trigger jobs. Set DASHBOARD_SECRET in .env or bind to 127.0.0.1 (default).');
+  } else if (!dashSecret) {
+    console.log('[dashboard] No DASHBOARD_SECRET set. Listening on loopback (' + host + ') only — set a secret to expose.');
+  }
   if (dashSecret) {
     app.use('/api', function(req, res, next) {
       var token = req.headers['x-dashboard-token'] || req.query.token;
@@ -88,10 +100,30 @@ export function startDashboard(client) {
     });
   }
 
+  // ─── Rate limit mutating endpoints ──────────────────────────────────────────
+  // 30 req / minute / IP for any POST. Reads (GET) are uncapped — UI polls them.
+  var writeLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests. Slow down.' },
+  });
+  app.use('/api', function(req, res, next) {
+    if (req.method === 'GET') return next();
+    return writeLimiter(req, res, next);
+  });
+
   // Helper to get the guild
   function getGuild() {
     return client.guilds.cache.get(process.env.GUILD_ID);
   }
+
+  // ─── GET /api/health ─────────────────────────────────────────────────────────
+  // Liveness check — no DB/Discord calls, safe for uptime monitors.
+  app.get('/api/health', function(req, res) {
+    res.json({ ok: true, ts: Date.now() });
+  });
 
   // ─── GET /api/status ─────────────────────────────────────────────────────────
   app.get('/api/status', async function(req, res) {
@@ -356,6 +388,13 @@ export function startDashboard(client) {
         return res.status(400).json({ error: 'memberId and roleName are required' });
       }
 
+      // Defense-in-depth: dashboard can only manage bot-owned roles. Stops a
+      // compromised dashboard from handing out Admin/Moderator. UI already
+      // restricts to ALL_MANAGED — this enforces it server-side.
+      if (ALL_MANAGED.indexOf(roleName) === -1) {
+        return res.status(403).json({ error: 'roleName must be one of the bot-managed roles' });
+      }
+
       var guild = getGuild();
       if (!guild) return res.status(400).json({ error: 'Guild not found' });
 
@@ -429,8 +468,8 @@ export function startDashboard(client) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
-  var server = app.listen(port, function() {
-    console.log('[dashboard] http://localhost:' + port);
+  var server = app.listen(port, host, function() {
+    console.log('[dashboard] http://' + host + ':' + port);
   });
   server.on('error', function(err) {
     if (err.code === 'EADDRINUSE') {
