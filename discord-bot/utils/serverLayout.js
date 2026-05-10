@@ -1,247 +1,139 @@
 /**
- * serverLayout.js — Desired channel layout for the TFT Clash Discord server.
+ * serverLayout.js — improvement-only audit of the existing Discord guild.
  *
- * Source of truth for "what categories and channels should exist". The
- * `/layout audit` command diffs a live guild against this map; `/layout apply`
- * creates anything missing. Neither command ever deletes — humans handle removal.
+ * No DESIRED_LAYOUT, no creation. The previous version added categories /
+ * channels the host never wanted. This module now describes what's there
+ * and flags duplicates / orphans so they can be cleaned up in place.
  *
- * Names are kept stable on purpose so that `resolveChannel()` substring matches
- * keep working. Cosmetic prefixes (emojis, bullets) live here and are stripped
- * before comparison.
+ * Public surface:
+ *   scanGuild(guild)               -> { categories: [{name, channels:[]}], orphans: [] }
+ *   findDuplicates(guild)          -> [{ name, channels:[{id,name,parentName}] }]
+ *   cleanupOrphanDuplicates(guild) -> { deleted: [], skipped: [], errors: [] }
+ *
+ * Per-tournament + lobby categories are excluded from audits because they're
+ * owned by other modules (customTournamentChannels.js, lobbies.js).
  */
 
 import { ChannelType } from 'discord.js';
 
-// Per-tournament categories created by customTournamentChannels.js look like
-// "🏆 my-cup #a3f1b9c8". They are owned by that module and must be excluded
-// from layout audits so they aren't reported as "extras" or removed by humans.
 export var TOURNAMENT_CATEGORY_PATTERN = /🏆\s.*#[a-f0-9]{6,}/i;
-
-// Lobby category created by lobbies.js for the season clash. Same exclusion
-// applies — it's transient and owned by that module.
 export var LIVE_CLASH_CATEGORY = '🔴 LIVE CLASH';
 
-// "kind" maps to a Discord channel type. Default 'text' for GuildText.
-export var DESIRED_LAYOUT = [
-  {
-    category: '── INFO ──',
-    children: [
-      { name: 'announcements',     kind: 'text', topic: 'Official news from the TFT Clash team. Read-only.' },
-      { name: 'rules',             kind: 'text', topic: 'Server rules. Read before participating.' },
-      { name: 'how-to-clash',      kind: 'text', topic: 'Step-by-step guide on how a TFT Clash works.' },
-      { name: 'faq',               kind: 'text', topic: 'Frequently asked questions. Read before pinging a host.' },
-    ],
-  },
-  {
-    category: '── PLATFORM ──',
-    children: [
-      { name: 'verify',            kind: 'text', topic: 'Click the Verify button to unlock the rest of the server.' },
-      { name: 'notifications',     kind: 'text', topic: 'React to opt in to ping roles. The bot manages this panel.' },
-      { name: 'bot-commands',      kind: 'text', topic: 'Try out slash commands here. /standings, /clash, /lobby, /notify, ...' },
-    ],
-  },
-  {
-    category: '── TOURNAMENTS ──',
-    children: [
-      { name: 'clash-schedule',      kind: 'text', topic: 'Upcoming clashes, reminders, phase changes. Bot-posted.' },
-      { name: 'clash-registrations', kind: 'text', topic: 'Live feed of new clash registrations. Bot-posted.' },
-      { name: 'results',             kind: 'text', topic: 'Final placements published after each clash. Bot-posted.' },
-      { name: 'standings',           kind: 'text', topic: 'Weekly standings auto-posted by the bot.' },
-      { name: 'bracket',             kind: 'text', topic: 'Bracket and recap posts. Bot-posted.' },
-    ],
-  },
-  {
-    category: '── COMMUNITY ──',
-    children: [
-      { name: 'general',           kind: 'text', topic: 'Main community chat. Be kind, no slurs, no advertising.' },
-      { name: 'meta-talk',         kind: 'text', topic: 'Patch talk, comp theory, augment debates.' },
-      { name: 'lfg',               kind: 'text', topic: 'Looking for a duo or scrim partner? Post here.' },
-      { name: 'clips',             kind: 'text', topic: 'Drop your sickest TFT moments and screenshots.' },
-      { name: 'newcomers',         kind: 'text', topic: 'New to TFT Clash? Say hi here.' },
-    ],
-  },
-  {
-    category: '── SUPPORT ──',
-    children: [
-      { name: 'feedback',          kind: 'forum', topic: 'Suggestions, ideas, feature requests. One thread per idea.' },
-      { name: 'bug-reports',       kind: 'forum', topic: 'Site or bot bug? Open a thread with steps to reproduce.' },
-    ],
-  },
-  {
-    category: '── STAFF ──',
-    children: [
-      { name: 'bot-logs',          kind: 'text', topic: 'Bot error log. Host-only.' },
-      { name: 'host-dashboard',    kind: 'text', topic: 'Hosts coordinate here.' },
-    ],
-  },
-];
-
-function normalizeKey(s) {
-  if (!s) return '';
-  // Strip emoji, dashes, dots, bullets, whitespace; lowercase. Substring match
-  // is intentional so cosmetic prefixes don't break detection.
-  return String(s).replace(/[\u{1F000}-\u{1FFFF}\u2000-\u27FF\u2900-\u297F\u2B00-\u2BFF\u{1F300}-\u{1F9FF}]/gu, '')
-    .replace(/[─\-\s\.\u00B7\u2022\uFF65・]/g, '').toLowerCase();
-}
-
-function findCategory(guild, name) {
-  var key = normalizeKey(name);
-  return guild.channels.cache.find(function(c) {
-    return c.type === ChannelType.GuildCategory && normalizeKey(c.name) === key;
-  }) || null;
-}
-
-function findChannelByName(guild, name, kind) {
-  var key = normalizeKey(name);
-  var wantedType = kind === 'forum' ? ChannelType.GuildForum : ChannelType.GuildText;
-  return guild.channels.cache.find(function(c) {
-    if (c.type !== wantedType) return false;
-    return normalizeKey(c.name) === key;
-  }) || null;
-}
-
-function isTournamentCategory(name) {
-  return !!name && TOURNAMENT_CATEGORY_PATTERN.test(name);
-}
-
-function isLiveClashCategory(name) {
+function isOwnedCategory(name) {
   if (!name) return false;
-  // Match both new and legacy names so we don't double-report the lobby category.
-  return name === LIVE_CLASH_CATEGORY || /CLASH\s*LIVE/i.test(name);
+  if (TOURNAMENT_CATEGORY_PATTERN.test(name)) return true;
+  if (name === LIVE_CLASH_CATEGORY) return true;
+  if (/CLASH\s*LIVE/i.test(name)) return true;
+  return false;
+}
+
+function isTextLike(t) {
+  return t === ChannelType.GuildText || t === ChannelType.GuildForum || t === ChannelType.GuildAnnouncement;
+}
+
+function normName(s) {
+  if (!s) return '';
+  // Strip common decorations + emoji + lowercase. Used for duplicate detection.
+  return String(s)
+    .replace(/[\u{1F000}-\u{1FFFF}\u2000-\u27FF\u2900-\u297F\u2B00-\u2BFF\u{1F300}-\u{1F9FF}]/gu, '')
+    .replace(/[─\-\s\.\u00B7\u2022\uFF65・]/g, '')
+    .toLowerCase();
 }
 
 /**
- * Diff the live guild against DESIRED_LAYOUT.
- *
- * Returns:
- *   {
- *     missingCategories: [string],
- *     missingChannels:   [{ category, name, kind }],
- *     existingCategories:[string],
- *     existingChannels:  [{ category, name, kind }],
- *     extraCategories:   [string],   // present in guild, not in layout (excludes tournament + live)
- *     extraChannels:     [{ category, name, type }], // children of known categories not in layout
- *   }
+ * Read-only snapshot of the guild grouped by category. Includes orphans
+ * (text/forum channels with no parentId).
  */
-export function auditLayout(guild) {
-  var out = {
-    missingCategories: [],
-    missingChannels: [],
-    existingCategories: [],
-    existingChannels: [],
-    extraCategories: [],
-    extraChannels: [],
-  };
-  if (!guild) return out;
+export function scanGuild(guild) {
+  if (!guild) return { categories: [], orphans: [], hidden: 0 };
 
-  var desiredCategoryKeys = {};
+  var byParent = {};
+  var orphans = [];
+  var hiddenCategoryCount = 0;
 
-  for (var group of DESIRED_LAYOUT) {
-    desiredCategoryKeys[normalizeKey(group.category)] = true;
-    var cat = findCategory(guild, group.category);
-    if (!cat) {
-      out.missingCategories.push(group.category);
-      // Every child counts as missing if the category doesn't exist
-      for (var miss of group.children) {
-        out.missingChannels.push({ category: group.category, name: miss.name, kind: miss.kind || 'text' });
-      }
-      continue;
-    }
-    out.existingCategories.push(cat.name);
-    for (var def of group.children) {
-      var existing = findChannelByName(guild, def.name, def.kind || 'text');
-      if (existing) {
-        out.existingChannels.push({ category: cat.name, name: existing.name, kind: def.kind || 'text' });
-      } else {
-        out.missingChannels.push({ category: group.category, name: def.name, kind: def.kind || 'text' });
-      }
-    }
-  }
-
-  // Walk every category in the guild to flag extras (excluding tournament + live)
+  // First pass: collect categories
   for (var pair of guild.channels.cache) {
     var ch = pair[1];
     if (ch.type !== ChannelType.GuildCategory) continue;
-    if (isTournamentCategory(ch.name)) continue;
-    if (isLiveClashCategory(ch.name)) continue;
-    if (!desiredCategoryKeys[normalizeKey(ch.name)]) {
-      out.extraCategories.push(ch.name);
-    }
+    if (isOwnedCategory(ch.name)) { hiddenCategoryCount += 1; continue; }
+    byParent[ch.id] = { id: ch.id, name: ch.name, position: ch.position, channels: [] };
   }
 
-  // Walk children of known categories to flag extras inside them
-  var knownCategoryNamesByKey = {};
-  for (var g of DESIRED_LAYOUT) {
-    var c2 = findCategory(guild, g.category);
-    if (c2) {
-      knownCategoryNamesByKey[c2.id] = {
-        category: c2.name,
-        wanted: {},
-      };
-      for (var ch2 of g.children) {
-        knownCategoryNamesByKey[c2.id].wanted[normalizeKey(ch2.name)] = true;
-      }
-    }
-  }
+  // Second pass: assign children
   for (var pair2 of guild.channels.cache) {
-    var ch3 = pair2[1];
-    if (ch3.type !== ChannelType.GuildText && ch3.type !== ChannelType.GuildForum) continue;
-    if (!ch3.parentId) continue;
-    var meta = knownCategoryNamesByKey[ch3.parentId];
-    if (!meta) continue;
-    if (!meta.wanted[normalizeKey(ch3.name)]) {
-      out.extraChannels.push({ category: meta.category, name: ch3.name, type: ch3.type === ChannelType.GuildForum ? 'forum' : 'text' });
+    var ch2 = pair2[1];
+    if (!isTextLike(ch2.type)) continue;
+    if (!ch2.parentId) {
+      orphans.push({ id: ch2.id, name: ch2.name, type: ch2.type });
+      continue;
     }
+    var bucket = byParent[ch2.parentId];
+    if (!bucket) continue; // parent is a hidden owned category
+    bucket.channels.push({ id: ch2.id, name: ch2.name, type: ch2.type, position: ch2.position });
   }
 
-  return out;
+  var categories = Object.values(byParent).sort(function(a, b) { return a.position - b.position; });
+  categories.forEach(function(c) {
+    c.channels.sort(function(a, b) { return a.position - b.position; });
+  });
+
+  return { categories: categories, orphans: orphans, hidden: hiddenCategoryCount };
 }
 
 /**
- * Create-only application of DESIRED_LAYOUT. Never deletes or renames anything.
- *
- * Returns { createdCategories: [string], createdChannels: [string], errors: [string] }.
+ * Find channels that share a normalized name (case/emoji-insensitive).
+ * Returns one entry per duplicate group.
  */
-export async function applyLayout(guild) {
-  var result = { createdCategories: [], createdChannels: [], errors: [] };
+export function findDuplicates(guild) {
+  if (!guild) return [];
+  var groups = {};
+  for (var pair of guild.channels.cache) {
+    var ch = pair[1];
+    if (!isTextLike(ch.type)) continue;
+    var key = normName(ch.name);
+    if (!key) continue;
+    if (!groups[key]) groups[key] = [];
+    var parentName = null;
+    if (ch.parentId) {
+      var parent = guild.channels.cache.get(ch.parentId);
+      if (parent) parentName = parent.name;
+    }
+    groups[key].push({ id: ch.id, name: ch.name, parentName: parentName, parentId: ch.parentId || null });
+  }
+  var dupes = [];
+  Object.keys(groups).forEach(function(k) {
+    if (groups[k].length > 1) dupes.push({ name: groups[k][0].name, channels: groups[k] });
+  });
+  return dupes;
+}
+
+/**
+ * Delete channels that are duplicates of an already-categorized channel AND
+ * have no parent category themselves (orphans). Conservative — only removes
+ * the orphan copy when a categorized twin exists.
+ */
+export async function cleanupOrphanDuplicates(guild) {
+  var result = { deleted: [], skipped: [], errors: [] };
   if (!guild) {
     result.errors.push('no guild');
     return result;
   }
-
-  for (var group of DESIRED_LAYOUT) {
-    var cat = findCategory(guild, group.category);
-    if (!cat) {
-      try {
-        cat = await guild.channels.create({
-          name: group.category,
-          type: ChannelType.GuildCategory,
-          reason: 'TFT Clash bot — /layout apply',
-        });
-        result.createdCategories.push(group.category);
-      } catch (e) {
-        result.errors.push('create category ' + group.category + ': ' + ((e && e.message) || e));
-        continue;
-      }
+  var dupes = findDuplicates(guild);
+  for (var group of dupes) {
+    var orphan = group.channels.find(function(c) { return !c.parentId; });
+    var anchored = group.channels.find(function(c) { return !!c.parentId; });
+    if (!orphan || !anchored) {
+      result.skipped.push({ name: group.name, reason: 'no orphan/anchor split' });
+      continue;
     }
-    for (var def of group.children) {
-      var existing = findChannelByName(guild, def.name, def.kind || 'text');
-      if (existing) continue;
-      var wantedType = def.kind === 'forum' ? ChannelType.GuildForum : ChannelType.GuildText;
-      try {
-        await guild.channels.create({
-          name: def.name,
-          type: wantedType,
-          parent: cat.id,
-          topic: def.topic || '',
-          reason: 'TFT Clash bot — /layout apply',
-        });
-        result.createdChannels.push(group.category + ' / ' + def.name);
-      } catch (e) {
-        result.errors.push('create channel ' + def.name + ': ' + ((e && e.message) || e));
-      }
+    try {
+      var ch = guild.channels.cache.get(orphan.id);
+      if (!ch) { result.skipped.push({ name: group.name, reason: 'cache miss' }); continue; }
+      await ch.delete('TFT Clash bot — /layout cleanup-orphans (duplicate of #' + anchored.name + ')');
+      result.deleted.push({ name: orphan.name, id: orphan.id });
+    } catch (e) {
+      result.errors.push(orphan.name + ': ' + ((e && e.message) || e));
     }
   }
-
   return result;
 }

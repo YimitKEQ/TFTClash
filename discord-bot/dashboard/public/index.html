@@ -717,11 +717,12 @@
           <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
           <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Optional title"></div>
           <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="What do you want to say?"></textarea></div>
-          <div class="fg"><label>Mention</label>
+          <div class="fg"><label>Ping role (opt-in only — never @everyone)</label>
             <div class="radio-row">
-              <label><input type="radio" name="annMention" value="none" checked> None</label>
-              <label><input type="radio" name="annMention" value="here"> @here</label>
-              <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
+              <label><input type="radio" name="annNotify" value="none" checked> None</label>
+              <label><input type="radio" name="annNotify" value="clash"> Clash Notify</label>
+              <label><input type="radio" name="annNotify" value="tournament"> Tournament Notify</label>
+              <label><input type="radio" name="annNotify" value="live"> Live Updates</label>
             </div>
           </div>
           <button class="send-btn" onclick="sendAnnounce()">Send Announcement</button>
@@ -1058,11 +1059,12 @@
       var channelId = $('annChannel').value;
       var title = $('annTitle').value;
       var message = $('annMessage').value;
-      var mention = document.querySelector('input[name="annMention"]:checked').value;
+      var notifyKind = document.querySelector('input[name="annNotify"]:checked').value;
+      if (notifyKind === 'none') notifyKind = null;
       if (!message.trim()) { toast('Message is required', 'error'); return; }
       if (!confirm('Send announcement to Discord?')) return;
       try {
-        var res = await api('POST', '/announce', { channelId: channelId, title: title, message: message, mention: mention });
+        var res = await api('POST', '/announce', { channelId: channelId, title: title, message: message, notifyKind: notifyKind });
         toast('Sent to #' + res.channel, 'success');
         $('annTitle').value = ''; $('annMessage').value = '';
       } catch (e) { toast('Failed: ' + e.message, 'error'); }

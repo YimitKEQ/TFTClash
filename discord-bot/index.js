@@ -15,7 +15,8 @@ import { startDashboard } from './dashboard/server.js';
 import { syncAllRoles } from './utils/roles.js';
 import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
 import { ensureNotifyRoles, addNotifyRole, removeNotifyRole } from './utils/notifyRoles.js';
-import { hydratePanel, reactionToKind } from './utils/reactionRoles.js';
+import { hydratePanel, reactionToKind, loadPanelMessageId } from './utils/reactionRoles.js';
+import { hydrateAllPickers, handlePickerReaction } from './utils/rolePickers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Client({
@@ -74,6 +75,11 @@ client.once(Events.ClientReady, function(c) {
         else console.log('[reactionRoles] no panel hydrated (' + (h.reason || 'unknown') + ') — run /setupnotify');
       }).catch(function(e) { console.warn('[reactionRoles] hydrate failed: ' + ((e && e.message) || e)); });
     }).catch(function(e) { console.error('[notifyRoles] bootstrap failed: ' + ((e && e.message) || e)); });
+
+    // Hydrate generalized role-picker panels so their reactions fire after restart.
+    hydrateAllPickers(client).catch(function(e) {
+      console.warn('[rolePickers] hydrate failed: ' + ((e && e.message) || e));
+    });
   }
 });
 
@@ -90,9 +96,13 @@ async function handleReaction(reaction, user, action) {
     var msg = reaction.message;
     var guild = msg.guild;
     if (!guild) return;
-    // Only respond to reactions on the persisted notify panel
-    var loadPanelId = (await import('./utils/reactionRoles.js')).loadPanelMessageId;
-    var panelId = await loadPanelId();
+
+    // Generalized role pickers first — short-circuit if matched.
+    var consumed = await handlePickerReaction(reaction, user, action);
+    if (consumed) return;
+
+    // Legacy notify panel (clash/tournament/live).
+    var panelId = await loadPanelMessageId();
     if (!panelId || msg.id !== panelId) return;
 
     var emojiName = (reaction.emoji && (reaction.emoji.name || reaction.emoji.toString())) || '';

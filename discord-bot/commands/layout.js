@@ -1,68 +1,72 @@
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
-import { auditLayout, applyLayout } from '../utils/serverLayout.js';
+import { scanGuild, findDuplicates, cleanupOrphanDuplicates } from '../utils/serverLayout.js';
 
-function chunk(arr, n) {
-  var out = [];
-  for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
-  return out;
+function fmtChannelLine(c) {
+  return '#' + c.name;
 }
 
-function fmtMissing(missing) {
-  if (!missing.length) return '_(none)_';
-  return missing.map(function(m) { return '`' + m.category + ' / ' + m.name + '`' + (m.kind === 'forum' ? ' (forum)' : ''); }).join('\n');
-}
+function buildAuditEmbed(guild) {
+  var snapshot = scanGuild(guild);
+  var dupes = findDuplicates(guild);
 
-function fmtExtraCh(extras) {
-  if (!extras.length) return '_(none)_';
-  return extras.map(function(e) { return '`' + e.category + ' / ' + e.name + '`' + (e.type === 'forum' ? ' (forum)' : ''); }).join('\n');
-}
+  var totalChannels = snapshot.categories.reduce(function(n, c) { return n + c.channels.length; }, 0) + snapshot.orphans.length;
 
-function buildAuditEmbed(audit) {
   var embed = new EmbedBuilder()
-    .setColor(audit.missingCategories.length || audit.missingChannels.length ? 0xE8A838 : 0x4ECDC4)
-    .setTitle('Server Layout Audit')
+    .setColor(dupes.length || snapshot.orphans.length ? 0xE8A838 : 0x4ECDC4)
+    .setTitle('Server Layout — Audit')
     .setDescription(
-      'Categories present: **' + audit.existingCategories.length + '**, missing: **' + audit.missingCategories.length + '**\n' +
-      'Channels present: **' + audit.existingChannels.length + '**, missing: **' + audit.missingChannels.length + '**\n' +
-      'Per-tournament categories (excluded): managed by /tournament create'
+      'Categories: **' + snapshot.categories.length + '**' +
+      ' · Channels: **' + totalChannels + '**' +
+      ' · Orphans: **' + snapshot.orphans.length + '**' +
+      ' · Duplicates: **' + dupes.length + '**' +
+      (snapshot.hidden ? '\n_' + snapshot.hidden + ' tournament/lobby category(ies) hidden — managed by other commands._' : '')
     )
     .setTimestamp();
 
-  if (audit.missingCategories.length) {
-    embed.addFields({ name: 'Missing categories', value: audit.missingCategories.map(function(c) { return '`' + c + '`'; }).join('\n').slice(0, 1024) });
+  // Per-category channel listing (truncate to fit embed limits)
+  var fields = [];
+  snapshot.categories.forEach(function(cat) {
+    var lines = cat.channels.map(fmtChannelLine);
+    var value = lines.length ? lines.join('\n') : '_(empty)_';
+    if (value.length > 1024) value = value.slice(0, 1020) + '\n…';
+    fields.push({ name: cat.name, value: value, inline: true });
+  });
+  // Discord caps at 25 fields total — keep room for orphans + dupes
+  embed.addFields(fields.slice(0, 22));
+
+  if (snapshot.orphans.length) {
+    var orphanLines = snapshot.orphans.map(function(o) { return '#' + o.name; });
+    embed.addFields({ name: 'Uncategorized channels', value: orphanLines.join('\n').slice(0, 1024) });
   }
-  if (audit.missingChannels.length) {
-    var rows = fmtMissing(audit.missingChannels);
-    var blocks = chunk(rows.split('\n'), 10).map(function(b) { return b.join('\n'); }).slice(0, 3);
-    blocks.forEach(function(b, i) {
-      embed.addFields({ name: 'Missing channels' + (blocks.length > 1 ? ' (' + (i + 1) + '/' + blocks.length + ')' : ''), value: b.slice(0, 1024) });
+
+  if (dupes.length) {
+    var dupeLines = dupes.map(function(g) {
+      var locs = g.channels.map(function(c) { return c.parentName ? ('`' + c.parentName + '`') : '_(uncategorized)_'; }).join(' ↔ ');
+      return '`#' + g.name + '` → ' + locs;
     });
+    embed.addFields({ name: 'Duplicate channels', value: dupeLines.join('\n').slice(0, 1024) });
   }
-  if (audit.extraCategories.length) {
-    embed.addFields({ name: 'Extra categories (not in layout)', value: audit.extraCategories.map(function(c) { return '`' + c + '`'; }).join('\n').slice(0, 1024) });
-  }
-  if (audit.extraChannels.length) {
-    embed.addFields({ name: 'Extra channels in known categories', value: fmtExtraCh(audit.extraChannels).slice(0, 1024) });
-  }
-  embed.setFooter({ text: '/layout apply will create only what is missing — never deletes.' });
+
+  embed.setFooter({ text: 'Read-only. Use /layout cleanup-orphans to delete uncategorized duplicates.' });
   return embed;
 }
 
-function buildApplyEmbed(res) {
+function buildCleanupEmbed(res) {
+  var color = res.errors.length ? 0xC0392B : (res.deleted.length ? 0x4ECDC4 : 0x95A5A6);
   var embed = new EmbedBuilder()
-    .setColor(res.errors.length ? 0xC0392B : 0x4ECDC4)
-    .setTitle('Server Layout Applied')
+    .setColor(color)
+    .setTitle('Server Layout — Orphan Cleanup')
     .setDescription(
-      'Created categories: **' + res.createdCategories.length + '**\n' +
-      'Created channels: **' + res.createdChannels.length + '**\n' +
-      'Errors: **' + res.errors.length + '**'
+      'Deleted: **' + res.deleted.length + '**' +
+      ' · Skipped: **' + res.skipped.length + '**' +
+      ' · Errors: **' + res.errors.length + '**'
     )
     .setTimestamp();
-  if (res.createdCategories.length) {
-    embed.addFields({ name: 'New categories', value: res.createdCategories.map(function(c) { return '`' + c + '`'; }).join('\n').slice(0, 1024) });
+  if (res.deleted.length) {
+    embed.addFields({ name: 'Deleted', value: res.deleted.map(function(d) { return '#' + d.name; }).join('\n').slice(0, 1024) });
   }
-  if (res.createdChannels.length) {
-    embed.addFields({ name: 'New channels', value: res.createdChannels.map(function(c) { return '`' + c + '`'; }).join('\n').slice(0, 1024) });
+  if (res.skipped.length) {
+    embed.addFields({ name: 'Skipped', value: res.skipped.map(function(s) { return '`' + s.name + '` — ' + s.reason; }).join('\n').slice(0, 1024) });
   }
   if (res.errors.length) {
     embed.addFields({ name: 'Errors', value: res.errors.slice(0, 5).map(function(e) { return '• ' + e; }).join('\n').slice(0, 1024) });
@@ -72,13 +76,14 @@ function buildApplyEmbed(res) {
 
 export var data = new SlashCommandBuilder()
   .setName('layout')
-  .setDescription('Audit or apply the desired Discord server layout (admin only)')
+  .setDescription('Inspect or clean up the existing Discord channel layout (admin only)')
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
   .addSubcommand(function(sub) {
-    return sub.setName('audit').setDescription('Dry-run: show categories/channels that are missing or unexpected');
+    return sub.setName('audit').setDescription('Read-only snapshot of categories, channels, orphans and duplicates');
   })
   .addSubcommand(function(sub) {
-    return sub.setName('apply').setDescription('Create any missing categories/channels. Never deletes.');
+    return sub.setName('cleanup-orphans').setDescription('Delete uncategorized channels that are duplicates of categorized ones')
+      .addBooleanOption(function(o) { return o.setName('confirm').setDescription('Set true to actually delete').setRequired(true); });
   });
 
 export async function execute(interaction) {
@@ -87,13 +92,16 @@ export async function execute(interaction) {
   var guild = interaction.guild;
 
   if (sub === 'audit') {
-    var audit = auditLayout(guild);
-    return interaction.editReply({ embeds: [buildAuditEmbed(audit)] });
+    return interaction.editReply({ embeds: [buildAuditEmbed(guild)] });
   }
 
-  if (sub === 'apply') {
-    var res = await applyLayout(guild);
-    return interaction.editReply({ embeds: [buildApplyEmbed(res)] });
+  if (sub === 'cleanup-orphans') {
+    var confirm = interaction.options.getBoolean('confirm');
+    if (!confirm) {
+      return interaction.editReply('Pass `confirm:true` to actually delete uncategorized duplicates. Run `/layout audit` first to preview.');
+    }
+    var res = await cleanupOrphanDuplicates(guild);
+    return interaction.editReply({ embeds: [buildCleanupEmbed(res)] });
   }
 
   return interaction.editReply('Unknown subcommand.');

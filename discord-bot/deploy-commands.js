@@ -29,8 +29,9 @@ import { data as notify }       from './commands/notify.js';
 import { data as setupnotify }  from './commands/setupnotify.js';
 import { data as layout }       from './commands/layout.js';
 import { data as standby }      from './commands/standby.js';
+import { data as rolepicker }   from './commands/rolepicker.js';
 
-const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown, compare, hype, stats, top, lobby, submit, dispute, tournament, notify, setupnotify, layout, standby].map(function(c) { return c.toJSON(); });
+const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown, compare, hype, stats, top, lobby, submit, dispute, tournament, notify, setupnotify, layout, standby, rolepicker].map(function(c) { return c.toJSON(); });
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 

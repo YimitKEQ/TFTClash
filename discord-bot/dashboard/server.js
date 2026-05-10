@@ -13,6 +13,26 @@ import { postStandings, postReminder24h, postReminder1h } from '../scheduler.js'
 import { syncAllRoles, syncPlayerRoles, manualRoleAssign, getMemberRoles, ALL_MANAGED } from '../utils/roles.js';
 import { createLobbyChannels, destroyLobbyChannels } from '../utils/lobbies.js';
 import { supabase } from '../utils/supabase.js';
+import { mentionFor, NOTIFY_KINDS } from '../utils/notifyRoles.js';
+
+// Build send opts that respect notifyKind (clash | tournament | live) and never
+// allow @everyone / @here even if the body text contains them.
+function buildSendOpts(guild, notifyKind, embed) {
+  var mention = '';
+  var allowedRoleIds = [];
+  if (notifyKind && NOTIFY_KINDS[notifyKind]) {
+    mention = mentionFor(guild, notifyKind);
+    if (mention) {
+      var idMatch = mention.match(/<@&(\d+)>/);
+      if (idMatch) allowedRoleIds.push(idMatch[1]);
+    }
+  }
+  return {
+    content: mention || undefined,
+    embeds: [embed],
+    allowedMentions: { roles: allowedRoleIds, parse: [] },
+  };
+}
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -161,7 +181,7 @@ export function startDashboard(client) {
       var channelId = req.body.channelId;
       var title = req.body.title || '';
       var message = req.body.message || '';
-      var mention = req.body.mention || 'none';
+      var notifyKind = req.body.notifyKind || null;
 
       if (!channelId || !message) {
         return res.status(400).json({ error: 'channelId and message are required' });
@@ -178,10 +198,9 @@ export function startDashboard(client) {
         .setFooter({ text: 'TFT Clash' })
         .setTimestamp();
 
-      var content = mention === 'everyone' ? '@everyone' : mention === 'here' ? '@here' : undefined;
-      await channel.send({ content: content, embeds: [embed] });
+      await channel.send(buildSendOpts(guild, notifyKind, embed));
 
-      console.log('[dashboard] Announcement sent to #' + channel.name);
+      console.log('[dashboard] Announcement sent to #' + channel.name + (notifyKind ? (' (notify:' + notifyKind + ')') : ''));
       res.json({ ok: true, channel: channel.name });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -233,7 +252,7 @@ export function startDashboard(client) {
       var channel = guild ? guild.channels.cache.get(channelId) : null;
       if (!channel) return res.status(404).json({ error: 'Channel not found' });
 
-      await channel.send(content);
+      await channel.send({ content: content, allowedMentions: { roles: [], users: [], parse: [] } });
       console.log('[dashboard] Message sent to #' + channel.name + ': ' + content.substring(0, 50));
       res.json({ ok: true, channel: channel.name });
     } catch (err) {
@@ -272,7 +291,7 @@ export function startDashboard(client) {
       var title = req.body.title || '';
       var description = req.body.description || '';
       var color = req.body.color || 'purple';
-      var mention = req.body.mention || 'none';
+      var notifyKind = req.body.notifyKind || null;
 
       if (!channelId || !description) {
         return res.status(400).json({ error: 'channelId and description are required' });
@@ -291,10 +310,9 @@ export function startDashboard(client) {
 
       if (title) embed.setTitle(title);
 
-      var content = mention === 'everyone' ? '@everyone' : mention === 'here' ? '@here' : undefined;
-      await channel.send({ content: content, embeds: [embed] });
+      await channel.send(buildSendOpts(guild, notifyKind, embed));
 
-      console.log('[dashboard] Custom embed sent to #' + channel.name);
+      console.log('[dashboard] Custom embed sent to #' + channel.name + (notifyKind ? (' (notify:' + notifyKind + ')') : ''));
       res.json({ ok: true, channel: channel.name });
     } catch (err) {
       res.status(500).json({ error: err.message });
