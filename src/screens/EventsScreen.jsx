@@ -1712,11 +1712,32 @@ function WeeklyClashesPanel(props) {
     }).catch(function() { if (toast) toast('Registration failed', 'error') })
   }
 
-  // Hide entirely if BOTH regions have nothing scheduled — keeps the page tidy
-  // before a season starts.
-  if (!euRow && !naRow) return null
-
   var hash = (location.hash || '').replace('#', '')
+
+  if (!euRow && !naRow) {
+    return (
+      <section className="mb-12">
+        <div className="mb-5">
+          <h2 className="font-display text-2xl font-bold text-on-surface tracking-wide">Weekly Clash</h2>
+          <p className="text-on-surface-variant text-sm font-body mt-1">
+            The official EU + NA brackets. Free to enter every week.
+          </p>
+        </div>
+        <Panel padding="lg" className="text-center">
+          <Icon name="event_upcoming" size={36} className="text-primary/70 block mx-auto mb-3" />
+          <div className="font-display text-xl font-bold text-on-surface mb-2">Next clash on the way</div>
+          <div className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed mb-5">
+            The schedule for this week opens soon. Sign up so you're ready the moment registration goes live.
+          </div>
+          {!currentUser ? (
+            <Btn variant="primary" onClick={function() { onAuthClick && onAuthClick('signup') }}>Sign up</Btn>
+          ) : (
+            <Btn variant="ghost" onClick={function() { navigate('/standings') }}>View standings</Btn>
+          )}
+        </Panel>
+      </section>
+    )
+  }
 
   return (
     <section className="mb-12">

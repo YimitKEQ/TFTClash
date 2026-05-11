@@ -13,7 +13,7 @@ function Footer() {
   var platformLinks = [
     ["/", "Home"],
     ["/standings", "Standings"],
-    ["/leaderboard", "Leaderboard"],
+    ["/stats", "Stats Hub"],
     ["/hall-of-fame", "Hall of Fame"],
     ["/archive", "Archive"]
   ];

@@ -807,7 +807,7 @@ function TFTClash(){
 
       {/* Cookie Consent */}
       {!cookieConsent&&(
-        <div style={{position:"fixed",bottom:16,left:16,right:16,maxWidth:420,marginLeft:"auto",marginRight:16,background:"rgba(17,24,39,.97)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,zIndex:120,backdropFilter:"blur(8px)",boxShadow:"0 12px 36px rgba(0,0,0,.45)"}}>
+        <div className="fixed left-4 bottom-20 md:bottom-4 max-w-[340px] z-[120]" style={{background:"rgba(17,24,39,.97)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:8,backdropFilter:"blur(8px)",boxShadow:"0 12px 36px rgba(0,0,0,.45)"}}>
           <span style={{fontSize:12,color:"#BECBD9",lineHeight:1.4,flex:1,minWidth:0}}>Essential cookies only. <button onClick={function(){navTo("privacy");}} style={{background:"none",border:"none",color:"#9B72CF",cursor:"pointer",fontFamily:"inherit",fontSize:12,textDecoration:"underline",padding:0}}>Privacy</button></span>
           <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"6px 14px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:12,flexShrink:0}}>Got it</button>
         </div>

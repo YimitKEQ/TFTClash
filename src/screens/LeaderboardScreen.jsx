@@ -178,6 +178,11 @@ export default function LeaderboardScreen(props) {
   var tierFilter = _tierFilter[0]
   var setTierFilter = _tierFilter[1]
 
+  var _expanded = useState({})
+  var expanded = _expanded[0]
+  var setExpanded = _expanded[1]
+  var TIER_CAP = 25
+
   var sorted = useMemo(function() {
     var f = players.filter(function(p) {
       var matchName = !search || (p.name||'').toLowerCase().indexOf(search.toLowerCase()) !== -1
@@ -365,10 +370,15 @@ export default function LeaderboardScreen(props) {
                 {TIER_DIVIDERS.map(function(divider) {
                   var tierPlayers = tierGroups[divider.key] || []
                   if (tierPlayers.length === 0) return null
+                  var isExpanded = !!expanded[divider.key]
+                  var capped = isExpanded || tierPlayers.length <= TIER_CAP
+                    ? tierPlayers
+                    : tierPlayers.slice(0, TIER_CAP)
+                  var hidden = tierPlayers.length - capped.length
                   return (
                     <tbody key={divider.key} className="divide-y divide-outline-variant/5">
                       <TierDividerRow divider={divider} />
-                      {tierPlayers.map(function(player) {
+                      {capped.map(function(player) {
                         var rank = ranksMap[player.name]
                         var isMe = currentUser && player.name === currentUser.username
                         return (
@@ -381,6 +391,28 @@ export default function LeaderboardScreen(props) {
                           />
                         )
                       })}
+                      {(hidden > 0 || isExpanded) && (
+                        <tr>
+                          <td colSpan={6} className="px-2 sm:px-8 py-3 text-center bg-surface-container-lowest/30">
+                            <button
+                              type="button"
+                              onClick={function() {
+                                setExpanded(function(prev) {
+                                  var next = Object.assign({}, prev)
+                                  if (isExpanded) delete next[divider.key]
+                                  else next[divider.key] = true
+                                  return next
+                                })
+                              }}
+                              className="font-label text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                            >
+                              {isExpanded
+                                ? 'Show top ' + TIER_CAP
+                                : 'Show ' + hidden + ' more in ' + divider.label}
+                            </button>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   )
                 })}
