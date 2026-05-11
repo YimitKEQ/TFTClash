@@ -208,6 +208,23 @@ export default function AccountScreen() {
     if (tab === 'prizes' && !prizeClaims.loaded && !prizeClaims.loading) loadPrizeClaims();
   }, [tab, linkedPlayerId]);
 
+  useEffect(function() {
+    if (location.hash !== '#riot') return;
+    if (tab !== 'account') setTab('account');
+    var tries = 0;
+    var t = setInterval(function() {
+      var el = document.getElementById('riot');
+      tries += 1;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        clearInterval(t);
+      } else if (tries > 20) {
+        clearInterval(t);
+      }
+    }, 50);
+    return function() { clearInterval(t); };
+  }, [location.hash]);
+
   function openClaimForm(row) {
     setClaimFormOpen(row.id);
     setClaimFormData({ email: row.claim_email || user.email || '', address: row.claim_address ? JSON.stringify(row.claim_address) : '', saving: false });
@@ -1161,7 +1178,7 @@ export default function AccountScreen() {
             </Panel>
 
             {/* Riot Accounts (detailed) */}
-            <div className="md:col-span-4">
+            <div id="riot" className="md:col-span-4 scroll-mt-24">
               <Panel padding="none">
                 <div className="flex items-center gap-2 p-4 border-b border-white/[0.05]">
                   <Icon name="sports_esports" size={18} className="text-primary" />
