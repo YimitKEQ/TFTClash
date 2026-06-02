@@ -41,14 +41,15 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
       </div>
       {showCutLine&&(
         <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
-          {"Cut line: " + cutLine + " pts - players at or below are eliminated after Game " + cutAfterGame}
+          {"Cut line: " + cutLine + " pts - players below the line are eliminated after Game " + cutAfterGame}
         </div>
       )}
       <div className="divide-y divide-outline-variant/5">
         {liveRows.map(function(row,ri){
           var isLeader=ri===0&&row.earned>0;
-          var belowCut=showCutLine&&row.earned<=cutLine;
-          var nearCut=showCutLine&&!belowCut&&row.earned<=cutLine+3;
+          // Matches applyCutLine: pts >= cutLine survives, strictly below is eliminated.
+          var belowCut=showCutLine&&row.earned<cutLine;
+          var nearCut=showCutLine&&!belowCut&&row.earned<=cutLine+2;
           return(
             <div key={row.id} className={"flex items-center gap-3 px-5 py-2 " + (belowCut?"opacity-60 bg-error/5":isLeader?"bg-primary/5":"")}>
               <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (belowCut?"text-error":ri===0?"text-primary":ri===1?"text-on-surface-variant":ri===2?"text-on-surface-variant/70":"text-on-surface-variant/40")}>
@@ -168,7 +169,10 @@ function BracketScreen(){
   var autoAdvanceRef=useRef(null);
 
   function computeLobbies(){
-    var algo=(tournamentState&&tournamentState.seedAlgo)||"rank-based";
+    // Read whichever key the admin surface wrote. TournamentTab persists
+    // `seedingMethod`; older paths used `seedAlgo`. Accept both so the admin's
+    // Snake/Random/Anti-Stack choice is actually honored on round 1.
+    var algo=(tournamentState&&(tournamentState.seedingMethod||tournamentState.seedAlgo))||"rank-based";
     var pool;
     if(round===1){
       if(algo==="random"){
@@ -406,7 +410,10 @@ function BracketScreen(){
         }
       });
       if(gameRows.length>0){
-        supabase.from('game_results').insert(gameRows).then(function(res){
+        // Upsert (not insert) so a retry after a partial-success save cannot create
+        // duplicate rows for the same player/round, which would double-count season pts
+        // via the refresh_player_stats trigger. Matches the unique key from mig 052.
+        supabase.from('game_results').upsert(gameRows,{onConflict:'tournament_id,game_number,player_id'}).then(function(res){
           if(res.error){toast("Failed to save game results - please retry","error");rollbackLock();return;}
           // Aggregate stats are owned by the refresh_player_stats trigger on game_results.
           // Client-side players.update was duplicating the trigger's work and racing with it.
@@ -538,6 +545,50 @@ function BracketScreen(){
 
   var allLocked=lobbies.length>0&&lobbies.every(function(_,i){return lockedLobbies.includes(i);});
 
+  // Advance to the next round, applying the cut line when this is the cut round.
+  // Shared by the manual "Next Game" button AND the 15s auto-advance so the cut is
+  // never silently skipped. No-ops on the final round (finalize is handled separately).
+  function performRoundAdvance(isAuto){
+    var maxRounds=tournamentState.totalGames||4;
+    if(round>=maxRounds)return;
+    var nextRound=round+1;
+    var cutL=tournamentState.cutLine||0;
+    var cutG=tournamentState.cutAfterGame||0;
+    var cutMsg="";
+    if(cutL>0&&round===cutG){
+      var standings=checkedIn.map(function(p){
+        var clashEntries=(p.clashHistory||[]).filter(function(h){return h.clashId===currentClashId;});
+        var tournamentPts=clashEntries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
+        return Object.assign({},p,{tournamentPts:tournamentPts,gamesInTournament:clashEntries.length});
+      });
+      var cutResult=applyCutLine(standings,cutL,cutG);
+      var elimCount=cutResult.eliminated.length;
+      if(elimCount>0){
+        cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
+        var elimIds=cutResult.eliminated.map(function(ep){return String(ep.id);});
+        setPlayers(function(ps){return ps.map(function(p){return elimIds.indexOf(String(p.id))>=0?Object.assign({},p,{checkedIn:false}):p;});});
+        setTournamentState(function(ts){
+          var kept=(ts.checkedInIds||[]).filter(function(cid){return elimIds.indexOf(String(cid))<0;});
+          var existingElim=(ts.eliminatedIds||[]).map(String);
+          var mergedElim=existingElim.concat(elimIds.filter(function(eid){return existingElim.indexOf(eid)<0;}));
+          return Object.assign({},ts,{checkedInIds:kept,eliminatedIds:mergedElim});
+        });
+      }
+    }
+    var currentLobbies=lobbies;
+    setTournamentState(function(ts){
+      var newRoundHistory=Object.assign({},ts.roundHistory||{});
+      if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0){newRoundHistory[round]=ts.lockedPlacements;}
+      var newRoundLobbies=Object.assign({},ts.roundLobbies||{});
+      newRoundLobbies[round]=currentLobbies.map(function(lobby){
+        return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});
+      });
+      return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies});
+    });
+    if(isAuto)sfxAdvance();
+    toast((isAuto?"Auto-advanced to Game ":"Advanced to Game ")+nextRound+cutMsg,"success");
+  }
+
   // Auto-advance countdown when all lobbies locked.
   // advanceTriggeredRef guards against double-fire if state churns rapidly at countdown=0.
   var advanceTriggeredRef=useRef(false);
@@ -561,26 +612,15 @@ function BracketScreen(){
     return function(){if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}};
   },[allLocked,isAdmin,round,tournamentState.totalGames]);
 
-  // Trigger advance when countdown hits 0.
-  // Includes lobbies/round in deps so the closure captures latest state at the moment of advance.
+  // Trigger advance when countdown hits 0. Delegates to performRoundAdvance so the
+  // cut line is applied on auto-advance exactly as it is on the manual button.
+  // lobbies/round are in deps so the closure captures latest state at advance time.
   useEffect(function(){
     if(autoAdvanceCountdown!==0||!isAdmin||!allLocked)return;
     if(advanceTriggeredRef.current)return;
     advanceTriggeredRef.current=true;
     var maxRounds=tournamentState.totalGames||4;
-    if(round<maxRounds){
-      var nextRound=round+1;
-      var currentLobbies=lobbies;
-      setTournamentState(function(ts){
-        var newRH=Object.assign({},ts.roundHistory||{});
-        if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0)newRH[round]=ts.lockedPlacements;
-        var newRL=Object.assign({},ts.roundLobbies||{});
-        newRL[round]=currentLobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});});
-        return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRH,roundLobbies:newRL});
-      });
-      sfxAdvance();
-      toast("Auto-advanced to Game "+nextRound,"success");
-    }
+    if(round<maxRounds){performRoundAdvance(true);}
     setAutoAdvanceCountdown(null);
   },[autoAdvanceCountdown,isAdmin,allLocked,round,lobbies,tournamentState.totalGames]);
 
@@ -776,49 +816,8 @@ function BracketScreen(){
                 disabled={!allLocked}
                 onClick={function(){
                   var maxRounds=tournamentState.totalGames||4;
-                  var cutL=tournamentState.cutLine||0;
-                  var cutG=tournamentState.cutAfterGame||0;
-                  if(round>=maxRounds){
-                    setShowFinalizeConfirm(true);
-                  }else{
-                    var nextRound=round+1;
-                    var cutMsg="";
-                    if(cutL>0&&round===cutG){
-                      // Build standings from this clash's history (computeTournamentStandings
-                      // expects game_results and was being called with []).
-                      var standings=checkedIn.map(function(p){
-                        var clashEntries=(p.clashHistory||[]).filter(function(h){return h.clashId===currentClashId;});
-                        var tournamentPts=clashEntries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
-                        return Object.assign({},p,{tournamentPts:tournamentPts,gamesInTournament:clashEntries.length});
-                      });
-                      var cutResult=applyCutLine(standings,cutL,cutG);
-                      var elimCount=cutResult.eliminated.length;
-                      if(elimCount>0){
-                        cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
-                        var elimIds=cutResult.eliminated.map(function(ep){return String(ep.id);});
-                        setPlayers(function(ps){return ps.map(function(p){return elimIds.indexOf(String(p.id))>=0?Object.assign({},p,{checkedIn:false}):p;});});
-                        setTournamentState(function(ts){
-                          var kept=(ts.checkedInIds||[]).filter(function(cid){return elimIds.indexOf(String(cid))<0;});
-                          var existingElim=(ts.eliminatedIds||[]).map(String);
-                          var mergedElim=existingElim.concat(elimIds.filter(function(eid){return existingElim.indexOf(eid)<0;}));
-                          return Object.assign({},ts,{checkedInIds:kept,eliminatedIds:mergedElim});
-                        });
-                      }
-                    }
-                    setTournamentState(function(ts){
-                      // Save current round's placements and lobbies into history before advancing
-                      var newRoundHistory=Object.assign({},ts.roundHistory||{});
-                      if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0){
-                        newRoundHistory[round]=ts.lockedPlacements;
-                      }
-                      var newRoundLobbies=Object.assign({},ts.roundLobbies||{});
-                      newRoundLobbies[round]=lobbies.map(function(lobby){
-                        return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});
-                      });
-                      return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies});
-                    });
-                    toast("Advanced to Game "+nextRound+cutMsg,"success");
-                  }
+                  if(round>=maxRounds){setShowFinalizeConfirm(true);}
+                  else{performRoundAdvance(false);}
                 }}
                 className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold font-label uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110">
                 {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game"}

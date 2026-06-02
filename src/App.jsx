@@ -87,6 +87,7 @@ var SquadsSimScreen = lazyWithRetry(function(){ return import('./screens/sim/Squ
 var TeamsScreen = lazyWithRetry(function(){ return import('./screens/TeamsScreen'); });
 var TeamProfileScreen = lazyWithRetry(function(){ return import('./screens/TeamProfileScreen'); });
 var BannerPreviewScreen = lazyWithRetry(function(){ return import('./screens/BannerPreviewScreen'); });
+var HorizonLabScreen = lazyWithRetry(function(){ return import('./components/ui/horizon-hero-section').then(function(m){ return { default: m.Component }; }); });
 import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
@@ -257,7 +258,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview","/horizon-lab":"horizon-lab"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -594,7 +595,7 @@ function TFTClash(){
 
     <>
 
-      <React.Suspense fallback={<ScreenSkeleton/>}><LoginScreenNew/></React.Suspense>
+      <ScreenBoundary name="login"><React.Suspense fallback={<ScreenSkeleton/>}><LoginScreenNew/></React.Suspense></ScreenBoundary>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -610,7 +611,7 @@ function TFTClash(){
 
     <>
 
-      <React.Suspense fallback={<ScreenSkeleton/>}><SignUpScreenNew/></React.Suspense>
+      <ScreenBoundary name="signup"><React.Suspense fallback={<ScreenSkeleton/>}><SignUpScreenNew/></React.Suspense></ScreenBoundary>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -768,6 +769,8 @@ function TFTClash(){
         {screen==="scrims"     &&<ScrimsScreenNew/>}
 
         {screen==="banner-preview"&&<BannerPreviewScreen/>}
+
+        {screen==="horizon-lab"&&isAdmin&&<HorizonLabScreen/>}
 
         {screen==="admin"&&<AdminScreenNew/>}
 

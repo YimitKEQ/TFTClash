@@ -655,12 +655,12 @@ export default function PlayersTab() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-semibold text-on-surface">{d.player_username || d.player_id}</span>
                   <span className="text-[10px] font-bold text-on-surface/50 bg-surface-container-high px-1.5 py-0.5 rounded uppercase">{d.type || 'dispute'}</span>
-                  <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded ' + (d.status === 'pending' ? 'text-tertiary bg-tertiary/10' : 'text-on-surface/40 bg-surface-container-high')}>{d.status || 'pending'}</span>
+                  <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded ' + (d.status === 'open' ? 'text-tertiary bg-tertiary/10' : 'text-on-surface/40 bg-surface-container-high')}>{d.status || 'open'}</span>
                 </div>
                 <div className="text-sm text-on-surface/70">{d.description}</div>
                 <div className="text-[11px] text-on-surface/40 mt-1">{d.created_at ? new Date(d.created_at).toLocaleDateString() : ''}</div>
               </div>
-              {d.status === 'pending' && (
+              {d.status === 'open' && (
                 <div className="flex gap-1 flex-shrink-0">
                   <Btn variant="primary" size="sm" onClick={function() { resolveDispute(d.id) }}>Resolve</Btn>
                   <Btn variant="ghost" size="sm" onClick={function() { dismissDispute(d.id) }}>Dismiss</Btn>

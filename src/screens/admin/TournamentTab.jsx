@@ -325,16 +325,7 @@ export default function TournamentTab() {
     toast('Phase: ' + PHASE_LABELS[phase], 'success')
   }
 
-  function markComplete() {
-    if (currentPhase !== 'inprogress') { toast('Must be in In-Progress phase first', 'error'); return }
-    var tId = ts.activeTournamentId || ts.dbTournamentId
-    if (!tId) {
-      if (!window.confirm('Mark the tournament as complete?')) return
-      setPhase('complete')
-      return
-    }
-    if (!window.confirm('Mark the tournament as complete? You will be asked next whether to generate prize claims.')) return
-    setPhase('complete')
+  function finalizePrizesFor(tId) {
     supabase.from('tournaments').select('id, name, prize_pool_json').eq('id', tId).single().then(function(r) {
       if (r.error || !r.data) return
       var hasPrizes = Array.isArray(r.data.prize_pool_json) && r.data.prize_pool_json.length > 0
@@ -344,6 +335,65 @@ export default function TournamentTab() {
       }
       finalizePrizeClaims(r.data)
     }).catch(function() {})
+  }
+
+  function markComplete() {
+    if (currentPhase !== 'inprogress') { toast('Must be in In-Progress phase first', 'error'); return }
+    var tId = ts.activeTournamentId || ts.dbTournamentId
+    if (!tId) {
+      if (!window.confirm('Mark the tournament as complete?')) return
+      setPhase('complete')
+      return
+    }
+    if (!window.confirm('Mark the tournament as complete? This publishes final results and standings, then asks about prize claims.')) return
+    setPhase('complete')
+    if (!supabase.from) return
+    supabase.from('tournaments').update({ completed_at: new Date().toISOString() }).eq('id', tId).then(function(r) { if (r && r.error) toast('Could not stamp completed_at: ' + r.error.message, 'error') }).catch(function() { toast('Could not stamp completed_at', 'error') })
+    // Publish tournament_results from the authoritative game_results so the Results
+    // screen, past-clashes feed and champion display populate no matter which finalize
+    // path the admin used. Ranking mirrors BracketScreen.saveResultsToSupabase.
+    supabase.from('game_results').select('player_id, placement, points, game_number').eq('tournament_id', tId).then(function(gr) {
+      if (gr.error || !gr.data || gr.data.length === 0) {
+        toast('Marked complete (no game results found to publish)', 'info')
+        finalizePrizesFor(tId)
+        return
+      }
+      var byPlayer = {}
+      gr.data.forEach(function(g) {
+        var pid = g.player_id
+        if (pid === null || pid === undefined) return
+        if (!byPlayer[pid]) byPlayer[pid] = { tournament_id: tId, player_id: pid, total_points: 0, wins: 0, top4_count: 0, _placeSum: 0, _lastGame: -1, _lastPlacement: 9 }
+        var b = byPlayer[pid]
+        var place = g.placement || 0
+        b.total_points += (g.points || 0)
+        if (place === 1) b.wins += 1
+        if (place >= 1 && place <= 4) b.top4_count += 1
+        b._placeSum += place
+        var gn = g.game_number || 0
+        if (gn > b._lastGame) { b._lastGame = gn; b._lastPlacement = place || 9 }
+      })
+      var ranked = Object.keys(byPlayer).map(function(k) { return byPlayer[k] }).sort(function(a, b) {
+        if (b.total_points !== a.total_points) return b.total_points - a.total_points
+        var aTie = (a.wins * 2) + a.top4_count, bTie = (b.wins * 2) + b.top4_count
+        if (bTie !== aTie) return bTie - aTie
+        if (b.wins !== a.wins) return b.wins - a.wins
+        if (b.top4_count !== a.top4_count) return b.top4_count - a.top4_count
+        if (a._placeSum !== b._placeSum) return a._placeSum - b._placeSum
+        return a._lastPlacement - b._lastPlacement
+      })
+      function tieKey(r) { return [r.total_points, (r.wins * 2) + r.top4_count, r.wins, r.top4_count, -r._placeSum, -r._lastPlacement].join('|') }
+      var lastKey = null, lastRank = 0
+      var rows = ranked.map(function(r, idx) {
+        var k = tieKey(r)
+        if (k !== lastKey) { lastRank = idx + 1; lastKey = k }
+        return { tournament_id: r.tournament_id, player_id: r.player_id, total_points: r.total_points, wins: r.wins, top4_count: r.top4_count, final_placement: lastRank }
+      })
+      supabase.from('tournament_results').upsert(rows, { onConflict: 'tournament_id,player_id' }).then(function(rr) {
+        if (rr.error) { toast('Failed to publish results: ' + rr.error.message, 'error'); return }
+        toast('Final results published (' + rows.length + ' players)', 'success')
+        finalizePrizesFor(tId)
+      }).catch(function() { toast('Failed to publish results', 'error') })
+    }).catch(function() { toast('Failed to read game results', 'error') })
   }
 
   function openCheckin() {

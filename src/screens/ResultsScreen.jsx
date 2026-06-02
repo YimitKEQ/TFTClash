@@ -122,7 +122,12 @@ export default function ResultsScreen() {
 
   var pastClashes = ctx.pastClashes || []
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
-  var champ = sorted[0]
+  // The hero celebrates the most recent COMPLETED clash's champion (from
+  // tournament_results via pastClashes), not the season leader. The Full Standings
+  // table below remains the season board. Fall back to the season leader only before
+  // any clash has finished.
+  var focusClash = pastClashes.length > 0 ? pastClashes[0] : null
+  var champ = (focusClash && players.find(function(p) { return p.name === focusClash.champion })) || sorted[0]
 
   var _tab = useState('results')
   var tab = _tab[0]
@@ -133,7 +138,7 @@ export default function ResultsScreen() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-24 text-center px-6">
           <Icon name="emoji_events" size={64} className="text-primary/20 mb-6" />
-          <h2 className="font-editorial text-2xl text-on-surface mb-3">No clash results yet</h2>
+          <h2 className="font-display text-2xl text-on-surface mb-3">No clash results yet</h2>
           <p className="text-on-surface/40 text-sm max-w-xs">
             The first clash is coming soon! Results will appear here after the opening tournament.
           </p>
@@ -143,8 +148,9 @@ export default function ResultsScreen() {
   }
 
   var awards = computeClashAwards(players.length > 0 ? players : sorted)
-  var clashName = (tournamentState && tournamentState.clashName) || 'Recent Clash'
-  var clashDate = (tournamentState && tournamentState.clashDate) || ''
+  var clashName = (focusClash && focusClash.name) || (tournamentState && tournamentState.clashName) || 'Recent Clash'
+  var clashDate = (focusClash && focusClash.date) || (tournamentState && tournamentState.clashDate) || ''
+  var clashPlayerCount = (focusClash && focusClash.players) || sorted.length
 
   // Podium: 2nd, 1st, 3rd display order
   var top3 = [sorted[1], sorted[0], sorted[2]].filter(Boolean)
@@ -212,7 +218,7 @@ export default function ResultsScreen() {
     ctx2.fillText('TFT CLASH S1 - FINAL RESULTS', 40, 44)
     ctx2.font = '11px monospace'
     ctx2.fillStyle = '#BECBD9'
-    ctx2.fillText(clashDate + '  -  ' + sorted.length + ' players', 40, 64)
+    ctx2.fillText(clashDate + '  -  ' + clashPlayerCount + ' players', 40, 64)
     ctx2.fillStyle = 'rgba(232,168,56,0.1)'
     ctx2.beginPath()
     ctx2.roundRect(40, 85, 820, 100, 8)
@@ -285,11 +291,11 @@ export default function ResultsScreen() {
             <div className="font-label text-[11px] font-bold text-secondary uppercase tracking-widest mb-1">
               Season 1
             </div>
-            <h1 className="font-editorial text-3xl md:text-4xl font-black text-on-surface leading-none">
+            <h1 className="font-display text-3xl md:text-4xl font-black text-on-surface leading-none">
               {clashName + ' - Final Results'}
             </h1>
             <div className="text-xs text-on-surface/40 mt-1 font-mono">
-              {clashDate + (clashDate ? ' - ' : '') + sorted.length + ' players - ' + Math.ceil(sorted.length / 8) + ' lobbies'}
+              {clashDate + (clashDate ? ' - ' : '') + clashPlayerCount + ' players - ' + Math.ceil(clashPlayerCount / 8) + ' lobbies'}
             </div>
           </div>
         </div>
@@ -461,7 +467,7 @@ export default function ResultsScreen() {
                 {/* Table header label row */}
                 <div className="px-6 py-4 flex justify-between items-center border-b border-outline-variant/10">
                   <h3 className="font-label text-on-surface-variant tracking-[0.1em] uppercase text-sm">
-                    Final Tournament Standings
+                    Season Standings
                   </h3>
                   <span className="font-mono text-xs text-primary/50">
                     {sorted.length + ' players'}
@@ -608,7 +614,7 @@ export default function ResultsScreen() {
             {/* Clash Report tab */}
             {tab === 'report' && (
               <Panel>
-                <h3 className="font-editorial text-lg font-bold text-on-surface mb-1">
+                <h3 className="font-display text-lg font-bold text-on-surface mb-1">
                   {clashName + ' - Round by Round'}
                 </h3>
                 <p className="text-sm text-on-surface/50 mb-5">

@@ -8,7 +8,7 @@ Modular React 18 SPA with Vite 5, Tailwind CSS 3, React Router 6, Supabase backe
 
 ```
 src/
-  App.jsx              -- Main orchestrator (~6,900 lines, still has legacy Navbar/Footer/ClashScreen)
+  App.jsx              -- Router + route table + ErrorBoundary/ScreenBoundary + auth screens (~844 lines; legacy fully extracted)
   main.jsx             -- Entry point
   index.css            -- Tailwind directives + base styles
   context/
@@ -29,26 +29,23 @@ src/
     shared/
       CountdownTimer.jsx
       RankBadge.jsx
-  screens/              -- All page-level components (29 files)
-    HomeScreen.jsx, DashboardScreen.jsx, LoginScreen.jsx, SignUpScreen.jsx,
-    StandingsScreen.jsx, LeaderboardScreen.jsx, BracketScreen.jsx,
-    PlayerProfileScreen.jsx, EventsScreen.jsx, ResultsScreen.jsx,
-    ClashReportScreen.jsx, HofScreen.jsx, ArchiveScreen.jsx,
-    MilestonesScreen.jsx, ChallengesScreen.jsx, PricingScreen.jsx,
-    SeasonRecapScreen.jsx, AccountScreen.jsx, AdminScreen.jsx,
-    ScrimsScreen.jsx, HostApplyScreen.jsx, HostDashboardScreen.jsx,
-    FlashTournamentScreen.jsx, TournamentDetailScreen.jsx,
-    TournamentsListScreen.jsx, RulesScreen.jsx, FAQScreen.jsx,
-    PrivacyScreen.jsx, TermsScreen.jsx
+  screens/              -- All page-level components (~85 files incl subdirs)
+    Tournament-critical: BracketScreen.jsx (live clash control), ClashScreen.jsx,
+    FlashTournamentScreen.jsx, HostDashboardScreen.jsx, admin/ (OverviewTab,
+    TournamentTab, ResultsTab, PlayersTab, TeamsTab, SponsorsTab, AuditTab,
+    SettingsTab, HostsTab), ops/ (CommandCenterScreen + OpsTournaments/OpsRevenue/...).
+    Player-facing: HomeScreen, DashboardScreen, EventsScreen, StandingsScreen,
+    LeaderboardScreen, PlayerProfileScreen, ResultsScreen, AccountScreen, TeamsScreen,
+    TeamProfileScreen, Login/SignUp, plus Hof/Archive/Milestones/Challenges/Pricing/
+    SeasonRecap/Rules/FAQ/Privacy/Terms/News/Scrims/sim and more.
 ```
 
-### Legacy Code in App.jsx
+### App.jsx is fully extracted (2026-06)
 
-App.jsx still contains ~6,900 lines of legacy code not yet extracted:
-- Old atom components (Panel, Btn, Inp, etc. -- duplicated in components/ui/)
-- Navbar, Footer, ClashScreen, ProfileScreen, GearScreen
-- Helper components (LobbyCard, PlacementBoard, Toast, etc.)
-- These still use inline styles and Tabler Icons (`ti ti-*`)
+App.jsx is now ~844 lines: route table, the lazyWithRetry registry, ErrorBoundary +
+per-screen ScreenBoundary, and the fullscreen auth screens. The old legacy block
+(Navbar/Footer/ClashScreen/atoms/Tabler icons) has been extracted to components/ and
+screens/. Treat App.jsx as the router/shell only.
 
 ---
 
@@ -68,7 +65,7 @@ App.jsx still contains ~6,900 lines of legacy code not yet extracted:
 - **Tiers:** Player (free) / Pro ($4.99/mo) / Host ($19.99/mo)
 - **Free to compete always** -- no paywall on entry
 - **Theme:** Dark -- MD3 tokens via Tailwind (surface, primary, secondary, tertiary, error, success)
-- **Fonts (5-token scale):** Russo One (`font-display` -- hero numbers, champ names, all-caps brand), Playfair Display (`font-editorial` -- italic accents, page titles), Inter (`font-body` -- prose), Barlow Condensed (`font-label` -- uppercase eyebrows/tags/buttons), JetBrains Mono (`font-mono` -- numerics, IDs). No `font-headline`/`font-serif`/`font-sans` aliases.
+- **Fonts (4-token scale):** Russo One (`font-display` -- hero numbers, champ names, page titles, all-caps brand), Inter (`font-body` -- prose), Barlow Condensed (`font-label` -- uppercase eyebrows/tags/buttons), JetBrains Mono (`font-mono` -- numerics, IDs). `font-editorial` is DEPRECATED (no cursive/italic headlines) -- use `font-display` for titles. No `font-headline`/`font-serif`/`font-sans` aliases.
 - **Icons:** Google Material Symbols Outlined via `<Icon>` component (Tabler migration complete)
 
 ---
@@ -110,6 +107,16 @@ Routes: `/`, `/login`, `/signup`, `/standings`, `/leaderboard`, `/bracket`, `/pl
 
 See `docs/TASKS.md` for the full prioritized backlog.
 See `docs/TOURNAMENT-SYSTEM.md` for tournament system details.
+
+---
+
+## Knowledge Graph (graphify)
+
+A graphify knowledge graph of `src/` lives in `graphify-out/` (graph.json, graph.html,
+GRAPH_REPORT.md). Built 2026-06-02 from 243 code files -> 1401 nodes, 3028 edges,
+77 communities. For codebase questions ("how does X work", "what calls Y"), run
+`python -m graphify query "<question>"` before grepping. After code changes, refresh
+with `python -m graphify --update src` (AST-only, no LLM cost for code files).
 
 ---
 

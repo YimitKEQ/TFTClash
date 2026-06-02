@@ -39,3 +39,6 @@ __pycache__/
 *.pyc
 tests/sim-results-tournament/
 qa-shots/
+
+# graphify knowledge graph (generated artifacts)
+graphify-out/

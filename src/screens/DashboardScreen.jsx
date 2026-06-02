@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { ordinal } from '../lib/utils.js'
+import { resolveLinkedPlayer } from '../lib/linkedPlayer'
 import { writeActivityEvent } from '../lib/notifications.js'
 import { supabase } from '../lib/supabase.js'
 import useCountdown from '../lib/useCountdown'
@@ -529,9 +530,7 @@ function LobbyRosterCard() {
   var lobbies = tournamentState.lobbies || []
   if (lobbies.length === 0) return null
 
-  var linkedPlayer = currentUser && players.find(function(p){
-    return p.name === (currentUser.username || currentUser.name)
-  })
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
   if (!linkedPlayer) return null
 
   var myLobby = null
@@ -770,9 +769,7 @@ function MyBracketPath() {
   var currentRound = tournamentState.round || 1
   var cutLine = tournamentState.cutLine || tournamentState.cut_line || 0
 
-  var linkedPlayer = currentUser && players.find(function(p) {
-    return p.name === (currentUser.username || currentUser.name)
-  })
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
   var playerId = linkedPlayer ? linkedPlayer.id : null
 
   var _rounds = useState([])
@@ -919,9 +916,7 @@ function ClashCard() {
   var clashTimestamp = tournamentState.clashTimestamp
   var hasCountdown = clashTimestamp && new Date(clashTimestamp) > new Date()
 
-  var linkedPlayer = currentUser && players.find(function(p) {
-    return p.name === (currentUser.username || currentUser.name)
-  })
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
 
   var sortedPlayers = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var myRank = linkedPlayer
@@ -947,12 +942,14 @@ function ClashCard() {
   var myLobby = null
   var lobbies = tournamentState.lobbies || []
   if (currentUser) {
+    var myPid = linkedPlayer ? String(linkedPlayer.id) : null
+    var myName = (currentUser.username || currentUser.name || '')
     for (var i = 0; i < lobbies.length; i++) {
       var lob = lobbies[i]
       var lobPlayers = lob.players || lob.playerIds || []
       var inLobby = lobPlayers.some(function(pid) {
-        if (typeof pid === 'object') return pid.id === currentUser.id || pid.name === currentUser.username
-        return pid === currentUser.id
+        if (typeof pid === 'object') return (myPid && String(pid.id) === myPid) || (!!pid.name && pid.name === myName)
+        return myPid && String(pid) === myPid
       })
       if (inLobby) { myLobby = lob; break; }
     }
@@ -970,12 +967,12 @@ function ClashCard() {
   var lobbyNum = myLobby ? (myLobby.num || myLobby.number || myLobby.id || '?') : '?'
 
   var myLobbyNumber = 1
-  if (tournamentState.lobbies) {
+  if (tournamentState.lobbies && linkedPlayer) {
     tournamentState.lobbies.forEach(function(lobby, idx) {
       var lobPlayers = lobby.players || lobby.playerIds || []
       lobPlayers.forEach(function(pid) {
         var pidVal = typeof pid === 'object' ? pid.id : pid
-        if (pidVal === (currentUser && currentUser.id)) myLobbyNumber = idx + 1
+        if (String(pidVal) === String(linkedPlayer.id)) myLobbyNumber = idx + 1
       })
     })
   }
@@ -1005,13 +1002,16 @@ function ClashCard() {
   var lobbyTotal = lobbyRosterDetails.length || 8
 
   function handleSubmitPlacement() {
-    if (!selectedPlace || !currentUser || !tournamentState.id) return
+    // Was guarded on tournamentState.id (never exists -> always no-op) and wrote
+    // currentUser.id (auth UUID for fallback sessions). Use dbTournamentId and the
+    // resolved player int so the upsert actually runs and satisfies the RLS check.
+    if (!selectedPlace || !linkedPlayer || !tournamentState.dbTournamentId) return
     setSubmitting(true)
     supabase.from('pending_results').upsert({
-      tournament_id: tournamentState.id,
+      tournament_id: tournamentState.dbTournamentId,
       round: tournamentState.round,
       lobby_number: myLobbyNumber,
-      player_id: currentUser.id,
+      player_id: linkedPlayer.id,
       placement: selectedPlace,
       status: 'pending'
     }, { onConflict: 'tournament_id,round,player_id' })
@@ -1329,7 +1329,7 @@ function ClashCard() {
                     <div className="grid grid-cols-8 gap-1">
                       {lobbyRosterDetails.map(function(p) {
                         var sub = lobbyRoundSubmissions[String(p.id)]
-                        var isMe = currentUser && String(p.id) === String(currentUser.id)
+                        var isMe = linkedPlayer && String(p.id) === String(linkedPlayer.id)
                         var key = String(p.id) + (sub ? '-in' : '-wait')
                         var nameInitial = (p.username || p.name || '?').charAt(0).toUpperCase()
                         var titleAttr = (p.username || p.name) + (sub ? ' \u00b7 ' + ordinal(sub.placement) : ' \u00b7 awaiting')

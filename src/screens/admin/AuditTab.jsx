@@ -100,7 +100,7 @@ export default function AuditTab() {
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-on-surface">{entry.details && entry.details.message || entry.action}</div>
                 <div className="text-[11px] text-on-surface/40 mt-0.5">
-                  {entry.actor_name || 'System'} &mdash; {entry.created_at ? new Date(entry.created_at).toLocaleString() : ''}
+                  {entry.actor_name || 'System'}, {entry.created_at ? new Date(entry.created_at).toLocaleString() : ''}
                 </div>
               </div>
             </div>

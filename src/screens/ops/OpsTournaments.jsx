@@ -84,6 +84,16 @@ export default function OpsTournaments(props) {
   function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
   function setWeeklyPhase(phase) {
+    // Opening registration/check-in/go-live requires an actual clash row. The
+    // canonical "Open Registration" in Admin > Tournament creates that row and sets
+    // dbTournamentId. Flipping the phase here without a row would show "registration"
+    // while dbTournamentId stays null, so players hit "Registration is not open yet"
+    // and nobody can register. Refuse and point to the right place.
+    var activeTid = ts && (ts.activeTournamentId || ts.dbTournamentId)
+    if ((phase === 'registration' || phase === 'checkin' || phase === 'inprogress') && !activeTid) {
+      toast('No active clash yet. Open it from Admin > Tournament first (that creates the clash).', 'error')
+      return
+    }
     var siteKey = region === 'NA' ? 'tournament_state_na' : 'tournament_state'
     var setter = region === 'NA' ? setTournamentStateNa : setTournamentState
     var nextValue = Object.assign({}, ts, { phase: phase })

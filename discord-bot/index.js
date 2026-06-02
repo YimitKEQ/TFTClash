@@ -168,18 +168,30 @@ client.on(Events.InteractionCreate, async function(interaction) {
         ephemeral: true,
       });
 
-      // Post welcome in #newcomers (fallback to #general for older servers)
-      const welcomeCh =
-        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('newcomers'); }) ||
-        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('general'); });
-      if (welcomeCh) {
-        await welcomeCh.send({ embeds: [welcomeEmbed(member)] });
+      // Post welcome in #newcomers (fallback to #general for older servers).
+      // Wrapped in its own try/catch: a missing send permission here must NOT fall
+      // into the outer catch and reply a second time on an already-acknowledged
+      // interaction (that caused DiscordAPIError[40060] and crashed the process).
+      try {
+        const welcomeCh =
+          guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('newcomers'); }) ||
+          guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('general'); });
+        if (welcomeCh) {
+          await welcomeCh.send({ embeds: [welcomeEmbed(member)] });
+        }
+      } catch (sendErr) {
+        console.error('[verify welcome send failed]', sendErr);
       }
 
       console.log('[verify] ' + member.user.tag + ' verified');
     } catch (err) {
       console.error('[verify error]', err);
-      await interaction.reply({ content: '❌ Could not assign role - check bot permissions.', ephemeral: true });
+      // Never acknowledge the same interaction twice.
+      if (interaction.replied || interaction.deferred) {
+        await interaction.editReply({ content: '❌ Could not assign role - check bot permissions.' }).catch(function() {});
+      } else {
+        await interaction.reply({ content: '❌ Could not assign role - check bot permissions.', ephemeral: true }).catch(function() {});
+      }
     }
   }
 });

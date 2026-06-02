@@ -49,19 +49,46 @@ export default function OverviewTab({ setTab }) {
   var ts = tournamentState || {}
   var checkedInIds = ts.checkedInIds || []
   var allPlayers = players || []
-  var eligible = allPlayers.filter(function(p) { return !p.banned })
   var banned = allPlayers.filter(function(p) { return p.banned }).length
   var pendingHosts = (hostApps || []).filter(function(a) { return a.status === 'pending' }).length
 
   function checkInAll() {
-    if (!window.confirm('Check in all ' + eligible.length + ' eligible players?')) return
-    var ids = eligible.map(function(p) { return p.id })
-    setTournamentState(function(s) { return Object.assign({}, s, { checkedInIds: ids }) })
-    supabase.from('players').update({ checked_in: true }).neq('banned', true).then(function(r) {
-      if (r.error) { toast('DB sync failed: ' + r.error.message, 'error'); return }
-      addAudit('ACTION', 'Check-in All: ' + ids.length + ' players')
-      toast(ids.length + ' players checked in', 'success')
-    }).catch(function() { toast('Check-in failed', 'error') })
+    // Scope to players who actually REGISTERED for the active clash, not the whole
+    // DB roster. The old version flipped players.checked_in table-wide, dumping every
+    // user into the bracket. Now we mark only registered, non-banned players and write
+    // their registrations.status so the registrations table and players stay consistent.
+    var regIds = (ts.registeredIds || []).map(String)
+    if (!regIds.length) { toast('No players are registered for this clash yet', 'error'); return }
+    var regSet = {}
+    regIds.forEach(function(id) { regSet[id] = true })
+    var scoped = allPlayers.filter(function(p) { return !p.banned && regSet[String(p.id)] })
+    var ids = scoped.map(function(p) { return p.id })
+    if (!ids.length) { toast('No eligible registered players to check in', 'error'); return }
+    if (!window.confirm('Check in ' + ids.length + ' registered player' + (ids.length === 1 ? '' : 's') + ' for this clash?')) return
+    var dbTid = ts.dbTournamentId
+    setTournamentState(function(s) {
+      var existing = (s.checkedInIds || []).map(String)
+      var merged = existing.concat(ids.map(String).filter(function(id) { return existing.indexOf(id) < 0 }))
+      return Object.assign({}, s, { checkedInIds: merged })
+    })
+    function markPlayers() {
+      supabase.from('players').update({ checked_in: true }).in('id', ids).then(function(r) {
+        if (r.error) { toast('DB sync failed: ' + r.error.message, 'error'); return }
+        addAudit('ACTION', 'Check-in All: ' + ids.length + ' registered players')
+        toast(ids.length + ' players checked in', 'success')
+      }).catch(function() { toast('Check-in failed', 'error') })
+    }
+    if (!supabase.from) { addAudit('ACTION', 'Check-in All: ' + ids.length + ' registered players'); toast(ids.length + ' players checked in', 'success'); return }
+    if (dbTid) {
+      // If the registrations write fails (RLS/DB error OR network), ABORT - do not
+      // mark players.checked_in, or the two tables desync (the bug this fn prevents).
+      supabase.from('registrations').update({ status: 'checked_in' }).eq('tournament_id', dbTid).in('player_id', ids).then(function(rr) {
+        if (rr && rr.error) { toast('Registration sync failed: ' + rr.error.message, 'error'); return }
+        markPlayers()
+      }).catch(function() { toast('Registration sync failed - check connection and retry', 'error') })
+    } else {
+      markPlayers()
+    }
   }
 
   function clearCheckIn() {
