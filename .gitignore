@@ -42,3 +42,6 @@ qa-shots/
 
 # graphify knowledge graph (generated artifacts)
 graphify-out/
+
+# raw addon source (hosted copy lives in public/voice/exboss/)
+EXBoss_Voice_English/
