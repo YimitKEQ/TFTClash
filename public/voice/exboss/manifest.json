@@ -1,1282 +1,1282 @@
 {
   "pack": "EXBoss Voice English",
-  "base": "https://tftclash.com/voice/exboss/",
+  "base": "https://www.tftclash.com/voice/exboss/",
   "count": 182,
-  "note": "OGG Vorbis (mono 44.1kHz) is the WoW-compatible format; use the .ogg URLs. MP3 kept for compatibility. If tftclash.com redirects to www, swap base to https://www.tftclash.com/voice/exboss/",
+  "note": "OGG Vorbis (mono 44.1kHz) is the WoW-compatible format; use the .ogg URLs. MP3 kept for compatibility. URLs use the www host to avoid the apex 307 redirect.",
   "files": [
     {
       "name": "absorb",
       "file": "absorb.mp3",
-      "url": "https://tftclash.com/voice/exboss/absorb.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/absorb.mp3",
       "ogg": "absorb.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/absorb.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/absorb.ogg"
     },
     {
       "name": "absorb_shield",
       "file": "absorb_shield.mp3",
-      "url": "https://tftclash.com/voice/exboss/absorb_shield.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/absorb_shield.mp3",
       "ogg": "absorb_shield.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/absorb_shield.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/absorb_shield.ogg"
     },
     {
       "name": "adds_spawning",
       "file": "adds_spawning.mp3",
-      "url": "https://tftclash.com/voice/exboss/adds_spawning.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/adds_spawning.mp3",
       "ogg": "adds_spawning.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/adds_spawning.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/adds_spawning.ogg"
     },
     {
       "name": "aim_notes",
       "file": "aim_notes.mp3",
-      "url": "https://tftclash.com/voice/exboss/aim_notes.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/aim_notes.mp3",
       "ogg": "aim_notes.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/aim_notes.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/aim_notes.ogg"
     },
     {
       "name": "aoe",
       "file": "aoe.mp3",
-      "url": "https://tftclash.com/voice/exboss/aoe.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/aoe.mp3",
       "ogg": "aoe.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/aoe.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/aoe.ogg"
     },
     {
       "name": "aoe_in_5s",
       "file": "aoe_in_5s.mp3",
-      "url": "https://tftclash.com/voice/exboss/aoe_in_5s.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/aoe_in_5s.mp3",
       "ogg": "aoe_in_5s.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/aoe_in_5s.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/aoe_in_5s.ogg"
     },
     {
       "name": "aoe_interrupt",
       "file": "aoe_interrupt.mp3",
-      "url": "https://tftclash.com/voice/exboss/aoe_interrupt.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/aoe_interrupt.mp3",
       "ogg": "aoe_interrupt.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/aoe_interrupt.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/aoe_interrupt.ogg"
     },
     {
       "name": "attack_behind",
       "file": "attack_behind.mp3",
-      "url": "https://tftclash.com/voice/exboss/attack_behind.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/attack_behind.mp3",
       "ogg": "attack_behind.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/attack_behind.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/attack_behind.ogg"
     },
     {
       "name": "awaken_adds",
       "file": "awaken_adds.mp3",
-      "url": "https://tftclash.com/voice/exboss/awaken_adds.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/awaken_adds.mp3",
       "ogg": "awaken_adds.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/awaken_adds.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/awaken_adds.ogg"
     },
     {
       "name": "away_big_add",
       "file": "away_big_add.mp3",
-      "url": "https://tftclash.com/voice/exboss/away_big_add.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/away_big_add.mp3",
       "ogg": "away_big_add.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/away_big_add.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/away_big_add.ogg"
     },
     {
       "name": "away_boss",
       "file": "away_boss.mp3",
-      "url": "https://tftclash.com/voice/exboss/away_boss.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/away_boss.mp3",
       "ogg": "away_boss.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/away_boss.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/away_boss.ogg"
     },
     {
       "name": "away_from_group",
       "file": "away_from_group.mp3",
-      "url": "https://tftclash.com/voice/exboss/away_from_group.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/away_from_group.mp3",
       "ogg": "away_from_group.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/away_from_group.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/away_from_group.ogg"
     },
     {
       "name": "bait_line",
       "file": "bait_line.mp3",
-      "url": "https://tftclash.com/voice/exboss/bait_line.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/bait_line.mp3",
       "ogg": "bait_line.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/bait_line.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/bait_line.ogg"
     },
     {
       "name": "bait_position",
       "file": "bait_position.mp3",
-      "url": "https://tftclash.com/voice/exboss/bait_position.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/bait_position.mp3",
       "ogg": "bait_position.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/bait_position.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/bait_position.ogg"
     },
     {
       "name": "beam_on_you",
       "file": "beam_on_you.mp3",
-      "url": "https://tftclash.com/voice/exboss/beam_on_you.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/beam_on_you.mp3",
       "ogg": "beam_on_you.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/beam_on_you.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/beam_on_you.ogg"
     },
     {
       "name": "black",
       "file": "black.mp3",
-      "url": "https://tftclash.com/voice/exboss/black.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/black.mp3",
       "ogg": "black.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/black.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/black.ogg"
     },
     {
       "name": "blue",
       "file": "blue.mp3",
-      "url": "https://tftclash.com/voice/exboss/blue.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/blue.mp3",
       "ogg": "blue.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/blue.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/blue.ogg"
     },
     {
       "name": "bomb",
       "file": "bomb.mp3",
-      "url": "https://tftclash.com/voice/exboss/bomb.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/bomb.mp3",
       "ogg": "bomb.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/bomb.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/bomb.ogg"
     },
     {
       "name": "boss_vulnerable",
       "file": "boss_vulnerable.mp3",
-      "url": "https://tftclash.com/voice/exboss/boss_vulnerable.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/boss_vulnerable.mp3",
       "ogg": "boss_vulnerable.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/boss_vulnerable.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/boss_vulnerable.ogg"
     },
     {
       "name": "break_it",
       "file": "break_it.mp3",
-      "url": "https://tftclash.com/voice/exboss/break_it.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/break_it.mp3",
       "ogg": "break_it.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/break_it.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/break_it.ogg"
     },
     {
       "name": "break_shield",
       "file": "break_shield.mp3",
-      "url": "https://tftclash.com/voice/exboss/break_shield.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/break_shield.mp3",
       "ogg": "break_shield.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/break_shield.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/break_shield.ogg"
     },
     {
       "name": "break_tether",
       "file": "break_tether.mp3",
-      "url": "https://tftclash.com/voice/exboss/break_tether.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/break_tether.mp3",
       "ogg": "break_tether.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/break_tether.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/break_tether.ogg"
     },
     {
       "name": "breath",
       "file": "breath.mp3",
-      "url": "https://tftclash.com/voice/exboss/breath.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/breath.mp3",
       "ogg": "breath.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/breath.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/breath.ogg"
     },
     {
       "name": "burst",
       "file": "burst.mp3",
-      "url": "https://tftclash.com/voice/exboss/burst.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/burst.mp3",
       "ogg": "burst.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/burst.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/burst.ogg"
     },
     {
       "name": "cc_adds",
       "file": "cc_adds.mp3",
-      "url": "https://tftclash.com/voice/exboss/cc_adds.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/cc_adds.mp3",
       "ogg": "cc_adds.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/cc_adds.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/cc_adds.ogg"
     },
     {
       "name": "cc_interrupt",
       "file": "cc_interrupt.mp3",
-      "url": "https://tftclash.com/voice/exboss/cc_interrupt.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/cc_interrupt.mp3",
       "ogg": "cc_interrupt.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/cc_interrupt.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/cc_interrupt.ogg"
     },
     {
       "name": "chains",
       "file": "chains.mp3",
-      "url": "https://tftclash.com/voice/exboss/chains.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/chains.mp3",
       "ogg": "chains.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/chains.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/chains.ogg"
     },
     {
       "name": "charge",
       "file": "charge.mp3",
-      "url": "https://tftclash.com/voice/exboss/charge.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/charge.mp3",
       "ogg": "charge.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/charge.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/charge.ogg"
     },
     {
       "name": "chasing",
       "file": "chasing.mp3",
-      "url": "https://tftclash.com/voice/exboss/chasing.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/chasing.mp3",
       "ogg": "chasing.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/chasing.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/chasing.ogg"
     },
     {
       "name": "cleanse",
       "file": "cleanse.mp3",
-      "url": "https://tftclash.com/voice/exboss/cleanse.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/cleanse.mp3",
       "ogg": "cleanse.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/cleanse.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/cleanse.ogg"
     },
     {
       "name": "clear_line",
       "file": "clear_line.mp3",
-      "url": "https://tftclash.com/voice/exboss/clear_line.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/clear_line.mp3",
       "ogg": "clear_line.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/clear_line.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/clear_line.ogg"
     },
     {
       "name": "clear_orbs",
       "file": "clear_orbs.mp3",
-      "url": "https://tftclash.com/voice/exboss/clear_orbs.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/clear_orbs.mp3",
       "ogg": "clear_orbs.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/clear_orbs.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/clear_orbs.ogg"
     },
     {
       "name": "clear_puddles",
       "file": "clear_puddles.mp3",
-      "url": "https://tftclash.com/voice/exboss/clear_puddles.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/clear_puddles.mp3",
       "ogg": "clear_puddles.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/clear_puddles.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/clear_puddles.ogg"
     },
     {
       "name": "clear_tether",
       "file": "clear_tether.mp3",
-      "url": "https://tftclash.com/voice/exboss/clear_tether.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/clear_tether.mp3",
       "ogg": "clear_tether.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/clear_tether.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/clear_tether.ogg"
     },
     {
       "name": "clones",
       "file": "clones.mp3",
-      "url": "https://tftclash.com/voice/exboss/clones.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/clones.mp3",
       "ogg": "clones.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/clones.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/clones.ogg"
     },
     {
       "name": "close_spread",
       "file": "close_spread.mp3",
-      "url": "https://tftclash.com/voice/exboss/close_spread.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/close_spread.mp3",
       "ogg": "close_spread.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/close_spread.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/close_spread.ogg"
     },
     {
       "name": "constant_aoe",
       "file": "constant_aoe.mp3",
-      "url": "https://tftclash.com/voice/exboss/constant_aoe.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/constant_aoe.mp3",
       "ogg": "constant_aoe.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/constant_aoe.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/constant_aoe.ogg"
     },
     {
       "name": "constant_damage",
       "file": "constant_damage.mp3",
-      "url": "https://tftclash.com/voice/exboss/constant_damage.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/constant_damage.mp3",
       "ogg": "constant_damage.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/constant_damage.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/constant_damage.ogg"
     },
     {
       "name": "contain_lightning_water",
       "file": "contain_lightning_water.mp3",
-      "url": "https://tftclash.com/voice/exboss/contain_lightning_water.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/contain_lightning_water.mp3",
       "ogg": "contain_lightning_water.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/contain_lightning_water.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/contain_lightning_water.ogg"
     },
     {
       "name": "control_or_interrupt",
       "file": "control_or_interrupt.mp3",
-      "url": "https://tftclash.com/voice/exboss/control_or_interrupt.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/control_or_interrupt.mp3",
       "ogg": "control_or_interrupt.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/control_or_interrupt.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/control_or_interrupt.ogg"
     },
     {
       "name": "countdown-1",
       "file": "countdown-1.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown-1.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown-1.mp3",
       "ogg": "countdown-1.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown-1.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown-1.ogg"
     },
     {
       "name": "countdown-2",
       "file": "countdown-2.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown-2.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown-2.mp3",
       "ogg": "countdown-2.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown-2.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown-2.ogg"
     },
     {
       "name": "countdown-3",
       "file": "countdown-3.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown-3.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown-3.mp3",
       "ogg": "countdown-3.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown-3.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown-3.ogg"
     },
     {
       "name": "countdown-4",
       "file": "countdown-4.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown-4.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown-4.mp3",
       "ogg": "countdown-4.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown-4.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown-4.ogg"
     },
     {
       "name": "countdown-5",
       "file": "countdown-5.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown-5.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown-5.mp3",
       "ogg": "countdown-5.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown-5.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown-5.ogg"
     },
     {
       "name": "countdown",
       "file": "countdown.mp3",
-      "url": "https://tftclash.com/voice/exboss/countdown.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/countdown.mp3",
       "ogg": "countdown.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/countdown.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/countdown.ogg"
     },
     {
       "name": "curse",
       "file": "curse.mp3",
-      "url": "https://tftclash.com/voice/exboss/curse.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/curse.mp3",
       "ogg": "curse.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/curse.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/curse.ogg"
     },
     {
       "name": "defensives",
       "file": "defensives.mp3",
-      "url": "https://tftclash.com/voice/exboss/defensives.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/defensives.mp3",
       "ogg": "defensives.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/defensives.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/defensives.ogg"
     },
     {
       "name": "deliver_orb",
       "file": "deliver_orb.mp3",
-      "url": "https://tftclash.com/voice/exboss/deliver_orb.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/deliver_orb.mp3",
       "ogg": "deliver_orb.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/deliver_orb.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/deliver_orb.ogg"
     },
     {
       "name": "disease",
       "file": "disease.mp3",
-      "url": "https://tftclash.com/voice/exboss/disease.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/disease.mp3",
       "ogg": "disease.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/disease.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/disease.ogg"
     },
     {
       "name": "dispel",
       "file": "dispel.mp3",
-      "url": "https://tftclash.com/voice/exboss/dispel.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dispel.mp3",
       "ogg": "dispel.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dispel.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dispel.ogg"
     },
     {
       "name": "dispel_single",
       "file": "dispel_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/dispel_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dispel_single.mp3",
       "ogg": "dispel_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dispel_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dispel_single.ogg"
     },
     {
       "name": "dodge_beams",
       "file": "dodge_beams.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_beams.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_beams.mp3",
       "ogg": "dodge_beams.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_beams.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_beams.ogg"
     },
     {
       "name": "dodge_charge",
       "file": "dodge_charge.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_charge.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_charge.mp3",
       "ogg": "dodge_charge.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_charge.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_charge.ogg"
     },
     {
       "name": "dodge_circles",
       "file": "dodge_circles.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_circles.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_circles.mp3",
       "ogg": "dodge_circles.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_circles.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_circles.ogg"
     },
     {
       "name": "dodge_floor",
       "file": "dodge_floor.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_floor.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_floor.mp3",
       "ogg": "dodge_floor.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_floor.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_floor.ogg"
     },
     {
       "name": "dodge_frontal",
       "file": "dodge_frontal.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_frontal.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_frontal.mp3",
       "ogg": "dodge_frontal.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_frontal.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_frontal.ogg"
     },
     {
       "name": "dodge_orbs",
       "file": "dodge_orbs.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_orbs.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_orbs.mp3",
       "ogg": "dodge_orbs.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_orbs.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_orbs.ogg"
     },
     {
       "name": "dodge_puddles",
       "file": "dodge_puddles.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_puddles.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_puddles.mp3",
       "ogg": "dodge_puddles.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_puddles.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_puddles.ogg"
     },
     {
       "name": "dodge_quickly",
       "file": "dodge_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_quickly.mp3",
       "ogg": "dodge_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_quickly.ogg"
     },
     {
       "name": "dodge_single_circle",
       "file": "dodge_single_circle.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_single_circle.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_single_circle.mp3",
       "ogg": "dodge_single_circle.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_single_circle.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_single_circle.ogg"
     },
     {
       "name": "dodge_wind",
       "file": "dodge_wind.mp3",
-      "url": "https://tftclash.com/voice/exboss/dodge_wind.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dodge_wind.mp3",
       "ogg": "dodge_wind.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dodge_wind.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dodge_wind.ogg"
     },
     {
       "name": "dome",
       "file": "dome.mp3",
-      "url": "https://tftclash.com/voice/exboss/dome.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/dome.mp3",
       "ogg": "dome.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/dome.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/dome.ogg"
     },
     {
       "name": "drop_pool",
       "file": "drop_pool.mp3",
-      "url": "https://tftclash.com/voice/exboss/drop_pool.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/drop_pool.mp3",
       "ogg": "drop_pool.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/drop_pool.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/drop_pool.ogg"
     },
     {
       "name": "drop_pool_edge",
       "file": "drop_pool_edge.mp3",
-      "url": "https://tftclash.com/voice/exboss/drop_pool_edge.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/drop_pool_edge.mp3",
       "ogg": "drop_pool_edge.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/drop_pool_edge.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/drop_pool_edge.ogg"
     },
     {
       "name": "drop_pool_single",
       "file": "drop_pool_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/drop_pool_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/drop_pool_single.mp3",
       "ogg": "drop_pool_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/drop_pool_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/drop_pool_single.ogg"
     },
     {
       "name": "emp_holy",
       "file": "emp_holy.mp3",
-      "url": "https://tftclash.com/voice/exboss/emp_holy.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/emp_holy.mp3",
       "ogg": "emp_holy.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/emp_holy.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/emp_holy.ogg"
     },
     {
       "name": "emp_prot",
       "file": "emp_prot.mp3",
-      "url": "https://tftclash.com/voice/exboss/emp_prot.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/emp_prot.mp3",
       "ogg": "emp_prot.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/emp_prot.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/emp_prot.ogg"
     },
     {
       "name": "emp_ret",
       "file": "emp_ret.mp3",
-      "url": "https://tftclash.com/voice/exboss/emp_ret.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/emp_ret.mp3",
       "ogg": "emp_ret.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/emp_ret.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/emp_ret.ogg"
     },
     {
       "name": "enrage",
       "file": "enrage.mp3",
-      "url": "https://tftclash.com/voice/exboss/enrage.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/enrage.mp3",
       "ogg": "enrage.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/enrage.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/enrage.ogg"
     },
     {
       "name": "enrage_single",
       "file": "enrage_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/enrage_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/enrage_single.mp3",
       "ogg": "enrage_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/enrage_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/enrage_single.ogg"
     },
     {
       "name": "enter",
       "file": "enter.mp3",
-      "url": "https://tftclash.com/voice/exboss/enter.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/enter.mp3",
       "ogg": "enter.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/enter.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/enter.ogg"
     },
     {
       "name": "fixate",
       "file": "fixate.mp3",
-      "url": "https://tftclash.com/voice/exboss/fixate.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/fixate.mp3",
       "ogg": "fixate.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/fixate.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/fixate.ogg"
     },
     {
       "name": "focus_adds",
       "file": "focus_adds.mp3",
-      "url": "https://tftclash.com/voice/exboss/focus_adds.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/focus_adds.mp3",
       "ogg": "focus_adds.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/focus_adds.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/focus_adds.ogg"
     },
     {
       "name": "focus_big_add",
       "file": "focus_big_add.mp3",
-      "url": "https://tftclash.com/voice/exboss/focus_big_add.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/focus_big_add.mp3",
       "ogg": "focus_big_add.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/focus_big_add.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/focus_big_add.ogg"
     },
     {
       "name": "frontal_on_you",
       "file": "frontal_on_you.mp3",
-      "url": "https://tftclash.com/voice/exboss/frontal_on_you.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/frontal_on_you.mp3",
       "ogg": "frontal_on_you.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/frontal_on_you.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/frontal_on_you.ogg"
     },
     {
       "name": "gain_buff",
       "file": "gain_buff.mp3",
-      "url": "https://tftclash.com/voice/exboss/gain_buff.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/gain_buff.mp3",
       "ogg": "gain_buff.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/gain_buff.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/gain_buff.ogg"
     },
     {
       "name": "get_out_quickly",
       "file": "get_out_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/get_out_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/get_out_quickly.mp3",
       "ogg": "get_out_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/get_out_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/get_out_quickly.ogg"
     },
     {
       "name": "grab",
       "file": "grab.mp3",
-      "url": "https://tftclash.com/voice/exboss/grab.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/grab.mp3",
       "ogg": "grab.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/grab.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/grab.ogg"
     },
     {
       "name": "heal_absorb",
       "file": "heal_absorb.mp3",
-      "url": "https://tftclash.com/voice/exboss/heal_absorb.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/heal_absorb.mp3",
       "ogg": "heal_absorb.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/heal_absorb.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/heal_absorb.ogg"
     },
     {
       "name": "healing",
       "file": "healing.mp3",
-      "url": "https://tftclash.com/voice/exboss/healing.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/healing.mp3",
       "ogg": "healing.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/healing.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/healing.ogg"
     },
     {
       "name": "hook",
       "file": "hook.mp3",
-      "url": "https://tftclash.com/voice/exboss/hook.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/hook.mp3",
       "ogg": "hook.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/hook.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/hook.ogg"
     },
     {
       "name": "hook_boss",
       "file": "hook_boss.mp3",
-      "url": "https://tftclash.com/voice/exboss/hook_boss.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/hook_boss.mp3",
       "ogg": "hook_boss.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/hook_boss.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/hook_boss.ogg"
     },
     {
       "name": "illusions",
       "file": "illusions.mp3",
-      "url": "https://tftclash.com/voice/exboss/illusions.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/illusions.mp3",
       "ogg": "illusions.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/illusions.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/illusions.ogg"
     },
     {
       "name": "incoming_aoe",
       "file": "incoming_aoe.mp3",
-      "url": "https://tftclash.com/voice/exboss/incoming_aoe.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/incoming_aoe.mp3",
       "ogg": "incoming_aoe.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/incoming_aoe.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/incoming_aoe.ogg"
     },
     {
       "name": "incoming_target",
       "file": "incoming_target.mp3",
-      "url": "https://tftclash.com/voice/exboss/incoming_target.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/incoming_target.mp3",
       "ogg": "incoming_target.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/incoming_target.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/incoming_target.ogg"
     },
     {
       "name": "intercept_arrows",
       "file": "intercept_arrows.mp3",
-      "url": "https://tftclash.com/voice/exboss/intercept_arrows.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/intercept_arrows.mp3",
       "ogg": "intercept_arrows.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/intercept_arrows.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/intercept_arrows.ogg"
     },
     {
       "name": "intercept_beam",
       "file": "intercept_beam.mp3",
-      "url": "https://tftclash.com/voice/exboss/intercept_beam.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/intercept_beam.mp3",
       "ogg": "intercept_beam.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/intercept_beam.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/intercept_beam.ogg"
     },
     {
       "name": "intercept_orbs",
       "file": "intercept_orbs.mp3",
-      "url": "https://tftclash.com/voice/exboss/intercept_orbs.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/intercept_orbs.mp3",
       "ogg": "intercept_orbs.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/intercept_orbs.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/intercept_orbs.ogg"
     },
     {
       "name": "interrupt_cast",
       "file": "interrupt_cast.mp3",
-      "url": "https://tftclash.com/voice/exboss/interrupt_cast.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/interrupt_cast.mp3",
       "ogg": "interrupt_cast.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/interrupt_cast.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/interrupt_cast.ogg"
     },
     {
       "name": "interrupt_quickly",
       "file": "interrupt_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/interrupt_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/interrupt_quickly.mp3",
       "ogg": "interrupt_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/interrupt_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/interrupt_quickly.ogg"
     },
     {
       "name": "jump",
       "file": "jump.mp3",
-      "url": "https://tftclash.com/voice/exboss/jump.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/jump.mp3",
       "ogg": "jump.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/jump.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/jump.ogg"
     },
     {
       "name": "kill_adds_quickly",
       "file": "kill_adds_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/kill_adds_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/kill_adds_quickly.mp3",
       "ogg": "kill_adds_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/kill_adds_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/kill_adds_quickly.ogg"
     },
     {
       "name": "kill_orb_quickly",
       "file": "kill_orb_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/kill_orb_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/kill_orb_quickly.mp3",
       "ogg": "kill_orb_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/kill_orb_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/kill_orb_quickly.ogg"
     },
     {
       "name": "kite",
       "file": "kite.mp3",
-      "url": "https://tftclash.com/voice/exboss/kite.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/kite.mp3",
       "ogg": "kite.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/kite.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/kite.ogg"
     },
     {
       "name": "kite_adds",
       "file": "kite_adds.mp3",
-      "url": "https://tftclash.com/voice/exboss/kite_adds.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/kite_adds.mp3",
       "ogg": "kite_adds.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/kite_adds.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/kite_adds.ogg"
     },
     {
       "name": "knockback",
       "file": "knockback.mp3",
-      "url": "https://tftclash.com/voice/exboss/knockback.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/knockback.mp3",
       "ogg": "knockback.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/knockback.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/knockback.ogg"
     },
     {
       "name": "knockup",
       "file": "knockup.mp3",
-      "url": "https://tftclash.com/voice/exboss/knockup.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/knockup.mp3",
       "ogg": "knockup.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/knockup.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/knockup.ogg"
     },
     {
       "name": "light_pillar",
       "file": "light_pillar.mp3",
-      "url": "https://tftclash.com/voice/exboss/light_pillar.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/light_pillar.mp3",
       "ogg": "light_pillar.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/light_pillar.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/light_pillar.ogg"
     },
     {
       "name": "line_of_sight",
       "file": "line_of_sight.mp3",
-      "url": "https://tftclash.com/voice/exboss/line_of_sight.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/line_of_sight.mp3",
       "ogg": "line_of_sight.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/line_of_sight.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/line_of_sight.ogg"
     },
     {
       "name": "los",
       "file": "los.mp3",
-      "url": "https://tftclash.com/voice/exboss/los.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/los.mp3",
       "ogg": "los.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/los.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/los.ogg"
     },
     {
       "name": "massive_aoe",
       "file": "massive_aoe.mp3",
-      "url": "https://tftclash.com/voice/exboss/massive_aoe.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/massive_aoe.mp3",
       "ogg": "massive_aoe.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/massive_aoe.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/massive_aoe.ogg"
     },
     {
       "name": "move",
       "file": "move.mp3",
-      "url": "https://tftclash.com/voice/exboss/move.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/move.mp3",
       "ogg": "move.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/move.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/move.ogg"
     },
     {
       "name": "move_close",
       "file": "move_close.mp3",
-      "url": "https://tftclash.com/voice/exboss/move_close.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/move_close.mp3",
       "ogg": "move_close.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/move_close.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/move_close.ogg"
     },
     {
       "name": "move_out_drop",
       "file": "move_out_drop.mp3",
-      "url": "https://tftclash.com/voice/exboss/move_out_drop.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/move_out_drop.mp3",
       "ogg": "move_out_drop.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/move_out_drop.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/move_out_drop.ogg"
     },
     {
       "name": "move_to_boss",
       "file": "move_to_boss.mp3",
-      "url": "https://tftclash.com/voice/exboss/move_to_boss.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/move_to_boss.mp3",
       "ogg": "move_to_boss.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/move_to_boss.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/move_to_boss.ogg"
     },
     {
       "name": "move_to_tether",
       "file": "move_to_tether.mp3",
-      "url": "https://tftclash.com/voice/exboss/move_to_tether.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/move_to_tether.mp3",
       "ogg": "move_to_tether.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/move_to_tether.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/move_to_tether.ogg"
     },
     {
       "name": "orb",
       "file": "orb.mp3",
-      "url": "https://tftclash.com/voice/exboss/orb.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/orb.mp3",
       "ogg": "orb.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/orb.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/orb.ogg"
     },
     {
       "name": "pass_mechanic",
       "file": "pass_mechanic.mp3",
-      "url": "https://tftclash.com/voice/exboss/pass_mechanic.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/pass_mechanic.mp3",
       "ogg": "pass_mechanic.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/pass_mechanic.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/pass_mechanic.ogg"
     },
     {
       "name": "phase_transition",
       "file": "phase_transition.mp3",
-      "url": "https://tftclash.com/voice/exboss/phase_transition.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/phase_transition.mp3",
       "ogg": "phase_transition.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/phase_transition.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/phase_transition.ogg"
     },
     {
       "name": "phase_transition_single",
       "file": "phase_transition_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/phase_transition_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/phase_transition_single.mp3",
       "ogg": "phase_transition_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/phase_transition_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/phase_transition_single.ogg"
     },
     {
       "name": "pickup_adds",
       "file": "pickup_adds.mp3",
-      "url": "https://tftclash.com/voice/exboss/pickup_adds.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/pickup_adds.mp3",
       "ogg": "pickup_adds.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/pickup_adds.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/pickup_adds.ogg"
     },
     {
       "name": "prepare_grab",
       "file": "prepare_grab.mp3",
-      "url": "https://tftclash.com/voice/exboss/prepare_grab.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/prepare_grab.mp3",
       "ogg": "prepare_grab.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/prepare_grab.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/prepare_grab.ogg"
     },
     {
       "name": "pull",
       "file": "pull.mp3",
-      "url": "https://tftclash.com/voice/exboss/pull.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/pull.mp3",
       "ogg": "pull.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/pull.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/pull.ogg"
     },
     {
       "name": "purge",
       "file": "purge.mp3",
-      "url": "https://tftclash.com/voice/exboss/purge.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/purge.mp3",
       "ogg": "purge.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/purge.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/purge.ogg"
     },
     {
       "name": "ready_interrupt",
       "file": "ready_interrupt.mp3",
-      "url": "https://tftclash.com/voice/exboss/ready_interrupt.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/ready_interrupt.mp3",
       "ogg": "ready_interrupt.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/ready_interrupt.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/ready_interrupt.ogg"
     },
     {
       "name": "ready_stack",
       "file": "ready_stack.mp3",
-      "url": "https://tftclash.com/voice/exboss/ready_stack.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/ready_stack.mp3",
       "ogg": "ready_stack.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/ready_stack.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/ready_stack.ogg"
     },
     {
       "name": "rescue_player",
       "file": "rescue_player.mp3",
-      "url": "https://tftclash.com/voice/exboss/rescue_player.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/rescue_player.mp3",
       "ogg": "rescue_player.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/rescue_player.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/rescue_player.ogg"
     },
     {
       "name": "reset_stacks",
       "file": "reset_stacks.mp3",
-      "url": "https://tftclash.com/voice/exboss/reset_stacks.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/reset_stacks.mp3",
       "ogg": "reset_stacks.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/reset_stacks.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/reset_stacks.ogg"
     },
     {
       "name": "rift_on_you",
       "file": "rift_on_you.mp3",
-      "url": "https://tftclash.com/voice/exboss/rift_on_you.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/rift_on_you.mp3",
       "ogg": "rift_on_you.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/rift_on_you.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/rift_on_you.ogg"
     },
     {
       "name": "rooted",
       "file": "rooted.mp3",
-      "url": "https://tftclash.com/voice/exboss/rooted.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/rooted.mp3",
       "ogg": "rooted.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/rooted.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/rooted.ogg"
     },
     {
       "name": "run_away",
       "file": "run_away.mp3",
-      "url": "https://tftclash.com/voice/exboss/run_away.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/run_away.mp3",
       "ogg": "run_away.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/run_away.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/run_away.ogg"
     },
     {
       "name": "run_puddles",
       "file": "run_puddles.mp3",
-      "url": "https://tftclash.com/voice/exboss/run_puddles.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/run_puddles.mp3",
       "ogg": "run_puddles.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/run_puddles.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/run_puddles.ogg"
     },
     {
       "name": "run_quickly",
       "file": "run_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/run_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/run_quickly.mp3",
       "ogg": "run_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/run_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/run_quickly.ogg"
     },
     {
       "name": "run_targeted",
       "file": "run_targeted.mp3",
-      "url": "https://tftclash.com/voice/exboss/run_targeted.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/run_targeted.mp3",
       "ogg": "run_targeted.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/run_targeted.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/run_targeted.ogg"
     },
     {
       "name": "save_quickly",
       "file": "save_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/save_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/save_quickly.mp3",
       "ogg": "save_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/save_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/save_quickly.ogg"
     },
     {
       "name": "shield",
       "file": "shield.mp3",
-      "url": "https://tftclash.com/voice/exboss/shield.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/shield.mp3",
       "ogg": "shield.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/shield.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/shield.ogg"
     },
     {
       "name": "shockwave",
       "file": "shockwave.mp3",
-      "url": "https://tftclash.com/voice/exboss/shockwave.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/shockwave.mp3",
       "ogg": "shockwave.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/shockwave.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/shockwave.ogg"
     },
     {
       "name": "soak",
       "file": "soak.mp3",
-      "url": "https://tftclash.com/voice/exboss/soak.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/soak.mp3",
       "ogg": "soak.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/soak.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/soak.ogg"
     },
     {
       "name": "soak_orbs",
       "file": "soak_orbs.mp3",
-      "url": "https://tftclash.com/voice/exboss/soak_orbs.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/soak_orbs.mp3",
       "ogg": "soak_orbs.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/soak_orbs.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/soak_orbs.ogg"
     },
     {
       "name": "soak_puddle",
       "file": "soak_puddle.mp3",
-      "url": "https://tftclash.com/voice/exboss/soak_puddle.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/soak_puddle.mp3",
       "ogg": "soak_puddle.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/soak_puddle.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/soak_puddle.ogg"
     },
     {
       "name": "spawning",
       "file": "spawning.mp3",
-      "url": "https://tftclash.com/voice/exboss/spawning.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/spawning.mp3",
       "ogg": "spawning.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/spawning.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/spawning.ogg"
     },
     {
       "name": "special",
       "file": "special.mp3",
-      "url": "https://tftclash.com/voice/exboss/special.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/special.mp3",
       "ogg": "special.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/special.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/special.ogg"
     },
     {
       "name": "split",
       "file": "split.mp3",
-      "url": "https://tftclash.com/voice/exboss/split.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/split.mp3",
       "ogg": "split.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/split.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/split.ogg"
     },
     {
       "name": "spread",
       "file": "spread.mp3",
-      "url": "https://tftclash.com/voice/exboss/spread.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/spread.mp3",
       "ogg": "spread.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/spread.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/spread.ogg"
     },
     {
       "name": "spread_quickly",
       "file": "spread_quickly.mp3",
-      "url": "https://tftclash.com/voice/exboss/spread_quickly.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/spread_quickly.mp3",
       "ogg": "spread_quickly.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/spread_quickly.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/spread_quickly.ogg"
     },
     {
       "name": "stack_and_move",
       "file": "stack_and_move.mp3",
-      "url": "https://tftclash.com/voice/exboss/stack_and_move.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/stack_and_move.mp3",
       "ogg": "stack_and_move.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/stack_and_move.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/stack_and_move.ogg"
     },
     {
       "name": "stack_drop",
       "file": "stack_drop.mp3",
-      "url": "https://tftclash.com/voice/exboss/stack_drop.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/stack_drop.mp3",
       "ogg": "stack_drop.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/stack_drop.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/stack_drop.ogg"
     },
     {
       "name": "stack_here",
       "file": "stack_here.mp3",
-      "url": "https://tftclash.com/voice/exboss/stack_here.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/stack_here.mp3",
       "ogg": "stack_here.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/stack_here.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/stack_here.ogg"
     },
     {
       "name": "step_puddle",
       "file": "step_puddle.mp3",
-      "url": "https://tftclash.com/voice/exboss/step_puddle.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/step_puddle.mp3",
       "ogg": "step_puddle.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/step_puddle.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/step_puddle.ogg"
     },
     {
       "name": "stop_casting",
       "file": "stop_casting.mp3",
-      "url": "https://tftclash.com/voice/exboss/stop_casting.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/stop_casting.mp3",
       "ogg": "stop_casting.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/stop_casting.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/stop_casting.ogg"
     },
     {
       "name": "summon_big_add",
       "file": "summon_big_add.mp3",
-      "url": "https://tftclash.com/voice/exboss/summon_big_add.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/summon_big_add.mp3",
       "ogg": "summon_big_add.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/summon_big_add.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/summon_big_add.ogg"
     },
     {
       "name": "summon_clones",
       "file": "summon_clones.mp3",
-      "url": "https://tftclash.com/voice/exboss/summon_clones.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/summon_clones.mp3",
       "ogg": "summon_clones.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/summon_clones.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/summon_clones.ogg"
     },
     {
       "name": "supply_protocol",
       "file": "supply_protocol.mp3",
-      "url": "https://tftclash.com/voice/exboss/supply_protocol.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/supply_protocol.mp3",
       "ogg": "supply_protocol.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/supply_protocol.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/supply_protocol.ogg"
     },
     {
       "name": "switch_target",
       "file": "switch_target.mp3",
-      "url": "https://tftclash.com/voice/exboss/switch_target.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/switch_target.mp3",
       "ogg": "switch_target.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/switch_target.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/switch_target.ogg"
     },
     {
       "name": "tank_active",
       "file": "tank_active.mp3",
-      "url": "https://tftclash.com/voice/exboss/tank_active.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tank_active.mp3",
       "ogg": "tank_active.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tank_active.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tank_active.ogg"
     },
     {
       "name": "tank_hit",
       "file": "tank_hit.mp3",
-      "url": "https://tftclash.com/voice/exboss/tank_hit.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tank_hit.mp3",
       "ogg": "tank_hit.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tank_hit.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tank_hit.ogg"
     },
     {
       "name": "tank_knockback",
       "file": "tank_knockback.mp3",
-      "url": "https://tftclash.com/voice/exboss/tank_knockback.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tank_knockback.mp3",
       "ogg": "tank_knockback.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tank_knockback.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tank_knockback.ogg"
     },
     {
       "name": "tank_knockback_single",
       "file": "tank_knockback_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/tank_knockback_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tank_knockback_single.mp3",
       "ogg": "tank_knockback_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tank_knockback_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tank_knockback_single.ogg"
     },
     {
       "name": "targeted",
       "file": "targeted.mp3",
-      "url": "https://tftclash.com/voice/exboss/targeted.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/targeted.mp3",
       "ogg": "targeted.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/targeted.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/targeted.ogg"
     },
     {
       "name": "targeted_single",
       "file": "targeted_single.mp3",
-      "url": "https://tftclash.com/voice/exboss/targeted_single.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/targeted_single.mp3",
       "ogg": "targeted_single.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/targeted_single.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/targeted_single.ogg"
     },
     {
       "name": "tether",
       "file": "tether.mp3",
-      "url": "https://tftclash.com/voice/exboss/tether.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tether.mp3",
       "ogg": "tether.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tether.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tether.ogg"
     },
     {
       "name": "tether_on_you",
       "file": "tether_on_you.mp3",
-      "url": "https://tftclash.com/voice/exboss/tether_on_you.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/tether_on_you.mp3",
       "ogg": "tether_on_you.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/tether_on_you.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/tether_on_you.ogg"
     },
     {
       "name": "totem",
       "file": "totem.mp3",
-      "url": "https://tftclash.com/voice/exboss/totem.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/totem.mp3",
       "ogg": "totem.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/totem.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/totem.ogg"
     },
     {
       "name": "trap",
       "file": "trap.mp3",
-      "url": "https://tftclash.com/voice/exboss/trap.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/trap.mp3",
       "ogg": "trap.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/trap.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/trap.ogg"
     },
     {
       "name": "trigger_trap",
       "file": "trigger_trap.mp3",
-      "url": "https://tftclash.com/voice/exboss/trigger_trap.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/trigger_trap.mp3",
       "ogg": "trigger_trap.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/trigger_trap.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/trigger_trap.ogg"
     },
     {
       "name": "volley",
       "file": "volley.mp3",
-      "url": "https://tftclash.com/voice/exboss/volley.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/volley.mp3",
       "ogg": "volley.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/volley.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/volley.ogg"
     },
     {
       "name": "vulnerability_ends",
       "file": "vulnerability_ends.mp3",
-      "url": "https://tftclash.com/voice/exboss/vulnerability_ends.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/vulnerability_ends.mp3",
       "ogg": "vulnerability_ends.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/vulnerability_ends.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/vulnerability_ends.ogg"
     },
     {
       "name": "vulnerability_incoming",
       "file": "vulnerability_incoming.mp3",
-      "url": "https://tftclash.com/voice/exboss/vulnerability_incoming.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/vulnerability_incoming.mp3",
       "ogg": "vulnerability_incoming.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/vulnerability_incoming.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/vulnerability_incoming.ogg"
     },
     {
       "name": "vulnerable",
       "file": "vulnerable.mp3",
-      "url": "https://tftclash.com/voice/exboss/vulnerable.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/vulnerable.mp3",
       "ogg": "vulnerable.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/vulnerable.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/vulnerable.ogg"
     },
     {
       "name": "watch_arrows",
       "file": "watch_arrows.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_arrows.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_arrows.mp3",
       "ogg": "watch_arrows.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_arrows.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_arrows.ogg"
     },
     {
       "name": "watch_beams",
       "file": "watch_beams.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_beams.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_beams.mp3",
       "ogg": "watch_beams.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_beams.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_beams.ogg"
     },
     {
       "name": "watch_big_add",
       "file": "watch_big_add.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_big_add.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_big_add.mp3",
       "ogg": "watch_big_add.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_big_add.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_big_add.ogg"
     },
     {
       "name": "watch_big_circle",
       "file": "watch_big_circle.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_big_circle.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_big_circle.mp3",
       "ogg": "watch_big_circle.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_big_circle.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_big_circle.ogg"
     },
     {
       "name": "watch_bombs",
       "file": "watch_bombs.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_bombs.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_bombs.mp3",
       "ogg": "watch_bombs.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_bombs.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_bombs.ogg"
     },
     {
       "name": "watch_breath",
       "file": "watch_breath.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_breath.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_breath.mp3",
       "ogg": "watch_breath.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_breath.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_breath.ogg"
     },
     {
       "name": "watch_dodge",
       "file": "watch_dodge.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_dodge.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_dodge.mp3",
       "ogg": "watch_dodge.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_dodge.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_dodge.ogg"
     },
     {
       "name": "watch_explosion",
       "file": "watch_explosion.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_explosion.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_explosion.mp3",
       "ogg": "watch_explosion.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_explosion.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_explosion.ogg"
     },
     {
       "name": "watch_feet",
       "file": "watch_feet.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_feet.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_feet.mp3",
       "ogg": "watch_feet.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_feet.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_feet.ogg"
     },
     {
       "name": "watch_frontal",
       "file": "watch_frontal.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_frontal.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_frontal.mp3",
       "ogg": "watch_frontal.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_frontal.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_frontal.ogg"
     },
     {
       "name": "watch_hook",
       "file": "watch_hook.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_hook.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_hook.mp3",
       "ogg": "watch_hook.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_hook.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_hook.ogg"
     },
     {
       "name": "watch_knockback",
       "file": "watch_knockback.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_knockback.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_knockback.mp3",
       "ogg": "watch_knockback.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_knockback.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_knockback.ogg"
     },
     {
       "name": "watch_knockup_2",
       "file": "watch_knockup_2.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_knockup_2.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_knockup_2.mp3",
       "ogg": "watch_knockup_2.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_knockup_2.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_knockup_2.ogg"
     },
     {
       "name": "watch_tether",
       "file": "watch_tether.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_tether.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_tether.mp3",
       "ogg": "watch_tether.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_tether.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_tether.ogg"
     },
     {
       "name": "watch_waves",
       "file": "watch_waves.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_waves.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_waves.mp3",
       "ogg": "watch_waves.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_waves.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_waves.ogg"
     },
     {
       "name": "watch_wind",
       "file": "watch_wind.mp3",
-      "url": "https://tftclash.com/voice/exboss/watch_wind.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/watch_wind.mp3",
       "ogg": "watch_wind.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/watch_wind.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/watch_wind.ogg"
     },
     {
       "name": "white",
       "file": "white.mp3",
-      "url": "https://tftclash.com/voice/exboss/white.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/white.mp3",
       "ogg": "white.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/white.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/white.ogg"
     },
     {
       "name": "yellow",
       "file": "yellow.mp3",
-      "url": "https://tftclash.com/voice/exboss/yellow.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/yellow.mp3",
       "ogg": "yellow.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/yellow.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/yellow.ogg"
     },
     {
       "name": "you_are_targeted",
       "file": "you_are_targeted.mp3",
-      "url": "https://tftclash.com/voice/exboss/you_are_targeted.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/you_are_targeted.mp3",
       "ogg": "you_are_targeted.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/you_are_targeted.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/you_are_targeted.ogg"
     },
     {
       "name": "you_are_the_target",
       "file": "you_are_the_target.mp3",
-      "url": "https://tftclash.com/voice/exboss/you_are_the_target.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/you_are_the_target.mp3",
       "ogg": "you_are_the_target.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/you_are_the_target.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/you_are_the_target.ogg"
     },
     {
       "name": "you_black",
       "file": "you_black.mp3",
-      "url": "https://tftclash.com/voice/exboss/you_black.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/you_black.mp3",
       "ogg": "you_black.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/you_black.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/you_black.ogg"
     },
     {
       "name": "you_white",
       "file": "you_white.mp3",
-      "url": "https://tftclash.com/voice/exboss/you_white.mp3",
+      "url": "https://www.tftclash.com/voice/exboss/you_white.mp3",
       "ogg": "you_white.ogg",
-      "ogg_url": "https://tftclash.com/voice/exboss/you_white.ogg"
+      "ogg_url": "https://www.tftclash.com/voice/exboss/you_white.ogg"
     }
   ],
   "formats": [
