@@ -17,6 +17,7 @@ import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
 import { ensureNotifyRoles, addNotifyRole, removeNotifyRole } from './utils/notifyRoles.js';
 import { hydratePanel, reactionToKind, loadPanelMessageId } from './utils/reactionRoles.js';
 import { hydrateAllPickers, handlePickerReaction } from './utils/rolePickers.js';
+import { handleHostStatusButton } from './commands/status.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Client({
@@ -139,6 +140,19 @@ client.on(Events.InteractionCreate, async function(interaction) {
         await interaction.editReply(msg);
       } else {
         await interaction.reply(msg);
+      }
+    }
+    return;
+  }
+
+  // Button: host status panel
+  if (interaction.isButton() && interaction.customId.startsWith('hoststatus:')) {
+    try {
+      await handleHostStatusButton(interaction);
+    } catch (err) {
+      console.error('[error] host status button:', err);
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: '❌ Could not update status.', ephemeral: true }).catch(function() {});
       }
     }
     return;
