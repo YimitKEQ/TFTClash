@@ -4,6 +4,16 @@
   "framework": "vite",
   "redirects": [
     {
+      "source": "/discord",
+      "destination": "https://discord.gg/8nyHY66rBP",
+      "permanent": false
+    },
+    {
+      "source": "/invite",
+      "destination": "https://discord.gg/8nyHY66rBP",
+      "permanent": false
+    },
+    {
       "source": "/:path(.*)",
       "has": [{ "type": "host", "value": "tft-clash.vercel.app" }],
       "destination": "https://www.tftclash.com/:path",

@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../_base.css"><style>
+.ad{width:1080px;height:1920px;background:#05040f}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 50% 56%,rgba(255,0,170,.42) 0%,transparent 54%),
+  radial-gradient(ellipse at 50% 24%,rgba(0,240,255,.34) 0%,transparent 52%),
+  radial-gradient(ellipse at 50% 80%,rgba(240,196,109,.16) 0%,transparent 55%),
+  linear-gradient(180deg,#05040f 0%,#0f0618 45%,#1a0425 100%)}
+.grid{position:absolute;inset:0;background-image:
+  linear-gradient(rgba(0,240,255,.08) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,240,255,.08) 1px,transparent 1px);
+  background-size:70px 70px;mask-image:radial-gradient(ellipse at 50% 55%,#000 30%,transparent 85%)}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 4px)}
+.frame{position:absolute;inset:44px;border:1px solid rgba(0,240,255,.18);pointer-events:none}
+.frame::before,.frame::after,.frame i,.frame em{position:absolute;width:26px;height:26px;border:3px solid #00f0ff;content:'';filter:drop-shadow(0 0 12px rgba(0,240,255,.7))}
+.frame::before{top:-3px;left:-3px;border-right:0;border-bottom:0}
+.frame::after{top:-3px;right:-3px;border-left:0;border-bottom:0}
+.frame i{bottom:-3px;left:-3px;border-right:0;border-top:0}
+.frame em{bottom:-3px;right:-3px;border-left:0;border-top:0}
+
+.brand{position:absolute;top:110px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:16px;z-index:7}
+.brand img{width:64px;height:64px;filter:drop-shadow(0 0 14px rgba(0,240,255,.55)) drop-shadow(0 0 26px rgba(255,0,170,.35))}
+.brand .wm{font-family:'Russo One',sans-serif;font-style:italic;font-size:46px;letter-spacing:-.02em;text-transform:uppercase;display:flex;gap:12px}
+.brand .wm .l1{color:#00f0ff;text-shadow:0 0 16px rgba(0,240,255,.85)}
+.brand .wm .l2{color:#ff00aa;text-shadow:0 0 16px rgba(255,0,170,.85)}
+
+.kicker{position:absolute;top:230px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:23px;letter-spacing:.5em;color:#00f0ff;text-transform:uppercase;z-index:7;text-shadow:0 0 18px rgba(0,240,255,.7)}
+.kicker b{color:#ff00aa}
+.season{position:absolute;top:300px;left:0;right:0;text-align:center;z-index:7;font-family:'Orbitron',sans-serif;font-weight:900;font-size:54px;letter-spacing:.5em;color:#f0c46d;text-transform:uppercase;text-shadow:0 0 28px rgba(240,196,109,.6)}
+.h{position:absolute;top:362px;left:0;right:0;text-align:center;z-index:7;font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:150px;line-height:.82;letter-spacing:-.03em;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 50px rgba(0,240,255,.75),0 0 110px rgba(255,0,170,.5)}
+.h span{display:block;color:transparent;-webkit-text-stroke:4px #ff00aa;text-shadow:0 0 40px rgba(255,0,170,.85);font-size:138px}
+
+.chair{position:absolute;left:50%;top:1175px;transform:translate(-50%,-50%);height:720px;z-index:4;
+  filter:drop-shadow(-30px 0 80px rgba(255,0,170,.5)) drop-shadow(30px 0 80px rgba(0,240,255,.5)) drop-shadow(0 50px 80px rgba(0,0,0,.9))}
+.firstbadge{position:absolute;top:890px;right:108px;z-index:8;text-align:right;transform:rotate(-3deg)}
+.firstbadge .b1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:52px;color:#f0c46d;text-transform:uppercase;line-height:1;text-shadow:0 0 24px rgba(240,196,109,.9)}
+.firstbadge .b2{font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.24em;color:#fff;text-transform:uppercase;margin-top:6px;opacity:.85}
+
+.prizes{position:absolute;top:1530px;left:64px;right:64px;display:flex;gap:18px;z-index:7}
+.tile{flex:1;position:relative;padding:22px 16px 20px;background:linear-gradient(160deg,rgba(0,240,255,.08),rgba(255,0,170,.05));border:1px solid rgba(0,240,255,.35);text-align:center;overflow:hidden}
+.tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#00f0ff;box-shadow:0 0 14px rgba(0,240,255,.9)}
+.tile.gold{border-color:rgba(240,196,109,.6);background:linear-gradient(160deg,rgba(240,196,109,.16),rgba(255,0,170,.06))}
+.tile.gold::before{background:#f0c46d;box-shadow:0 0 18px rgba(240,196,109,.95)}
+.tile.silver{border-color:rgba(220,220,235,.45)}.tile.silver::before{background:#dcdceb;box-shadow:0 0 14px rgba(220,220,235,.9)}
+.tile.bronze{border-color:rgba(232,152,88,.5)}.tile.bronze::before{background:#e89858;box-shadow:0 0 14px rgba(232,152,88,.9)}
+.medal{font-family:'Orbitron',sans-serif;font-weight:900;font-size:40px;line-height:1;text-transform:uppercase;margin-bottom:12px}
+.tile.gold .medal{color:#f0c46d;text-shadow:0 0 14px rgba(240,196,109,.85)}
+.tile.silver .medal{color:#dcdceb;text-shadow:0 0 14px rgba(220,220,235,.8)}
+.tile.bronze .medal{color:#e89858;text-shadow:0 0 14px rgba(232,152,88,.85)}
+.perk{font-family:'Orbitron',sans-serif;font-weight:900;font-size:23px;line-height:1.1;color:#fff;text-transform:uppercase}
+.q{font-family:'Orbitron',sans-serif;font-weight:900;font-size:64px;color:#fff;line-height:.9}
+.qsub{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.2em;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:6px}
+
+.strip{position:absolute;top:1690px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:.26em;color:rgba(255,255,255,.74);text-transform:uppercase;z-index:7}
+.strip b{color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,.6)}
+.date{position:absolute;top:720px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:24px;letter-spacing:.3em;color:#fff;text-transform:uppercase;z-index:7}
+.date b{color:#f0c46d}
+.cta{position:absolute;top:1740px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:38px;letter-spacing:.28em;color:#00f0ff;text-transform:uppercase;z-index:7;text-shadow:0 0 22px rgba(0,240,255,.85)}
+.cta b{color:#ff00aa;text-shadow:0 0 22px rgba(255,0,170,.85)}
+.partnerlock{position:absolute;bottom:104px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:12px;z-index:9;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.3em;color:rgba(255,255,255,.55);text-transform:uppercase}
+.partnerlock img{height:34px;filter:invert(1) drop-shadow(0 0 10px rgba(0,240,255,.4))}
+</style></head><body>
+<div class="ad"><div class="bg"></div><div class="grid"></div><div class="scan"></div>
+  <div class="frame"><i></i><em></em></div>
+  <div class="brand"><img src="../../public/tftclash-icon.svg" alt=""><div class="wm"><span class="l1">TFT</span><span class="l2">CLASH</span></div></div>
+  <div class="kicker">// WEEKLY TFT TOURNAMENT <b>◆</b> EU + NA</div>
+  <div class="season">SEASON ONE</div>
+  <div class="h">The Clash<span>Begins</span></div>
+  <div class="date">◆ SAT <b>·</b> JUNE 13 <b>·</b> TIME TBA (EU/NA POLL) ◆</div>
+  <img class="chair" src="../../Autofull/M6 Ultra 2.0.png" alt="">
+  <div class="firstbadge"><div class="b1">1ST PRIZE</div><div class="b2">AutoFull M6 Ultra Chair</div></div>
+  <div class="prizes">
+    <div class="tile gold"><div class="medal">1ST</div><div class="perk">AUTOFULL<br>GAMING CHAIR</div></div>
+    <div class="tile silver"><div class="medal">2ND</div><div class="q">?</div><div class="qsub">Reveal soon</div></div>
+    <div class="tile bronze"><div class="medal">3RD</div><div class="q">?</div><div class="qsub">Reveal soon</div></div>
+  </div>
+  <div class="strip">FREE TO ENTER <b>·</b> NEW CLASH EVERY WEEK <b>·</b> TOP 8 PAID OUT <b>·</b> POOL GROWS WITH ENTRIES</div>
+  <div class="cta">▸ TFTCLASH<b>.</b>COM/DISCORD</div>
+  <div class="partnerlock">POWERED BY <img src="../../Autofull/autofull-logo-official.png" alt="AutoFull"></div>
+</div></body></html>
