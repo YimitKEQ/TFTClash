@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
-import { applyCutLine } from '../lib/tournament.js'
+import { applyCutLine, applyLadderCut, advanceCountAfterGame, ladderCutsAfterGame } from '../lib/tournament.js'
 import { sfxLock, sfxAdvance, sfxWin, sfxFinalTick, sfxTick } from '../lib/audio.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
 import { Panel, Btn, Inp, Sel } from '../components/ui'
@@ -19,6 +19,13 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
   var cutAfterGame=tournamentState&&tournamentState.cutAfterGame?tournamentState.cutAfterGame:0;
   var showCutLine=cutLine>0&&cutAfterGame>0&&round>=cutAfterGame;
   var totalGames=tournamentState&&tournamentState.totalGames?tournamentState.totalGames:4;
+  // Elimination-ladder display: cut position = number of players who advance
+  // after this game. Rows ranked at/after that index are on the wrong side of
+  // the line and get cut when this game's results lock.
+  var ladderMode=tournamentState&&tournamentState.cutMode==="ladder";
+  var ladderStartSize=tournamentState&&tournamentState.ladderStartSize?tournamentState.ladderStartSize:0;
+  var ladderCutsThisGame=ladderMode&&ladderCutsAfterGame(ladderStartSize,round);
+  var ladderAdvance=ladderMode?advanceCountAfterGame(ladderStartSize,round):0;
 
   var liveRows=checkedIn.map(function(p){
     var earned=0;var gamesPlayed=0;
@@ -44,12 +51,17 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
           {"Cut line: " + cutLine + " pts - players below the line are eliminated after Game " + cutAfterGame}
         </div>
       )}
+      {ladderMode&&ladderCutsThisGame&&(
+        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
+          {"Elimination ladder: top " + ladderAdvance + " advance after Game " + round + " - the rest are cut"}
+        </div>
+      )}
       <div className="divide-y divide-outline-variant/5">
         {liveRows.map(function(row,ri){
           var isLeader=ri===0&&row.earned>0;
-          // Matches applyCutLine: pts >= cutLine survives, strictly below is eliminated.
-          var belowCut=showCutLine&&row.earned<cutLine;
-          var nearCut=showCutLine&&!belowCut&&row.earned<=cutLine+2;
+          // Threshold: pts >= cutLine survives. Ladder: top `ladderAdvance` by rank survive.
+          var belowCut=ladderMode?(ladderCutsThisGame&&ri>=ladderAdvance):(showCutLine&&row.earned<cutLine);
+          var nearCut=ladderMode?(ladderCutsThisGame&&!belowCut&&ri>=ladderAdvance-2):(showCutLine&&!belowCut&&row.earned<=cutLine+2);
           return(
             <div key={row.id} className={"flex items-center gap-3 px-5 py-2 " + (belowCut?"opacity-60 bg-error/5":isLeader?"bg-primary/5":"")}>
               <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (belowCut?"text-error":ri===0?"text-primary":ri===1?"text-on-surface-variant":ri===2?"text-on-surface-variant/70":"text-on-surface-variant/40")}>
@@ -552,27 +564,66 @@ function BracketScreen(){
     var maxRounds=tournamentState.totalGames||4;
     if(round>=maxRounds)return;
     var nextRound=round+1;
+    var cutMode=tournamentState.cutMode||"threshold";
     var cutL=tournamentState.cutLine||0;
     var cutG=tournamentState.cutAfterGame||0;
     var cutMsg="";
-    if(cutL>0&&round===cutG){
+
+    // Apply eliminations to a set of player ids: drop them from checked-in and
+    // record them as eliminated. Shared by both cut modes.
+    function applyElimination(elimIds){
+      if(!elimIds||elimIds.length===0)return;
+      setPlayers(function(ps){return ps.map(function(p){return elimIds.indexOf(String(p.id))>=0?Object.assign({},p,{checkedIn:false}):p;});});
+      setTournamentState(function(ts){
+        var kept=(ts.checkedInIds||[]).filter(function(cid){return elimIds.indexOf(String(cid))<0;});
+        var existingElim=(ts.eliminatedIds||[]).map(String);
+        var mergedElim=existingElim.concat(elimIds.filter(function(eid){return existingElim.indexOf(eid)<0;}));
+        return Object.assign({},ts,{checkedInIds:kept,eliminatedIds:mergedElim});
+      });
+    }
+
+    if(cutMode==="ladder"){
+      // Elimination-ladder: rank by the spec tiebreaker chain, then cut down to
+      // the survivor count for this game. No cut after game 1.
+      var startSize=tournamentState.ladderStartSize||((tournamentState.checkedInIds||[]).length)||checkedIn.length;
+      if(ladderCutsAfterGame(startSize,round)){
+        var advanceCount=advanceCountAfterGame(startSize,round);
+        var ladderStandings=checkedIn.map(function(p){
+          var clashEntries=(p.clashHistory||[]).filter(function(h){return h.clashId===currentClashId;});
+          var totalPts=clashEntries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
+          var places=clashEntries.map(function(h){return (h.place||h.placement)||9;});
+          return Object.assign({},p,{
+            tournamentPts:totalPts,
+            gamesInTournament:clashEntries.length,
+            _top4:places.filter(function(x){return x<=4;}).length,
+            _bot3:places.filter(function(x){return x>=6;}).length,
+            _wins:places.filter(function(x){return x===1;}).length,
+            _lastPlacement:places.length?places[places.length-1]:9
+          });
+        });
+        ladderStandings.sort(function(a,b){
+          if(b.tournamentPts!==a.tournamentPts)return b.tournamentPts-a.tournamentPts;
+          if(b._top4!==a._top4)return b._top4-a._top4;
+          if(a._bot3!==b._bot3)return a._bot3-b._bot3;
+          if(b._wins!==a._wins)return b._wins-a._wins;
+          return a._lastPlacement-b._lastPlacement;
+        });
+        var lad=applyLadderCut(ladderStandings,advanceCount);
+        if(lad.eliminated.length>0){
+          cutMsg=" - "+lad.eliminated.length+" cut (top "+advanceCount+" advance)";
+          applyElimination(lad.eliminated.map(function(ep){return String(ep.id);}));
+        }
+      }
+    } else if(cutL>0&&round===cutG){
       var standings=checkedIn.map(function(p){
         var clashEntries=(p.clashHistory||[]).filter(function(h){return h.clashId===currentClashId;});
         var tournamentPts=clashEntries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
         return Object.assign({},p,{tournamentPts:tournamentPts,gamesInTournament:clashEntries.length});
       });
       var cutResult=applyCutLine(standings,cutL,cutG);
-      var elimCount=cutResult.eliminated.length;
-      if(elimCount>0){
-        cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
-        var elimIds=cutResult.eliminated.map(function(ep){return String(ep.id);});
-        setPlayers(function(ps){return ps.map(function(p){return elimIds.indexOf(String(p.id))>=0?Object.assign({},p,{checkedIn:false}):p;});});
-        setTournamentState(function(ts){
-          var kept=(ts.checkedInIds||[]).filter(function(cid){return elimIds.indexOf(String(cid))<0;});
-          var existingElim=(ts.eliminatedIds||[]).map(String);
-          var mergedElim=existingElim.concat(elimIds.filter(function(eid){return existingElim.indexOf(eid)<0;}));
-          return Object.assign({},ts,{checkedInIds:kept,eliminatedIds:mergedElim});
-        });
+      if(cutResult.eliminated.length>0){
+        cutMsg=" - "+cutResult.eliminated.length+" players eliminated (below "+cutL+"pts)";
+        applyElimination(cutResult.eliminated.map(function(ep){return String(ep.id);}));
       }
     }
     var currentLobbies=lobbies;
@@ -1116,12 +1167,20 @@ function BracketScreen(){
                   </div>
                   <div className="p-5 space-y-2">
                     <button
+                      disabled={lockedCount>0}
                       onClick={function(){
+                        // Re-rolling after any lobby is locked would re-key lockedPlacements
+                        // (indexed by lobby position) onto a different roster, garbling locked
+                        // results. Block it until locks are cleared (unlock or advance round).
+                        if(lockedCount>0){toast("Unlock all lobbies before re-rolling","error");return;}
                         setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:[]});});
                         toast("Lobbies re-rolled!","success");
                       }}
-                      className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded">
-                      <span className="text-sm font-medium text-on-surface">Re-roll Lobbies</span>
+                      className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded disabled:opacity-40 disabled:pointer-events-none">
+                      <span className="text-sm font-medium text-on-surface">
+                        Re-roll Lobbies
+                        {lockedCount>0&&<span className="text-[10px] text-on-surface-variant/50 font-label ml-2">(unlock first)</span>}
+                      </span>
                       <Icon name="shuffle" size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
                     </button>
                     {isLive&&round>=(tournamentState.totalGames||4)&&(

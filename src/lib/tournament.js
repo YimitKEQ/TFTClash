@@ -34,23 +34,25 @@ export function canTransition(from, to) {
 export var TOURNAMENT_FORMATS = {
   casual: {name:"Casual Clash",description:"Single stage, 3 games, all players",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
   standard: {name:"Standard Clash",description:"Single stage, 5 games, seeded lobbies",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
-  competitive: {name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutLine:13,cutAfterGame:4,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  competitive: {name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutMode:"threshold",cutLine:13,cutAfterGame:4,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
+  elimination_ladder: {name:"Elimination Ladder",description:"No cuts G1-G2, then cut 8 each game down to a Top-8 finals. Scales to 64/128p.",games:8,stages:1,maxPlayers:128,cutEnabled:true,cutMode:"ladder",cutLine:0,cutAfterGame:2,seeding:"snake",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
   weekly: {name:"Weekly Clash",description:"3 games, open lobby format",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"rank-based",teamSize:1,teamsPerLobby:1,pointsScale:"standard"},
   squads_4v4: {name:"4v4 Squads",description:"2 teams per lobby, 4 starters each. Riot-standard scoring.",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake",teamSize:4,teamsPerLobby:2,pointsScale:"standard"},
   double_up_casual: {name:"Double Up (2v2) Casual",description:"4 teams of 2 per lobby, 3 games, no cuts.",games:3,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random",teamSize:2,teamsPerLobby:4,pointsScale:"double_up"},
   double_up_swiss: {name:"Double Up (2v2) Swiss",description:"4 teams of 2 per lobby, 5 games with reshuffles + late multipliers (R4 1.25x, R5 1.5x). Host configures cut line.",games:5,stages:2,maxPlayers:64,cutEnabled:false,cutLine:0,cutAfterGame:3,seeding:"random",teamSize:2,teamsPerLobby:4,pointsScale:"double_up_swiss"}
 };
 
-// Compute final standings from raw game_results rows using the official
-// EMEA tiebreaker chain. Returns players sorted; each entry includes
-// totalPts, wins, top4, placements[], gameDetails[], lastPlacement.
+// Compute final standings from raw game_results rows using the tournament
+// elimination tiebreaker chain. Returns players sorted; each entry includes
+// totalPts, wins, top4, bot3, placements[], gameDetails[], lastPlacement.
 //
 // Tiebreakers (in order):
 //   1. Total points
-//   2. Wins x 2 + Top4
-//   3. Most of each placement (1st, then 2nd, ...)
-//   4. Most recent game finish (best placement in highest game_number)
-//   5. (For double-up only) team-mode counts before #2/#3
+//   2. Most Top 4 finishes
+//   3. Fewest Bot 3s (6th/7th/8th)
+//   4. Most 1st place finishes
+//   5. Most recent game finish (best placement in highest game_number)
+//   6. (For double-up only) team-mode counts replace #2-#4
 //
 // `playerLookup(id)` is optional and is used to enrich the entry with a name/rank.
 export function computeFlashStandings(gameResults, opts) {
@@ -75,6 +77,7 @@ export function computeFlashStandings(gameResults, opts) {
         totalPts: 0,
         wins: 0,
         top4: 0,
+        bot3: 0,
         games: 0,
         avgPlace: 0,
         placements: [],
@@ -88,6 +91,7 @@ export function computeFlashStandings(gameResults, opts) {
     p.games += 1;
     if (g.placement === 1) p.wins += 1;
     if (g.placement <= 4) p.top4 += 1;
+    if (g.placement >= 6) p.bot3 += 1;
     p.placements.push(g.placement);
     p.gameDetails.push({ game: g.game_number, placement: g.placement, points: g.points });
     var gn = g.game_number || 0;
@@ -115,15 +119,14 @@ export function computeFlashStandings(gameResults, opts) {
       if (b.wins !== a.wins) return b.wins - a.wins;
       return (a.lastPlacement || 9) - (b.lastPlacement || 9);
     }
-    var aScore = a.wins * 2 + a.top4;
-    var bScore = b.wins * 2 + b.top4;
-    if (bScore !== aScore) return bScore - aScore;
-    for (var pl = 1; pl <= 8; pl++) {
-      var aC = a.placements.filter(function(p) { return p === pl; }).length;
-      var bC = b.placements.filter(function(p) { return p === pl; }).length;
-      if (bC !== aC) return bC - aC;
-    }
-    // Official 4th tiebreaker: most recent game finish (best placement in last game).
+    // Spec tournament-elimination tiebreaker chain (after equal total points):
+    //   1. Most Top 4 finishes
+    //   2. Fewest Bot 3s (6th/7th/8th)
+    //   3. Most 1st place finishes
+    //   4. Better placement in the most recent game
+    if (b.top4 !== a.top4) return b.top4 - a.top4;
+    if (a.bot3 !== b.bot3) return a.bot3 - b.bot3;
+    if (b.wins !== a.wins) return b.wins - a.wins;
     return (a.lastPlacement || 9) - (b.lastPlacement || 9);
   });
 
@@ -417,6 +420,79 @@ export function buildFlashLobbies(checkedInPlayers, seedingMethod) {
   return {lobbies: lobbies, byes: []};
 }
 
+// ─── ELIMINATION LADDER (cut-8-per-round format) ─────────────────────────────
+//
+// Progressive elimination where everyone plays games 1 and 2 with no cuts, then
+// a fixed number of players is cut after every game down to a Top-8 finals.
+// This is the spec's `/eliminate` model (Section 4.4 / 8.8), distinct from the
+// points-threshold `applyCutLine` model used by the older competitive preset.
+//
+// Canonical survivor counts (how many remain AFTER each game) per starting size:
+//   64p : 64, 56, 48, 40, 32, 24, 16, 8        (cut 8 each game after G1)
+//   128p: 128, 96, 64, 56, 48, 40, 32, 24, 16, 8 (cut 32 twice, then merge to 64)
+export var LADDER_SCHEDULES = {
+  64: [64, 56, 48, 40, 32, 24, 16, 8],
+  128: [128, 96, 64, 56, 48, 40, 32, 24, 16, 8]
+};
+
+// Survivor counts after each game for a given starting size. Returns an array
+// where index i = players remaining after game (i+1). Uses the canonical
+// schedule when one exists, otherwise generates a generic "no cut for game 1,
+// then cut 8 each game down to a Top-8 finals" ladder.
+export function ladderSchedule(startSize) {
+  startSize = startSize | 0;
+  if (startSize <= 0) return [];
+  if (LADDER_SCHEDULES[startSize]) return LADDER_SCHEDULES[startSize].slice();
+  if (startSize <= 8) return [startSize];
+  var sched = [startSize];
+  var survivors = startSize;
+  while (survivors > 8) {
+    survivors = Math.max(8, survivors - 8);
+    sched.push(survivors);
+  }
+  return sched;
+}
+
+// Total number of games in a ladder for a given starting size.
+export function totalLadderGames(startSize) {
+  return ladderSchedule(startSize).length;
+}
+
+// How many players advance AFTER the given (1-based) game number.
+// Game numbers past the end of the schedule clamp to the finals size (8).
+export function advanceCountAfterGame(startSize, gameNumber) {
+  var sched = ladderSchedule(startSize);
+  if (sched.length === 0) return 0;
+  if (gameNumber < 1) return sched[0];
+  if (gameNumber > sched.length) return sched[sched.length - 1];
+  return sched[gameNumber - 1];
+}
+
+// Whether a cut happens after a given game in the ladder (i.e. the survivor
+// count drops vs the previous game). Game 1 never cuts.
+export function ladderCutsAfterGame(startSize, gameNumber) {
+  var sched = ladderSchedule(startSize);
+  if (gameNumber < 2 || gameNumber > sched.length) return false;
+  return sched[gameNumber - 1] < sched[gameNumber - 2];
+}
+
+// Apply a ladder cut to an already-sorted standings array (best player first,
+// e.g. the output of computeFlashStandings). Takes the top `advanceCount`,
+// eliminates the rest. Pure: returns new arrays, mutates nothing.
+export function applyLadderCut(sortedStandings, advanceCount) {
+  var arr = Array.isArray(sortedStandings) ? sortedStandings : [];
+  if (!advanceCount || advanceCount >= arr.length) {
+    return { advancing: arr.slice(), eliminated: [] };
+  }
+  if (advanceCount <= 0) {
+    return { advancing: [], eliminated: arr.slice() };
+  }
+  return {
+    advancing: arr.slice(0, advanceCount),
+    eliminated: arr.slice(advanceCount)
+  };
+}
+
 // Cut line: determine which players advance after N games
 export function applyCutLine(playerStandings, cutLine, cutAfterGame) {
   if (!cutLine || cutLine <= 0) return {advancing: playerStandings, eliminated: []};
@@ -446,23 +522,28 @@ export function computeTournamentStandings(players, gameResults, tournamentId) {
   gameResults.forEach(function(g) {
     if (tournamentId && g.tournamentId !== tournamentId) return;
     var pid = g.player_id || g.playerId;
-    if (!standingsMap[pid]) standingsMap[pid] = {playerId: pid, tournamentPts: 0, gamesInTournament: 0, placements: [], wins: 0, top4: 0};
+    if (!standingsMap[pid]) standingsMap[pid] = {playerId: pid, tournamentPts: 0, gamesInTournament: 0, placements: [], wins: 0, top4: 0, bot3: 0, lastGame: -1, lastPlacement: 9};
     var s = standingsMap[pid];
     s.tournamentPts += (g.points || PTS[g.placement] || 0);
     s.gamesInTournament += 1;
     s.placements.push(g.placement);
     if (g.placement === 1) s.wins += 1;
     if (g.placement <= 4) s.top4 += 1;
+    if (g.placement >= 6) s.bot3 += 1;
+    var gn = g.game_number || g.gameNumber || 0;
+    if (gn > s.lastGame) { s.lastGame = gn; s.lastPlacement = g.placement || 9; }
   });
   // Merge with player info
   return players.map(function(p) {
-    var s = standingsMap[p.id] || {tournamentPts: 0, gamesInTournament: 0, placements: [], wins: 0, top4: 0};
+    var s = standingsMap[p.id] || {tournamentPts: 0, gamesInTournament: 0, placements: [], wins: 0, top4: 0, bot3: 0, lastPlacement: 9};
     return Object.assign({}, p, s);
   }).filter(function(p) { return p.gamesInTournament > 0; })
     .sort(function(a, b) {
+      // Same tournament-elimination tiebreaker chain as computeFlashStandings.
       if (b.tournamentPts !== a.tournamentPts) return b.tournamentPts - a.tournamentPts;
-      var aScore = a.wins * 2 + a.top4; var bScore = b.wins * 2 + b.top4;
-      if (bScore !== aScore) return bScore - aScore;
-      return 0;
+      if (b.top4 !== a.top4) return b.top4 - a.top4;
+      if (a.bot3 !== b.bot3) return a.bot3 - b.bot3;
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      return (a.lastPlacement || 9) - (b.lastPlacement || 9);
     });
 }

@@ -2,8 +2,15 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
-import { TOURNAMENT_FORMATS, computeFlashStandings } from '../../lib/tournament.js'
+import { TOURNAMENT_FORMATS, computeFlashStandings, totalLadderGames, ladderSchedule } from '../../lib/tournament.js'
 import { PRIZE_TYPES, PRIZE_CURRENCIES, normalizePrizeRow, computeCashPool, currencySymbol } from '../../lib/prizes.js'
+
+// Human-readable preview of the elimination-ladder survivor counts for a field.
+function ladderPreviewLabel(maxPlayersStr) {
+  var s = ladderSchedule(parseInt(maxPlayersStr, 10) || 0)
+  if (!s.length) return 'Set max players'
+  return s.length + ' games · survivors: ' + s.join(' → ')
+}
 
 // Rough duration: ~18 min per TFT game + 5 min lobby/room setup between games.
 function estimateDurationMinutes(games) {
@@ -97,7 +104,7 @@ export default function TournamentTab() {
   var opening = _opening[0]
   var setOpening = _opening[1]
 
-  var _roundConfig = useState({ maxPlayers: '24', roundCount: '3', checkinWindowMins: '30', cutLine: '0', cutAfterGame: '0' })
+  var _roundConfig = useState({ maxPlayers: '24', roundCount: '3', checkinWindowMins: '30', cutLine: '0', cutAfterGame: '0', cutMode: 'threshold' })
   var roundConfig = _roundConfig[0]
   var setRoundConfig = _roundConfig[1]
 
@@ -115,11 +122,13 @@ export default function TournamentTab() {
     var f = TOURNAMENT_FORMATS[key]
     if (!f) return
     setRoundConfig(function(c) {
+      var isLadder = f.cutMode === 'ladder'
       return Object.assign({}, c, {
         maxPlayers: String(f.maxPlayers),
-        roundCount: String(f.games),
+        roundCount: isLadder ? String(totalLadderGames(f.maxPlayers)) : String(f.games),
         cutLine: String(f.cutLine || 0),
-        cutAfterGame: String(f.cutAfterGame || 0)
+        cutAfterGame: String(f.cutAfterGame || 0),
+        cutMode: isLadder ? 'ladder' : 'threshold'
       })
     })
     if (f.seeding) setSeedAlgo(f.seeding)
@@ -411,13 +420,16 @@ export default function TournamentTab() {
   function openRegistration() {
     if (opening) return
     var maxPCheck = parseInt(roundConfig.maxPlayers) || ts.maxPlayers || 24
-    var roundsCheck = parseInt(roundConfig.roundCount) || ts.roundCount || 3
-    var cutLineCheck = parseInt(roundConfig.cutLine) || 0
-    var cutAfterGameCheck = parseInt(roundConfig.cutAfterGame) || 0
+    var ladderMode = roundConfig.cutMode === 'ladder'
+    // In ladder mode the games count is derived from the starting field size
+    // (no cut for games 1-2, then cut 8 per game to a Top-8 finals).
+    var roundsCheck = ladderMode ? totalLadderGames(maxPCheck) : (parseInt(roundConfig.roundCount) || ts.roundCount || 3)
+    var cutLineCheck = ladderMode ? 0 : (parseInt(roundConfig.cutLine) || 0)
+    var cutAfterGameCheck = ladderMode ? 0 : (parseInt(roundConfig.cutAfterGame) || 0)
     if (maxPCheck < 1 || maxPCheck > 1024) { toast('Max players must be between 1 and 1024', 'error'); return }
     if (roundsCheck < 1 || roundsCheck > 20) { toast('Games per clash must be between 1 and 20', 'error'); return }
-    if (cutLineCheck > 0 && cutAfterGameCheck < 1) { toast('Cut line requires a cut-after game', 'error'); return }
-    if (cutAfterGameCheck > 0 && cutAfterGameCheck >= roundsCheck) { toast('Cut must happen before the final game', 'error'); return }
+    if (!ladderMode && cutLineCheck > 0 && cutAfterGameCheck < 1) { toast('Cut line requires a cut-after game', 'error'); return }
+    if (!ladderMode && cutAfterGameCheck > 0 && cutAfterGameCheck >= roundsCheck) { toast('Cut must happen before the final game', 'error'); return }
     setOpening(true)
     supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', WEEKLY_CLASH_TYPE).then(function(countRes) {
       var existing = (countRes && countRes.count) || 0
@@ -473,6 +485,8 @@ export default function TournamentTab() {
             totalGames: rounds,
             cutLine: cutLine,
             cutAfterGame: cutAfterGame,
+            cutMode: ladderMode ? 'ladder' : 'threshold',
+            ladderStartSize: ladderMode ? maxP : 0,
             checkinWindowMins: checkinMins,
             formatPreset: formatPreset,
             seedingMethod: seedAlgo || 'rank-based',
@@ -1052,13 +1066,31 @@ export default function TournamentTab() {
             <Inp type="number" min="1" step="1" value={roundConfig.checkinWindowMins} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { checkinWindowMins: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut Line</label>
-            <Inp type="number" min="0" step="1" value={roundConfig.cutLine} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutLine: typeof v === 'string' ? v : v.target.value })) }} />
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut Mode</label>
+            <Sel value={roundConfig.cutMode || 'threshold'} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setRoundConfig(Object.assign({}, roundConfig, { cutMode: val })); setFormatPreset('custom') }}>
+              <option value="threshold">Points cut (threshold)</option>
+              <option value="ladder">Elimination ladder (cut 8/round)</option>
+            </Sel>
           </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut After Game</label>
-            <Inp type="number" min="0" step="1" value={roundConfig.cutAfterGame} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutAfterGame: typeof v === 'string' ? v : v.target.value })) }} />
-          </div>
+          {roundConfig.cutMode === 'ladder' ? (
+            <div className="col-span-2">
+              <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Ladder Schedule</label>
+              <div className="text-xs text-on-surface-variant/70 font-mono pt-1.5 leading-relaxed">
+                {ladderPreviewLabel(roundConfig.maxPlayers)}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut Line</label>
+                <Inp type="number" min="0" step="1" value={roundConfig.cutLine} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutLine: typeof v === 'string' ? v : v.target.value })) }} />
+              </div>
+              <div>
+                <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut After Game</label>
+                <Inp type="number" min="0" step="1" value={roundConfig.cutAfterGame} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutAfterGame: typeof v === 'string' ? v : v.target.value })) }} />
+              </div>
+            </>
+          )}
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Seeding</label>
             <Sel value={seedAlgo} onChange={setSeedAlgo}>

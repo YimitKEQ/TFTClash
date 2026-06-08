@@ -39,9 +39,10 @@ var SCORING_ROWS = [1, 2, 3, 4, 5, 6, 7, 8].map(function(place) {
 
 var TIEBREAKER_ITEMS = [
   'Total tournament points',
-  'Wins + top 4s (wins count twice)',
-  'Most of each placement (1st, then 2nd, then 3rd...)',
-  'Most recent game finish',
+  'Most Top 4 finishes',
+  'Fewest Bot 3s (6th, 7th, 8th)',
+  'Most 1st place finishes',
+  'Best placement in the most recent game',
 ]
 
 var ACCORDIONS = [

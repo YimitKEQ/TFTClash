@@ -81,6 +81,42 @@ export default function PlayersTab() {
   var search = _search[0]
   var setSearch = _search[1]
 
+  // Active soft bans: list of player ids currently deprioritised to the waitlist.
+  var _softBans = useState([])
+  var softBanIds = _softBans[0]
+  var setSoftBanIds = _softBans[1]
+
+  function loadSoftBans() {
+    if (!supabase || !supabase.from) return
+    supabase.from('soft_bans').select('player_id').eq('active', true).then(function(res) {
+      if (res.error) { console.error('[PlayersTab] soft bans load failed:', res.error); return }
+      setSoftBanIds((res.data || []).map(function(r) { return String(r.player_id) }))
+    }).catch(function(e) { console.error('[PlayersTab] soft bans load failed:', e); })
+  }
+  useEffect(loadSoftBans, [])
+
+  function isSoftBanned(id) { return softBanIds.indexOf(String(id)) >= 0 }
+
+  function softBan(id, name) {
+    var reason = window.prompt('Soft-ban reason for ' + name + ' (waitlisted next tournament):', 'Missed check-in')
+    if (reason === null) return
+    supabase.rpc('softban_add', { p_player_id: id, p_reason: reason || null }).then(function(res) {
+      if (res.error) { toast('Soft-ban failed: ' + res.error.message, 'error'); return }
+      setSoftBanIds(function(ids) { return ids.indexOf(String(id)) >= 0 ? ids : ids.concat([String(id)]) })
+      addAudit('WARN', 'Soft-banned: ' + name + (reason ? ' (' + reason + ')' : ''))
+      toast(name + ' soft-banned - waitlisted next tournament', 'success')
+    }).catch(function() { toast('Soft-ban failed', 'error') })
+  }
+
+  function liftSoftBan(id, name) {
+    supabase.rpc('softban_remove', { p_player_id: id }).then(function(res) {
+      if (res.error) { toast('Lift failed: ' + res.error.message, 'error'); return }
+      setSoftBanIds(function(ids) { return ids.filter(function(x) { return x !== String(id) }) })
+      addAudit('ACTION', 'Soft-ban lifted: ' + name)
+      toast(name + ' soft-ban lifted', 'success')
+    }).catch(function() { toast('Lift failed', 'error') })
+  }
+
   useEffect(function() {
     supabase.from('disputes').select('*').order('created_at', { ascending: false }).limit(50).then(function(res) {
       setDisputesLoading(false)
@@ -470,6 +506,8 @@ export default function PlayersTab() {
                     <td className="px-2 py-2">
                       {p.banned
                         ? <span className="text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded">BANNED</span>
+                        : isSoftBanned(p.id)
+                        ? <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">SOFT BAN</span>
                         : p.dnpCount > 0
                           ? <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">{'DNP x' + p.dnpCount}</span>
                           : <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded">OK</span>
@@ -483,6 +521,10 @@ export default function PlayersTab() {
                           ? <Btn variant="ghost" size="sm" onClick={function() { unban(p.id, p.name) }}>Unban</Btn>
                           : <Btn variant="ghost" size="sm" onClick={function() { ban(p.id, p.name) }}>Ban</Btn>
                         }
+                        {!p.banned && (isSoftBanned(p.id)
+                          ? <Btn variant="ghost" size="sm" onClick={function() { liftSoftBan(p.id, p.name) }}>Lift Soft</Btn>
+                          : <Btn variant="ghost" size="sm" onClick={function() { softBan(p.id, p.name) }}>Soft Ban</Btn>
+                        )}
                         {!p.banned && (p.dnpCount || 0) > 0 && (
                           <Btn variant="ghost" size="sm" onClick={function() { clearStrikes(p.id, p.name) }}>Clear Strikes</Btn>
                         )}

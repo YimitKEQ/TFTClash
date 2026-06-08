@@ -277,7 +277,7 @@ export var DEFAULT_TFT_RULES = [
 export var RULES_SECTIONS = [
   {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly clashes with 3-5 games per session. 8 players per lobby. Standard placement scoring."},
   {id:"points",title:"Points System",icon:"chart-bar",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
-  {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Wins + top 4s (wins count twice). 3. Most of each placement (1st, then 2nd, then 3rd...). 4. Most recent game finish."},
+  {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Most Top 4 finishes. 3. Fewest Bot 3s (6th/7th/8th). 4. Most 1st place finishes. 5. Best placement in the most recent game."},
   {id:"registration",title:"Registration and Check-in",icon:"clipboard-check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
   {id:"results",title:"Result Submission",icon:"send",content:"Any player in a lobby can submit results. A different player must confirm. If disputed, an admin reviews. Admin can always override."},
   {id:"swiss",title:"Swiss Reseeding",icon:"refresh",content:"When Swiss mode is enabled, lobbies are reseeded after every 2 games. Players are sorted by cumulative points and snake-seeded into new lobbies."},
@@ -300,7 +300,7 @@ export var FAQ_DATA = [
   ]},
   {cat:"Scoring and Rankings",icon:"chart-bar",items:[
     {q:"How does scoring work?",a:"Standard TFT placement scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
-    {q:"How are tiebreakers resolved?",a:"Total points first, then wins + top 4s (wins count double), then most of each placement starting from 1st, then most recent finish."},
+    {q:"How are tiebreakers resolved?",a:"Total points first, then most Top 4 finishes, then fewest Bot 3s (6th/7th/8th), then most 1st place finishes, and finally the best placement in the most recent game."},
     {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
   ]},
   {cat:"Pro and Host Tiers",icon:"crown",items:[

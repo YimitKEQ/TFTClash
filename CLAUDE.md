@@ -89,11 +89,39 @@ screens/. Treat App.jsx as the router/shell only.
 
 `PTS` constant: `{1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1}`
 
-**Tiebreakers (in order):**
+**Two tiebreaker chains (do not conflate):**
+
+*In-tournament eliminations / final clash standings* (`lib/tournament.js`:
+`computeFlashStandings`, `computeTournamentStandings`) -- spec Section 5.2/8.9:
 1. Total tournament points
-2. Wins + top4s (wins count twice)
+2. Most Top 4 finishes
+3. Fewest Bot 3s (6th/7th/8th)
+4. Most 1st place finishes
+5. Best placement in the most recent game
+
+*Season-long cumulative leaderboard* (`lib/stats.js`:`tiebreaker`) -- locked EMEA chain:
+1. Total season points
+2. Wins x2 + top4s
 3. Most of each placement (1st, 2nd, 3rd...)
-4. Most recent game finish
+4. Most recent finish
+
+The spec governs how a single clash resolves ties for cuts/winner; the EMEA chain
+governs the season standings/leaderboard. Player-facing Rules/FAQ describe the
+in-tournament chain (`RULES_SECTIONS`, `FAQ_DATA`, `RulesScreen.TIEBREAKER_ITEMS`).
+
+**Elimination formats** (`cutMode` on tournament state):
+- `threshold` (default): single points-cut after game N (`applyCutLine`).
+- `ladder`: no cuts G1-G2, then cut 8 per game to a Top-8 finals
+  (`ladderSchedule`/`applyLadderCut`, spec Section 4.4/8.8). Canonical 64p/128p
+  schedules in `LADDER_SCHEDULES`; selectable in the admin clash setup.
+
+**Soft bans** (migration 114, spec Section 2.6/8.10): `soft_bans` table + a
+registration trigger that forces a soft-banned player onto the waitlist for their
+next tournament, auto-lifting after they sit one out. Admin UI in `PlayersTab`;
+Discord `/softban add|remove|list` (staff-only).
+
+Unit tests for the scoring/tiebreaker/ladder engine: `npm run test:unit`
+(`src/lib/__tests__/tournament.test.js`, Node built-in runner, no deps).
 
 ---
 
