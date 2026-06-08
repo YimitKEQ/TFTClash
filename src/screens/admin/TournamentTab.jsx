@@ -134,6 +134,25 @@ export default function TournamentTab() {
     if (f.seeding) setSeedAlgo(f.seeding)
   }
 
+  // Populate the Round Config form from the ACTIVE clash so the fields reflect
+  // reality (not the hardcoded defaults) and survive remounts/realtime reloads.
+  // Keyed only on the active clash id + region, so it never fires while the
+  // admin is typing into a field (roundConfig is intentionally NOT a dependency).
+  useEffect(function() {
+    var t = adminRegion === 'NA' ? tournamentStateNa : tournamentStateEu
+    if (!t || !t.dbTournamentId) return
+    setRoundConfig(function(c) {
+      return Object.assign({}, c, {
+        maxPlayers: String(t.maxPlayers || c.maxPlayers),
+        roundCount: String(t.totalGames || t.roundCount || c.roundCount),
+        cutLine: String(t.cutLine != null ? t.cutLine : c.cutLine),
+        cutAfterGame: String(t.cutAfterGame != null ? t.cutAfterGame : c.cutAfterGame),
+        cutMode: t.cutMode || c.cutMode
+      })
+    })
+    if (t.seedingMethod) setSeedAlgo(t.seedingMethod)
+  }, [adminRegion, (tournamentStateEu && tournamentStateEu.dbTournamentId), (tournamentStateNa && tournamentStateNa.dbTournamentId)])
+
   var _flashForm = useState({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', teamSize: '1', teamsPerLobby: '1', pointsScale: 'standard', subsAllowed: '0', region: 'EU', cutLine: '0', cutAfterGame: '0', description: '', rulesText: '', entryFee: '', inviteOnly: false, announcement: '', bannerUrl: '', prizeRows: [{ placement: '1', prize: '' }] })
   var flashForm = _flashForm[0]
   var setFlashForm = _flashForm[1]
@@ -1102,9 +1121,31 @@ export default function TournamentTab() {
           </div>
         </div>
         <Btn variant="secondary" size="sm" onClick={function() {
-          setTournamentState(function(s) { return Object.assign({}, s, { maxPlayers: parseInt(roundConfig.maxPlayers) || 24, roundCount: parseInt(roundConfig.roundCount) || 3, seedingMethod: seedAlgo }) })
-          addAudit('ACTION', 'Round config updated')
-          toast('Round config saved', 'success')
+          var ladderMode = roundConfig.cutMode === 'ladder'
+          var maxP = parseInt(roundConfig.maxPlayers) || 24
+          var games = ladderMode ? totalLadderGames(maxP) : (parseInt(roundConfig.roundCount) || 3)
+          if (games < 1 || games > 20) { toast('Games per clash must be between 1 and 20', 'error'); return }
+          var cl = ladderMode ? 0 : (parseInt(roundConfig.cutLine) || 0)
+          var cag = ladderMode ? 0 : (parseInt(roundConfig.cutAfterGame) || 0)
+          setTournamentState(function(s) {
+            return Object.assign({}, s, {
+              maxPlayers: maxP,
+              roundCount: games,
+              totalGames: games,
+              cutLine: cl,
+              cutAfterGame: cag,
+              cutMode: ladderMode ? 'ladder' : 'threshold',
+              ladderStartSize: ladderMode ? maxP : 0,
+              seedingMethod: seedAlgo
+            })
+          })
+          if (ts.dbTournamentId && supabase.from) {
+            supabase.from('tournaments').update({ round_count: games, max_players: maxP }).eq('id', ts.dbTournamentId)
+              .then(function(r) { if (r && r.error) toast('Saved locally, but DB update failed', 'error') })
+              .catch(function() { toast('Saved locally, but DB update failed', 'error') })
+          }
+          addAudit('ACTION', 'Round config updated (' + games + ' games)')
+          toast(ts.dbTournamentId ? ('Saved: ' + games + ' games for ' + (ts.clashName || 'this clash')) : 'Round config saved', 'success')
         }}>Save Config</Btn>
       </Panel>
 
