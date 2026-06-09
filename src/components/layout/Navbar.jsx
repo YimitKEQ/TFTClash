@@ -8,7 +8,7 @@ var SCREEN_TO_ROUTE = {
   leaderboard: '/leaderboard', bracket: '/bracket', profile: '/player',
   results: '/results', events: '/events', scrims: '/scrims', pricing: '/pricing',
   milestones: '/milestones', challenges: '/challenges', hof: '/hall-of-fame',
-  archive: '/archive', recap: '/season-recap', rules: '/rules', faq: '/faq',
+  archive: '/archive', recap: '/season-recap', rules: '/rules', faq: '/faq', guide: '/guide',
   account: '/account', 'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
   admin: '/admin', ops: '/ops', privacy: '/privacy', terms: '/terms', clash: '/clash',
   tournaments: '/tournaments', gear: '/gear', stats: '/stats', changelog: '/changelog'
@@ -197,6 +197,7 @@ export default function Navbar() {
     { id: 'pricing', icon: 'sell',   label: 'Upgrade' },
   ];
   var helpItems = [
+    { id: 'guide',     icon: 'school',     label: 'Climb Guide' },
     { id: 'rules',     icon: 'menu_book',  label: 'Rules' },
     { id: 'faq',       icon: 'help',       label: 'FAQ' },
     { id: 'changelog', icon: 'history',    label: "What's New" },

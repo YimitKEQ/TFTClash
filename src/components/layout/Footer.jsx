@@ -19,6 +19,7 @@ function Footer() {
   ];
   var communityLinks = [
     ["/events/featured", "Featured Events"],
+    ["/guide", "Climb Guide"],
     ["/rules", "Rules"],
     ["/faq", "FAQ"],
     ["/gear", "Gear"],
