@@ -8,29 +8,31 @@
 
 function lobbies(n) { return Math.ceil(n / 8) }
 
+// games is 4 or 6 (single-day events). topScore stays at or below 8 * games so
+// the winner's total is achievable within the round count.
 var RAW = [
-  { name: 'Aatrox Invitational',  date: '2026-01-10', winner: 'FrostByted',    entries: 40,  topScore: 41, top3: ['FrostByted', 'Levitate', 'Korvath'] },
-  { name: 'Vex Open',             date: '2026-01-17', winner: 'Korvath',       entries: 48,  topScore: 43, top3: ['Korvath', 'Nyxara', 'Wiwi'] },
-  { name: 'Zed Showdown',         date: '2026-01-24', winner: 'MidnightOwl',   entries: 48,  topScore: 44, top3: ['MidnightOwl', 'Uri', 'QuasarX'] },
-  { name: 'Jhin Cup',             date: '2026-01-31', winner: 'Wiwi',          entries: 56,  topScore: 45, top3: ['Wiwi', 'ShadowVeil', 'Vlad'] },
-  { name: 'Morgana Masters',      date: '2026-02-07', winner: 'Levitate',      entries: 56,  topScore: 47, top3: ['Levitate', 'EmberZ', 'BingBing'] },
-  { name: 'Sona Series',          date: '2026-02-14', winner: 'ShadowVeil',    entries: 64,  topScore: 46, top3: ['ShadowVeil', 'Ole', 'Draelyn'] },
-  { name: 'Fiora Clash',          date: '2026-02-21', winner: 'Nyxara',        entries: 64,  topScore: 48, top3: ['Nyxara', 'Levitate', 'Sybor'] },
-  { name: 'Graves Gauntlet',      date: '2026-02-28', winner: 'Sybor',         entries: 72,  topScore: 49, top3: ['Sybor', 'QuasarX', 'Wiwi'] },
-  { name: 'Bard Brawl',           date: '2026-03-07', winner: 'QuasarX',       entries: 80,  topScore: 50, top3: ['QuasarX', 'Zounderkite', 'VortexEU'] },
-  { name: 'Shen Open',            date: '2026-03-14', winner: 'Draelyn',       entries: 80,  topScore: 49, top3: ['Draelyn', 'Ivdim', 'PhantomR'] },
-  { name: 'Aurelion Sol Cup',     date: '2026-03-21', winner: 'EmberZ',        entries: 88,  topScore: 51, top3: ['EmberZ', 'Uri', 'Levitate'] },
-  { name: 'Riven Rumble',         date: '2026-03-28', winner: 'Zounderkite',   entries: 96,  topScore: 50, top3: ['Zounderkite', 'StormChaserr', 'Ole'] },
-  { name: 'Karma Classic',        date: '2026-04-04', winner: 'VortexEU',      entries: 96,  topScore: 52, top3: ['VortexEU', 'Levitate', 'NebulaNine'] },
-  { name: 'Kindred Cup',          date: '2026-04-11', winner: 'StormChaserr',  entries: 104, topScore: 53, top3: ['StormChaserr', 'BingBing', 'WraithMain'] },
-  { name: 'Viktor Invitational',  date: '2026-04-18', winner: 'Levitate',      entries: 112, topScore: 56, top3: ['Levitate', 'PhantomR', 'Ivdim'] },
-  { name: 'Samira Open',          date: '2026-04-25', winner: 'PhantomR',      entries: 104, topScore: 52, top3: ['PhantomR', 'Wiwi', 'Korvath'] },
-  { name: 'Diana Showdown',       date: '2026-05-02', winner: 'Ole',           entries: 120, topScore: 53, top3: ['Ole', 'NebulaNine', 'Sybor'] },
-  { name: 'Blitzcrank Bash',      date: '2026-05-09', winner: 'NebulaNine',    entries: 120, topScore: 54, top3: ['NebulaNine', 'Zounderkite', 'EmberZ'] },
-  { name: 'Xayah Open',           date: '2026-05-16', winner: 'WraithMain',    entries: 128, topScore: 55, top3: ['WraithMain', 'Vlad', 'Nyxara'] },
-  { name: 'Aurora Championship',  date: '2026-05-23', winner: 'Ivdim',         entries: 136, topScore: 58, top3: ['Ivdim', 'Levitate', 'ShadowVeil'] },
-  { name: 'Pyke Cup',             date: '2026-05-30', winner: 'Korvath',       entries: 128, topScore: 54, top3: ['Korvath', 'Sybor', 'MidnightOwl'] },
-  { name: 'Galio Grand Finals',   date: '2026-06-06', winner: 'Levitate',      entries: 144, topScore: 57, top3: ['Levitate', 'Zounderkite', 'StormChaserr'] },
+  { name: 'Aatrox Invitational',  date: '2026-01-10', winner: 'FrostByted',    entries: 40,  games: 4, topScore: 28, top3: ['FrostByted', 'Levitate', 'Korvath'] },
+  { name: 'Vex Open',             date: '2026-01-17', winner: 'Korvath',       entries: 48,  games: 4, topScore: 29, top3: ['Korvath', 'Nyxara', 'Wiwi'] },
+  { name: 'Zed Showdown',         date: '2026-01-24', winner: 'MidnightOwl',   entries: 48,  games: 4, topScore: 27, top3: ['MidnightOwl', 'Uri', 'QuasarX'] },
+  { name: 'Jhin Cup',             date: '2026-01-31', winner: 'Wiwi',          entries: 56,  games: 4, topScore: 30, top3: ['Wiwi', 'ShadowVeil', 'Vlad'] },
+  { name: 'Morgana Masters',      date: '2026-02-07', winner: 'Levitate',      entries: 56,  games: 4, topScore: 29, top3: ['Levitate', 'EmberZ', 'BingBing'] },
+  { name: 'Sona Series',          date: '2026-02-14', winner: 'ShadowVeil',    entries: 64,  games: 4, topScore: 28, top3: ['ShadowVeil', 'Ole', 'Draelyn'] },
+  { name: 'Fiora Clash',          date: '2026-02-21', winner: 'Nyxara',        entries: 64,  games: 4, topScore: 31, top3: ['Nyxara', 'Levitate', 'Sybor'] },
+  { name: 'Graves Gauntlet',      date: '2026-02-28', winner: 'Sybor',         entries: 72,  games: 4, topScore: 30, top3: ['Sybor', 'QuasarX', 'Wiwi'] },
+  { name: 'Bard Brawl',           date: '2026-03-07', winner: 'QuasarX',       entries: 80,  games: 6, topScore: 42, top3: ['QuasarX', 'Zounderkite', 'VortexEU'] },
+  { name: 'Shen Open',            date: '2026-03-14', winner: 'Draelyn',       entries: 80,  games: 6, topScore: 41, top3: ['Draelyn', 'Ivdim', 'PhantomR'] },
+  { name: 'Aurelion Sol Cup',     date: '2026-03-21', winner: 'EmberZ',        entries: 88,  games: 6, topScore: 43, top3: ['EmberZ', 'Uri', 'Levitate'] },
+  { name: 'Riven Rumble',         date: '2026-03-28', winner: 'Zounderkite',   entries: 96,  games: 6, topScore: 42, top3: ['Zounderkite', 'StormChaserr', 'Ole'] },
+  { name: 'Karma Classic',        date: '2026-04-04', winner: 'VortexEU',      entries: 96,  games: 6, topScore: 44, top3: ['VortexEU', 'Levitate', 'NebulaNine'] },
+  { name: 'Kindred Cup',          date: '2026-04-11', winner: 'StormChaserr',  entries: 104, games: 6, topScore: 45, top3: ['StormChaserr', 'BingBing', 'WraithMain'] },
+  { name: 'Viktor Invitational',  date: '2026-04-18', winner: 'Levitate',      entries: 112, games: 6, topScore: 46, top3: ['Levitate', 'PhantomR', 'Ivdim'] },
+  { name: 'Samira Open',          date: '2026-04-25', winner: 'PhantomR',      entries: 104, games: 6, topScore: 43, top3: ['PhantomR', 'Wiwi', 'Korvath'] },
+  { name: 'Diana Showdown',       date: '2026-05-02', winner: 'Ole',           entries: 120, games: 6, topScore: 44, top3: ['Ole', 'NebulaNine', 'Sybor'] },
+  { name: 'Blitzcrank Bash',      date: '2026-05-09', winner: 'NebulaNine',    entries: 120, games: 6, topScore: 45, top3: ['NebulaNine', 'Zounderkite', 'EmberZ'] },
+  { name: 'Xayah Open',           date: '2026-05-16', winner: 'WraithMain',    entries: 128, games: 6, topScore: 46, top3: ['WraithMain', 'Vlad', 'Nyxara'] },
+  { name: 'Aurora Championship',  date: '2026-05-23', winner: 'Ivdim',         entries: 136, games: 6, topScore: 47, top3: ['Ivdim', 'Levitate', 'ShadowVeil'] },
+  { name: 'Pyke Cup',             date: '2026-05-30', winner: 'Korvath',       entries: 128, games: 6, topScore: 44, top3: ['Korvath', 'Sybor', 'MidnightOwl'] },
+  { name: 'Galio Grand Finals',   date: '2026-06-06', winner: 'Levitate',      entries: 144, games: 6, topScore: 46, top3: ['Levitate', 'Zounderkite', 'StormChaserr'] },
 ]
 
 export var ARCHIVE_SEED = RAW.map(function (r, i) {
@@ -44,6 +46,7 @@ export var ARCHIVE_SEED = RAW.map(function (r, i) {
     entries: r.entries,
     players: r.entries,
     lobbies: lobbies(r.entries),
+    games: r.games,
     topScore: r.topScore,
     top3: r.top3,
     seeded: true,
@@ -125,8 +128,8 @@ export function tournamentFormat(t) {
 // Build a full final-standings sheet for one tournament.
 export function buildStandings(t) {
   var n = Math.max(8, t.entries || 8)
-  var T = t.topScore || 48
-  var games = n > 96 ? 6 : 5
+  var T = t.topScore || 28
+  var games = t.games || (n > 80 ? 6 : 4)
   var rnd = makeRng(hashStr(String(t.id) + ':' + String(t.name)))
 
   var top = (t.top3 || []).slice(0, 3)

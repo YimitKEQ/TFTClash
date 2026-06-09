@@ -213,7 +213,7 @@ export default function ArchiveScreen() {
       lobbies: clash.lobbies || Math.ceil((clash.players || 8) / 8),
       date: clash.date || '',
       top3: clash.top3 || (clash.champion ? [clash.champion] : []),
-      topScore: clash.topScore || 50,
+      topScore: clash.topScore || 44,
       seeded: false,
     }
   })
