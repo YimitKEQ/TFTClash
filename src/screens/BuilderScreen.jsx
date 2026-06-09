@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
 import { CHAMPIONS, SET } from './builder/setData.js'
+import { ITEMS } from './builder/itemData.js'
 import {
   emptyBoard, decodeBoard, encodeBoard, computeTraits, unitCount,
-  COST_COLORS, STYLE_COLORS, BOARD_SIZE, MAX_UNITS,
+  COST_COLORS, STYLE_COLORS, BOARD_SIZE, MAX_UNITS, MAX_ITEMS,
 } from './builder/builderUtils.js'
 
 var HEX_CLIP = { clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }
@@ -37,6 +38,15 @@ export default function BuilderScreen() {
   var _names = useState(true)
   var showNames = _names[0]
   var setShowNames = _names[1]
+  var _sel = useState(-1)
+  var selectedHex = _sel[0]
+  var setSelectedHex = _sel[1]
+  var _tray = useState('units')
+  var trayMode = _tray[0]
+  var setTrayMode = _tray[1]
+  var _itab = useState('component')
+  var itemTab = _itab[0]
+  var setItemTab = _itab[1]
   var _copied = useState(false)
   var copied = _copied[0]
   var setCopied = _copied[1]
@@ -108,8 +118,9 @@ export default function BuilderScreen() {
     var i = firstEmpty(board)
     if (i < 0) return
     var n = board.slice()
-    n[i] = { cidx: cidx, star: 2 }
+    n[i] = { cidx: cidx, star: 2, items: [] }
     commit(n)
+    setSelectedHex(i)
   }
 
   function removeHex(i) {
@@ -117,16 +128,47 @@ export default function BuilderScreen() {
     var n = board.slice()
     n[i] = null
     commit(n)
+    if (selectedHex === i) setSelectedHex(-1)
+  }
+
+  function attachItem(i, itemIdx) {
+    var u = board[i]
+    if (!u) return
+    var cur = u.items || []
+    if (cur.length >= MAX_ITEMS) return
+    var n = board.slice()
+    n[i] = { cidx: u.cidx, star: u.star, items: cur.concat([itemIdx]) }
+    commit(n)
+  }
+
+  // Attach to the currently selected unit (click-to-equip from the tray).
+  function equipSelected(itemIdx) {
+    if (selectedHex < 0 || !board[selectedHex]) return
+    attachItem(selectedHex, itemIdx)
+  }
+
+  function removeItem(i, slot) {
+    var u = board[i]
+    if (!u || !u.items) return
+    var n = board.slice()
+    var items = u.items.slice()
+    items.splice(slot, 1)
+    n[i] = { cidx: u.cidx, star: u.star, items: items }
+    commit(n)
   }
 
   function dropOnHex(i) {
     var d = dragRef.current
     dragRef.current = null
     if (!d) return
+    if (d.type === 'item') { attachItem(i, d.itemIdx); return }
     var n = board.slice()
     if (d.type === 'pool') {
       if (!n[i] && unitCount(board) >= MAX_UNITS) return
-      n[i] = { cidx: d.cidx, star: 2 }
+      n[i] = { cidx: d.cidx, star: 2, items: [] }
+      commit(n)
+      setSelectedHex(i)
+      return
     } else if (d.type === 'hex') {
       var moved = n[d.index]
       n[d.index] = n[i] || null
@@ -168,6 +210,10 @@ export default function BuilderScreen() {
     if (ch) { totalCost += ch.cost; costBuckets[ch.cost] = (costBuckets[ch.cost] || 0) + 1 }
   })
 
+  var itemPool = ITEMS.map(function (it, idx) { return { it: it, idx: idx } }).filter(function (o) {
+    return o.it.kind === itemTab
+  })
+
   var q = search.trim().toLowerCase()
   var pool = CHAMPIONS.map(function (c, idx) { return { c: c, idx: idx } }).filter(function (o) {
     if (cost && o.c.cost !== cost) return false
@@ -191,10 +237,13 @@ export default function BuilderScreen() {
             unit={board[i]}
             index={i}
             showName={showNames}
+            selected={selectedHex === i}
             dragRef={dragRef}
             onDrop={dropOnHex}
-            onClick={cycleStar}
+            onSelect={setSelectedHex}
+            onStar={cycleStar}
             onRemove={removeHex}
+            onRemoveItem={removeItem}
           />
         </div>
       )
@@ -267,33 +316,75 @@ export default function BuilderScreen() {
           </div>
         </div>
 
-        {/* Unit tray */}
+        {/* Tray */}
         <div className="mt-4 rounded-xl border border-white/8 bg-surface-container-lowest/70 p-3 md:p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mb-3">
-            <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600"><Icon name="search" size={16} /></span>
-              <input ref={searchRef} value={search} onChange={function (e) { setSearch(e.target.value) }} placeholder="Search name or trait" className="w-full bg-surface-container-lowest border border-white/8 rounded-lg text-on-surface text-sm py-2 pl-9 pr-16 outline-none focus:border-primary/40 placeholder:text-slate-600" />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-slate-600 border border-white/10 rounded px-1.5 py-0.5 hidden sm:block">Ctrl F</span>
-            </div>
-            <div className="flex gap-1 bg-surface-container-low/60 rounded-lg p-1">
-              {COST_TABS.map(function (ct) {
-                var on = cost === ct
-                var col = ct === 0 ? null : COST_COLORS[ct]
-                return (
-                  <button key={ct} onClick={function () { setCost(ct) }} className={'min-w-[34px] h-7 px-1 rounded-md font-mono text-xs font-bold transition-colors ' + (on ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-on-surface')} style={on && col ? { color: col, background: col + '22' } : undefined}>
-                    {ct === 0 ? 'All' : ct}
-                  </button>
-                )
-              })}
-            </div>
+          {/* Mode switch */}
+          <div className="flex items-center gap-1 bg-surface-container-low/60 rounded-lg p-1 mb-3 w-fit">
+            {['units', 'items'].map(function (m) {
+              var on = trayMode === m
+              return (
+                <button key={m} onClick={function () { setTrayMode(m) }} className={'inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 font-label uppercase tracking-wider text-[11px] font-bold transition-colors ' + (on ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-on-surface')}>
+                  <Icon name={m === 'units' ? 'group' : 'shield'} size={14} />{m}
+                </button>
+              )
+            })}
           </div>
 
-          <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-14 gap-1.5">
-            {pool.map(function (o) {
-              return <ChampTile key={o.c.id} champ={o.c} idx={o.idx} placed={placedCounts[o.idx] || 0} dragRef={dragRef} onClick={placeChamp} />
-            })}
-            {pool.length === 0 && <div className="col-span-full text-center py-8 text-sm text-slate-600 font-body">No champions match.</div>}
-          </div>
+          {trayMode === 'units' && (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mb-3">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600"><Icon name="search" size={16} /></span>
+                  <input ref={searchRef} value={search} onChange={function (e) { setSearch(e.target.value) }} placeholder="Search name or trait" className="w-full bg-surface-container-lowest border border-white/8 rounded-lg text-on-surface text-sm py-2 pl-9 pr-16 outline-none focus:border-primary/40 placeholder:text-slate-600" />
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-slate-600 border border-white/10 rounded px-1.5 py-0.5 hidden sm:block">Ctrl F</span>
+                </div>
+                <div className="flex gap-1 bg-surface-container-low/60 rounded-lg p-1">
+                  {COST_TABS.map(function (ct) {
+                    var on = cost === ct
+                    var col = ct === 0 ? null : COST_COLORS[ct]
+                    return (
+                      <button key={ct} onClick={function () { setCost(ct) }} className={'min-w-[34px] h-7 px-1 rounded-md font-mono text-xs font-bold transition-colors ' + (on ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-on-surface')} style={on && col ? { color: col, background: col + '22' } : undefined}>
+                        {ct === 0 ? 'All' : ct}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-14 gap-1.5">
+                {pool.map(function (o) {
+                  return <ChampTile key={o.c.id} champ={o.c} idx={o.idx} placed={placedCounts[o.idx] || 0} dragRef={dragRef} onClick={placeChamp} />
+                })}
+                {pool.length === 0 && <div className="col-span-full text-center py-8 text-sm text-slate-600 font-body">No champions match.</div>}
+              </div>
+            </div>
+          )}
+
+          {trayMode === 'items' && (
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+                <div className="flex gap-1 bg-surface-container-low/60 rounded-lg p-1">
+                  {[{ k: 'component', l: 'Components' }, { k: 'craft', l: 'Items' }].map(function (t) {
+                    var on = itemTab === t.k
+                    return (
+                      <button key={t.k} onClick={function () { setItemTab(t.k) }} className={'rounded-md px-3.5 py-1.5 font-label uppercase tracking-wider text-[11px] font-bold transition-colors ' + (on ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-on-surface')}>
+                        {t.l}
+                      </button>
+                    )
+                  })}
+                </div>
+                <span className="font-body text-xs text-slate-500">
+                  {selectedHex >= 0 && board[selectedHex]
+                    ? 'Equipping ' + CHAMPIONS[board[selectedHex].cidx].name + ' (click an item) or drag onto any unit'
+                    : 'Select a unit on the board, then click an item to equip it'}
+                </span>
+              </div>
+              <div className="grid grid-cols-6 sm:grid-cols-9 md:grid-cols-12 lg:grid-cols-[repeat(15,minmax(0,1fr))] xl:grid-cols-[repeat(18,minmax(0,1fr))] gap-1.5">
+                {itemPool.map(function (o) {
+                  return <ItemTile key={o.it.id} item={o.it} idx={o.idx} dragRef={dragRef} onClick={equipSelected} />
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </PageLayout>
@@ -413,26 +504,41 @@ function HexCell(props) {
   }
   var champ = CHAMPIONS[u.cidx]
   var color = COST_COLORS[champ.cost]
+  var items = u.items || []
+  var ring = props.selected ? '#e8a838' : color
   return (
     <div className="relative group" draggable onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop}>
-      <button type="button" onClick={function () { props.onClick(i) }} className="block w-full" title={champ.name + ' (click to star up)'}>
-        <div style={Object.assign({}, HEX_CLIP, { background: color })}>
+      <button type="button" onClick={function () { props.onSelect(i) }} className="block w-full" title={champ.name + ' (click to select, drop items here)'}>
+        <div style={Object.assign({}, HEX_CLIP, { background: ring, boxShadow: props.selected ? '0 0 0 2px rgba(232,168,56,0.45)' : 'none' })}>
           <div className="w-full h-full" style={Object.assign({}, HEX_CLIP, { background: BOARD_BG, transform: 'scale(0.9)' })}>
             <img src={'/builder/champions/' + champ.icon + '.png'} alt={champ.name} className="w-full aspect-square object-cover pointer-events-none" style={HEX_CLIP} />
           </div>
         </div>
       </button>
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 flex gap-px pointer-events-none">
+      <button type="button" onClick={function () { props.onStar(i) }} className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 flex gap-px" title="Star up">
         {[1, 2, 3].map(function (s) {
           return <span key={s} className="text-[9px] leading-none" style={{ color: s <= u.star ? '#e8a838' : 'rgba(255,255,255,0.16)', textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{'★'}</span>
         })}
-      </div>
-      {props.showName && (
+      </button>
+      {items.length > 0 && (
+        <div className="absolute -bottom-1.5 inset-x-0 z-20 flex justify-center gap-0.5">
+          {items.map(function (it, slot) {
+            var item = ITEMS[it]
+            if (!item) return null
+            return (
+              <button key={slot} type="button" onClick={function () { props.onRemoveItem(i, slot) }} className="w-[30%] max-w-[16px] rounded-sm overflow-hidden border border-black/60 hover:border-error" title={item.name + ' (click to remove)'}>
+                <img src={'/builder/items/' + item.icon + '.png'} alt={item.name} className="w-full aspect-square object-cover" />
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {props.showName && items.length === 0 && (
         <div className="absolute -bottom-0.5 inset-x-0 z-20 text-center pointer-events-none">
           <span className="font-label text-[8px] uppercase tracking-wide font-bold text-white px-1 leading-none inline-block max-w-full truncate" style={{ textShadow: '0 1px 3px rgba(0,0,0,1)' }}>{champ.name}</span>
         </div>
       )}
-      <button type="button" onClick={function () { props.onRemove(i) }} className="absolute -top-1 -right-1 z-30 w-4 h-4 rounded-full bg-error text-white items-center justify-center hidden group-hover:flex" title="Remove">
+      <button type="button" onClick={function () { props.onRemove(i) }} className="absolute -top-1 -right-1 z-30 w-4 h-4 rounded-full bg-error text-white items-center justify-center hidden group-hover:flex" title="Remove unit">
         <Icon name="close" size={11} />
       </button>
     </div>
@@ -456,6 +562,19 @@ function ChampTile(props) {
       {props.placed > 0 && (
         <span className="absolute top-0.5 right-0.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-primary text-[9px] font-bold text-on-primary flex items-center justify-center font-mono">{props.placed}</span>
       )}
+    </button>
+  )
+}
+
+function ItemTile(props) {
+  var it = props.item
+  function onDragStart(e) {
+    props.dragRef.current = { type: 'item', itemIdx: props.idx }
+    try { e.dataTransfer.effectAllowed = 'copy' } catch (err) {}
+  }
+  return (
+    <button type="button" draggable onDragStart={onDragStart} onClick={function () { props.onClick(props.idx) }} className="relative group rounded-md overflow-hidden border border-white/10 hover:border-primary/60 transition-transform hover:-translate-y-0.5" title={it.name}>
+      <img src={'/builder/items/' + it.icon + '.png'} alt={it.name} loading="lazy" className="w-full aspect-square object-cover" />
     </button>
   )
 }

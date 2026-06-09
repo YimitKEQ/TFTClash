@@ -1,7 +1,9 @@
 import { CHAMPIONS, TRAITS } from './setData.js'
+import { ITEMS } from './itemData.js'
 
 export var BOARD_SIZE = 28 // 4 rows x 7 cols
 export var MAX_UNITS = 10
+export var MAX_ITEMS = 3
 
 export var COST_COLORS = {
   1: '#9aa4b2',
@@ -75,11 +77,17 @@ export function computeTraits(board) {
   return rows
 }
 
-// Compact, URL-safe board code. Each unit = hexIndex.champIndex.star in base36.
+// Compact, URL-safe board code. Each unit = hexIndex.champIndex.star[.items]
+// in base36, where items is a dash-joined list of item indices.
 export function encodeBoard(board) {
   var parts = []
   board.forEach(function (u, i) {
-    if (u) parts.push(i.toString(36) + '.' + u.cidx.toString(36) + '.' + u.star)
+    if (!u) return
+    var seg = i.toString(36) + '.' + u.cidx.toString(36) + '.' + u.star
+    if (u.items && u.items.length) {
+      seg += '.' + u.items.map(function (it) { return it.toString(36) }).join('-')
+    }
+    parts.push(seg)
   })
   return parts.join('_')
 }
@@ -93,8 +101,15 @@ export function decodeBoard(code) {
     var i = parseInt(a[0], 36)
     var cidx = parseInt(a[1], 36)
     var star = parseInt(a[2], 10) || 1
+    var items = []
+    if (a[3]) {
+      a[3].split('-').forEach(function (s) {
+        var ii = parseInt(s, 36)
+        if (ii >= 0 && ii < ITEMS.length && items.length < MAX_ITEMS) items.push(ii)
+      })
+    }
     if (i >= 0 && i < BOARD_SIZE && CHAMPIONS[cidx]) {
-      board[i] = { cidx: cidx, star: Math.min(3, Math.max(1, star)) }
+      board[i] = { cidx: cidx, star: Math.min(3, Math.max(1, star)), items: items }
     }
   })
   return board
