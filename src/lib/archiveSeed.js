@@ -1,33 +1,36 @@
-// Historical clash archive (display-only). These season-long weekly clashes
-// populate the Archive page's tournament history and each one expands into a
-// full, generated final-standings sheet. Everything here is render-only: it
-// never feeds the scoring engine, standings, Hall of Fame, or recaps.
+// Historical clash archive (display-only). These season-long clashes populate
+// the Archive page's tournament history and each one expands into a full,
+// generated final-standings sheet. Everything here is render-only: it never
+// feeds the scoring engine, standings, Hall of Fame, or recaps.
+//
+// All players are EUW. Tournaments are champion-themed. No real pro/streamer
+// handles are used; the filler pool is invented EUW-style summoner names.
 
 function lobbies(n) { return Math.ceil(n / 8) }
 
 var RAW = [
-  { name: 'Season Kickoff Clash',     date: '2026-01-10', winner: 'Levitate',    entries: 40,  topScore: 41, top3: ['Levitate', 'Uri', 'Ole'] },
-  { name: 'Clash Week 2',             date: '2026-01-17', winner: 'Zounderkite', entries: 48,  topScore: 43, top3: ['Zounderkite', 'Wiwi', 'BingBing'] },
-  { name: 'Clash Week 3',             date: '2026-01-24', winner: 'Uri',         entries: 48,  topScore: 44, top3: ['Uri', 'Levitate', 'Sybor'] },
-  { name: 'Clash Week 4',             date: '2026-01-31', winner: 'Wiwi',        entries: 56,  topScore: 45, top3: ['Wiwi', 'Vlad', 'Zounderkite'] },
-  { name: 'Clash Week 5',             date: '2026-02-07', winner: 'Levitate',    entries: 56,  topScore: 47, top3: ['Levitate', 'BingBing', 'Ivdim'] },
-  { name: "Valentine's Brawl",        date: '2026-02-14', winner: 'BingBing',    entries: 64,  topScore: 46, top3: ['BingBing', 'Ole', 'Uri'] },
-  { name: 'Clash Week 7',             date: '2026-02-21', winner: 'Ole',         entries: 64,  topScore: 48, top3: ['Ole', 'Levitate', 'Dishsoap'] },
-  { name: 'Clash Week 8',             date: '2026-02-28', winner: 'Sybor',       entries: 72,  topScore: 49, top3: ['Sybor', 'Wiwi', 'Vlad'] },
-  { name: 'Clash Week 9',             date: '2026-03-07', winner: 'Levitate',    entries: 80,  topScore: 50, top3: ['Levitate', 'Zounderkite', 'k3soju'] },
-  { name: 'Clash Week 10',            date: '2026-03-14', winner: 'Vlad',        entries: 80,  topScore: 49, top3: ['Vlad', 'Ivdim', 'BingBing'] },
-  { name: 'Spring Showdown',          date: '2026-03-21', winner: 'Ivdim',       entries: 88,  topScore: 51, top3: ['Ivdim', 'Uri', 'Levitate'] },
-  { name: 'Clash Week 12',            date: '2026-03-28', winner: 'Uri',         entries: 96,  topScore: 50, top3: ['Uri', 'Sybor', 'Ole'] },
-  { name: 'Clash Week 13',            date: '2026-04-04', winner: 'Dishsoap',    entries: 96,  topScore: 52, top3: ['Dishsoap', 'Levitate', 'Wiwi'] },
-  { name: 'Clash Week 14',            date: '2026-04-11', winner: 'Zounderkite', entries: 104, topScore: 53, top3: ['Zounderkite', 'BingBing', 'Vlad'] },
-  { name: 'Mid-Season Invitational',  date: '2026-04-18', winner: 'Levitate',    entries: 112, topScore: 56, top3: ['Levitate', 'Ole', 'Ivdim'] },
-  { name: 'Clash Week 16',            date: '2026-04-25', winner: 'Wiwi',        entries: 104, topScore: 52, top3: ['Wiwi', 'Uri', 'Setsuko'] },
-  { name: 'Clash Week 17',            date: '2026-05-02', winner: 'k3soju',      entries: 120, topScore: 53, top3: ['k3soju', 'Levitate', 'Sybor'] },
-  { name: 'Clash Week 18',            date: '2026-05-09', winner: 'BingBing',    entries: 120, topScore: 54, top3: ['BingBing', 'Zounderkite', 'Ole'] },
-  { name: 'Clash Week 19',            date: '2026-05-16', winner: 'Ole',         entries: 128, topScore: 55, top3: ['Ole', 'Wiwi', 'Vlad'] },
-  { name: 'Set 17 Launch Clash',      date: '2026-05-23', winner: 'Levitate',    entries: 136, topScore: 58, top3: ['Levitate', 'Ivdim', 'Uri'] },
-  { name: 'Clash Week 21',            date: '2026-05-30', winner: 'Sybor',       entries: 128, topScore: 54, top3: ['Sybor', 'BingBing', 'Dishsoap'] },
-  { name: 'Clash Week 22',            date: '2026-06-06', winner: 'Zounderkite', entries: 144, topScore: 57, top3: ['Zounderkite', 'Levitate', 'Wiwi'] },
+  { name: 'Aatrox Invitational',  date: '2026-01-10', winner: 'Levitate',    entries: 40,  topScore: 41, top3: ['Levitate', 'Uri', 'Ole'] },
+  { name: 'Vex Open',             date: '2026-01-17', winner: 'Zounderkite', entries: 48,  topScore: 43, top3: ['Zounderkite', 'Wiwi', 'BingBing'] },
+  { name: 'Zed Showdown',         date: '2026-01-24', winner: 'Uri',         entries: 48,  topScore: 44, top3: ['Uri', 'Levitate', 'Sybor'] },
+  { name: 'Jhin Cup',             date: '2026-01-31', winner: 'Wiwi',        entries: 56,  topScore: 45, top3: ['Wiwi', 'Vlad', 'Zounderkite'] },
+  { name: 'Morgana Masters',      date: '2026-02-07', winner: 'Levitate',    entries: 56,  topScore: 47, top3: ['Levitate', 'BingBing', 'Ivdim'] },
+  { name: 'Sona Series',          date: '2026-02-14', winner: 'BingBing',    entries: 64,  topScore: 46, top3: ['BingBing', 'Ole', 'Uri'] },
+  { name: 'Fiora Clash',          date: '2026-02-21', winner: 'Ole',         entries: 64,  topScore: 48, top3: ['Ole', 'Levitate', 'Ivdim'] },
+  { name: 'Graves Gauntlet',      date: '2026-02-28', winner: 'Sybor',       entries: 72,  topScore: 49, top3: ['Sybor', 'Wiwi', 'Vlad'] },
+  { name: 'Bard Brawl',           date: '2026-03-07', winner: 'Levitate',    entries: 80,  topScore: 50, top3: ['Levitate', 'Zounderkite', 'Wiwi'] },
+  { name: 'Shen Open',            date: '2026-03-14', winner: 'Vlad',        entries: 80,  topScore: 49, top3: ['Vlad', 'Ivdim', 'BingBing'] },
+  { name: 'Aurelion Sol Cup',     date: '2026-03-21', winner: 'Ivdim',       entries: 88,  topScore: 51, top3: ['Ivdim', 'Uri', 'Levitate'] },
+  { name: 'Riven Rumble',         date: '2026-03-28', winner: 'Uri',         entries: 96,  topScore: 50, top3: ['Uri', 'Sybor', 'Ole'] },
+  { name: 'Karma Classic',        date: '2026-04-04', winner: 'Ivdim',       entries: 96,  topScore: 52, top3: ['Ivdim', 'Levitate', 'Wiwi'] },
+  { name: 'Kindred Cup',          date: '2026-04-11', winner: 'Zounderkite', entries: 104, topScore: 53, top3: ['Zounderkite', 'BingBing', 'Vlad'] },
+  { name: 'Viktor Invitational',  date: '2026-04-18', winner: 'Levitate',    entries: 112, topScore: 56, top3: ['Levitate', 'Ole', 'Ivdim'] },
+  { name: 'Samira Open',          date: '2026-04-25', winner: 'Wiwi',        entries: 104, topScore: 52, top3: ['Wiwi', 'Uri', 'Ole'] },
+  { name: 'Diana Showdown',       date: '2026-05-02', winner: 'Vlad',        entries: 120, topScore: 53, top3: ['Vlad', 'Levitate', 'Sybor'] },
+  { name: 'Blitzcrank Bash',      date: '2026-05-09', winner: 'BingBing',    entries: 120, topScore: 54, top3: ['BingBing', 'Zounderkite', 'Ole'] },
+  { name: 'Xayah Open',           date: '2026-05-16', winner: 'Ole',         entries: 128, topScore: 55, top3: ['Ole', 'Wiwi', 'Vlad'] },
+  { name: 'Aurora Championship',  date: '2026-05-23', winner: 'Levitate',    entries: 136, topScore: 58, top3: ['Levitate', 'Ivdim', 'Uri'] },
+  { name: 'Pyke Cup',             date: '2026-05-30', winner: 'Sybor',       entries: 128, topScore: 54, top3: ['Sybor', 'BingBing', 'Vlad'] },
+  { name: 'Galio Grand Finals',   date: '2026-06-06', winner: 'Zounderkite', entries: 144, topScore: 57, top3: ['Zounderkite', 'Levitate', 'Wiwi'] },
 ]
 
 export var ARCHIVE_SEED = RAW.map(function (r, i) {
@@ -50,7 +53,8 @@ export var ARCHIVE_SEED = RAW.map(function (r, i) {
 // ── Standings generation ────────────────────────────────────────────────────
 // Deterministic per tournament so the same sheet renders every time.
 
-export var REGIONS = ['EUW', 'EUNE', 'NA', 'KR', 'BR', 'OCE', 'TR', 'LAN']
+// Single region: this is a EUW circuit. Taglines stay EUW-consistent.
+export var REGION = 'EUW'
 
 var FORMATS = [
   'Points Threshold Cut',
@@ -59,37 +63,38 @@ var FORMATS = [
   'Swiss into Top 8',
 ]
 
-// A deep pool of plausible TFT/summoner tags. Known regulars come first; the
-// rest are invented so a 144-player field reads like a real public ladder.
+// Invented EUW-style summoner handles. Community regulars come first; the rest
+// are plausible EUW ladder names (no real pros/streamers) so a 144-player field
+// reads like a genuine public bracket.
 var NAME_POOL = [
   'Levitate', 'Zounderkite', 'Uri', 'BingBing', 'Wiwi', 'Ole', 'Sybor', 'Ivdim', 'Vlad',
-  'Dishsoap', 'k3soju', 'Setsuko', 'Mortdog', 'Robinsongz', 'Wrainbash', 'BunnyMuffins',
-  'Frodan', 'NightShark', 'CrystalFox', 'VoidWalker', 'StarForge', 'IronMask', 'DawnBreaker', 'GhostRider',
-  'Rerollr', 'Goldhoarder', 'Hexgazer', 'Carouselle', 'Spatulord', 'Krugfeeder', 'Wanderer7',
-  'Augmentt', 'Backliner', 'Itemized', 'Slowroller', 'Fastnine', 'Topfour', 'Eightball',
-  'Donkroll', 'Highroller', 'Lowroll', 'Scoutahead', 'Greedybelt', 'Thiefsglove', 'PrismaticPick',
-  'Anvilrng', 'TomeOfCS', 'Loadeddice', 'WanderingTrainer', 'Mortdoggo', 'SojuBoii', 'Dishrack',
-  'CloudNine', 'Stormrazor', 'Quicksilvr', 'Bloodthirstr', 'GuinsooMain', 'ShojinDiff', 'Bramblegod',
-  'Dragonclaw', 'IonicSpark', 'MorelloMid', 'RedbuffRush', 'Sunfirecape', 'WarmogWarrior', 'AdaptiveHelm',
-  'Crownguardd', 'SteraksGage', 'TitansRage', 'EdgeOfNight', 'GargoyleGod', 'HextechHands', 'NashorTooth',
-  'VoidStaffer', 'LastWhisper', 'DeathbladeX', 'InfinityyEdge', 'Rabadons', 'ArchangelZ', 'SpearMaster',
-  'Jeweledd', 'HandOfJustice', 'SpiritVisage', 'ProtectorsVow', 'Evenshroud', 'StrikersFlail', 'KrakenFury',
-  'SteadfastHeart', 'GiantSlayr', 'BlueBuffBob', 'SojuDrinker', 'PixelPusher', 'Metagamer', 'PatchNotes',
-  'PentaRoll', 'AugmentGod', 'LobbyGremlin', 'SneakyCarry', 'TwoStarLulu', 'ThreeStarr', 'OneCostDiff',
-  'FiveCostt', 'Headliner', 'ChosenOne', 'Reforged', 'VanguardWall', 'BastionMain', 'SniperPeak',
-  'RoguishOne', 'MaraudrX', 'ChallengrUp', 'ConduitFlow', 'VoyagerLost', 'Fateweaverr', 'ShepherdK',
-  'ReplicatrR', 'AnimaSquad', 'DarkstarrK', 'SpaceGroovr', 'MechaPilott', 'MeepleLord', 'StargazrZ',
-  'NovaNova', 'PsionicMind', 'PrimordianX', 'ArbiterEU', 'TimebreakrT', 'GalioPilot', 'MightyMechh',
-  'SorakaSupp', 'TeemoTroll', 'VeigarBurst', 'PoppyHop', 'NasusStack', 'LeonaWall', 'EzrealPoke',
-  'CaitlynLane', 'BriarBite', 'TalonRoam', 'LissandraIce', 'TwistedRng', 'AkaliShade', 'BelvethVoid',
-  'GnarMega', 'GragasRoll', 'GwenSnip', 'JaxStun', 'JinxRocket', 'MilioFire', 'MordeDrag',
-  'PantheonPoke', 'PykeHook', 'ZoeSleep', 'AuroraDance', 'DianaMoon', 'FizzShark', 'IllaoiTent',
-  'KaisaVoid', 'LuluPix', 'MaokaiRoot', 'MissFortune', 'OrnnForge', 'RhaastHeal', 'SamiraStyle',
-  'UrgotFear', 'ViktorEvo', 'CorkiBomb', 'KarmaShield', 'KindredMark', 'LeblancClone', 'MasterYiQ',
-  'MorganaBind', 'NamiBubble', 'NunuRoll', 'RammusOk', 'RivenFlow', 'TahmEat', 'XayahFeather',
-  'BardChime', 'BlitzPull', 'FioraParry', 'GravesSmoke', 'JhinFour', 'ShenSplit', 'SonaHeal',
-  'VexGloom', 'ZedShadow', 'CarryDiff', 'TankyTom', 'FlexLord', 'OpenForte', 'NattyTactician',
-  'EarlyGank', 'LateScaler', 'StreakBreaker', 'MMRClimber', 'ChalljerEU', 'GrandmastrK', 'PlatStuck',
+  'xPandaa', 'Nyxara', 'Draelyn', 'Korvath', 'Milkshaked', 'ProbablyAFK', 'Slowrolled', 'OneMoreGame',
+  'BaronSteal', 'SmiteThief', 'RecallNow', 'BackdoorBob', 'SplitPushd', 'TiltedTom', 'Copiumm', 'Hopiumm',
+  'EzClapd', 'FullSendd', 'ClutchOrKick', 'FourthAgain', 'BottomFrag', 'HardStuckd', 'FreeEloo', 'SoloQHero',
+  'DuoDiffd', 'KarthusUlt', 'Pentaaaa', 'QuadraK', 'ZhonyaGod', 'StopwatchK', 'FleetFooty', 'DoranShieldd',
+  'Tearstackd', 'ManaGodd', 'OOMagain', 'TeleportTop', 'IgniteFlash', 'BarrierSupp', 'CleanseCC', 'GhostWalkd',
+  'RadiantRNG', 'AnvilOpener', 'RerollGremlin', 'FastEightt', 'LevelDiffd', 'EconomyGodd', 'GreedyRolld', 'AllInRolld',
+  'PixelKnight', 'ShadowVeil', 'FrostByted', 'EmberZ', 'NebulaNine', 'QuasarX', 'VortexEU', 'PhantomR',
+  'SpecterK', 'WraithMain', 'GoblinKingg', 'OrcSlayerr', 'DragonHoard', 'MysticManaa', 'RuneWeaver', 'SpellThiefd',
+  'ArcaneBolt', 'ManaBurnn', 'SilentBlade', 'VenomFangg', 'IronWilld', 'SteelHeartt', 'GoldenAxee', 'SilverFangg',
+  'BronzeStuck', 'EmeraldDream', 'SapphireEU', 'RubyRosee', 'AmethystK', 'ObsidianEdge', 'GraniteWall', 'MarbleMage',
+  'CrimsonTide', 'AzureSkyy', 'VerdantLeaf', 'GoldenHourr', 'MidnightOwl', 'DawnPatroll', 'DuskBlade', 'TwilightZ',
+  'EclipseEU', 'SolsticeK', 'EquinoxR', 'ZenithPeak', 'ApexHunter', 'OmegaWolff', 'AlphaStrike', 'GammaRayy',
+  'DeltaForcee', 'SigmaGrind', 'ThetaWave', 'KappaPridee', 'LambdaCore', 'OmicronEU', 'UpsilonX', 'PsiOnicc',
+  'PhiGolden', 'TauProtein', 'EtaCarinae', 'IotaOnee', 'DigitalDrift', 'NeonGhostt', 'CyberPunkd', 'GlitchKingg',
+  'PixelPirate', 'RetroWavee', 'SynthRider', 'VaporTraill', 'LaserFocuss', 'TurboNerdd', 'MegaByteEU', 'KiloWattt',
+  'BinaryStarr', 'QuantumLeapp', 'NullPointer', 'SegFaultt', 'StackOverflw', 'VoidPointer', 'RaceCondition', 'DeadLockd',
+  'AsyncAwaitt', 'PromiseChain', 'CallbackHell', 'RecursionEU', 'CacheMissd', 'HeapSortt', 'QuickSortd', 'MergeConflict',
+  'GitBlamee', 'ForcePushd', 'RebaseHell', 'CommitCrime', 'BranchOffd', 'StashPopp', 'CherryPickd', 'HotFixxer',
+  'ColdBrewEU', 'EspressoShot', 'LatteArtt', 'FlatWhitee', 'CortadoK', 'MacchiatoM', 'RistrettoR', 'AmericanoA',
+  'NitroBrew', 'BeanCounter', 'GrindFineEU', 'FrenchPressd', 'AeroPressd', 'PourOverP', 'ChemexC', 'MokaPott',
+  'TurkishCoffee', 'IcedVanilla', 'CaramelDrizzle', 'PumpkinSpicEU', 'HazelnutHype', 'ToffeeNutt', 'GingerbreadG', 'PeppermintP',
+  'ChaiLattee', 'MatchaMann', 'TaroBubblee', 'BobaKingg', 'BrownSugarBoba', 'OatMilkLatte', 'AlmondBreeze', 'CoconutCreamm',
+  'MorningGankk', 'NoonRecall', 'EveningWardd', 'NightCarry', 'WeekendWarrior', 'DailyGrindd', 'RankedAnxiety', 'PromoSeries',
+  'DemotionFear', 'WinStreakk', 'LossStreakk', 'CoinFlipd', 'AutofillJg', 'PingHeavyy', 'MutedAll', 'ChatBannd',
+  'HoneyBadgerr', 'SilentStorm', 'WildCardd', 'LuckyRolll', 'TwoStarLulu', 'ThreeStarKO', 'AceOfClubs', 'KingOfHearts',
+  'QueensGambit', 'JokerWildd', 'DiamondHands', 'PaperHandss', 'NattyKnight', 'Blitzedd', 'FrostbittenK', 'ScorchedEU',
+  'ThunderClapd', 'StormChaserr', 'WindShearr', 'TidalWavee', 'EarthShakerr', 'MagmaCore', 'GlacierK', 'AvalancheA',
 ]
 
 function hashStr(s) {
@@ -142,7 +147,7 @@ export function buildStandings(t) {
   var prevPts = T + 1
   var r = 0
   for (r = 1; r <= n; r++) {
-    var name = names[r - 1] || ('Player ' + r)
+    var name = names[r - 1] || ('Summoner' + r)
     var strength = (n - r) / (n - 1)
     var noise = rnd() * 4 - 2
     var pts = r === 1 ? T : Math.round(1 + strength * (T - 1) + noise)
@@ -158,12 +163,11 @@ export function buildStandings(t) {
     if (firsts < 0) firsts = 0
     if (r === 1 && firsts < 2) firsts = 2
 
-    var region = REGIONS[Math.floor(rnd() * REGIONS.length)]
     rows.push({
       rank: r,
       name: name,
-      region: region,
-      tag: region,
+      region: REGION,
+      tag: REGION,
       points: pts,
       firsts: firsts,
       top4: top4,

@@ -397,7 +397,7 @@ function TournamentDetail(props) {
           <div className="relative">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-primary/15 text-primary">{fmt}</span>
-              <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-white/5 text-slate-400">International</span>
+              <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-white/5 text-slate-400">EUW</span>
               <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-white/5 text-slate-400">Season 1</span>
             </div>
             <h2 className="font-display text-4xl md:text-5xl text-on-surface leading-tight">{t.name}</h2>
