@@ -72,6 +72,7 @@ var MilestonesScreenNew = lazyWithRetry(function(){ return import('./screens/Mil
 var ChallengesScreenNew = lazyWithRetry(function(){ return import('./screens/ChallengesScreen'); });
 var RulesScreenNew = lazyWithRetry(function(){ return import('./screens/RulesScreen'); });
 var GuideScreenNew = lazyWithRetry(function(){ return import('./screens/GuideScreen'); });
+var BuilderScreenNew = lazyWithRetry(function(){ return import('./screens/BuilderScreen'); });
 var FAQScreenNew = lazyWithRetry(function(){ return import('./screens/FAQScreen'); });
 var AccountScreenNew = lazyWithRetry(function(){ return import('./screens/AccountScreen'); });
 var PrivacyScreenNew = lazyWithRetry(function(){ return import('./screens/PrivacyScreen'); });
@@ -257,7 +258,7 @@ function TFTClash(){
     "/results":"results","/events":"events","/scrims":"scrims","/pricing":"pricing",
     "/milestones":"milestones","/challenges":"challenges","/hall-of-fame":"hof",
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
-    "/account":"account","/guide":"guide","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
+    "/account":"account","/guide":"guide","/builder":"builder","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
     "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview","/horizon-lab":"horizon-lab"
   };
@@ -367,10 +368,10 @@ function TFTClash(){
   // URL is now managed by React Router; no more hash pushState
   useEffect(function(){
     navSourceRef.current="user";
-    var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",guide:"Climb Guide",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear",changelog:"Changelog",marketplace:"Sponsor Marketplace",roadmap:"Roadmap",predictions:"My Predictions"};
+    var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",guide:"Climb Guide",builder:"Team Builder",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear",changelog:"Changelog",marketplace:"Sponsor Marketplace",roadmap:"Roadmap",predictions:"My Predictions"};
     var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
     document.title="TFT Clash"+(t?" - "+t:"");
-    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame - records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans - Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",guide:"How to climb in TFT. Five core habits top ladder players use to stop being hardstuck.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy - how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service - rules for using the platform."};
+    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame - records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans - Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",guide:"How to climb in TFT. Five core habits top ladder players use to stop being hardstuck.",builder:"TFT Set 17 team builder. Drag champions onto the board, see live traits, and share your comp.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy - how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service - rules for using the platform."};
     var desc=descs[screen]||"TFT Clash - weekly competitive TFT tournaments.";
     var metaDesc=document.querySelector('meta[name="description"]');
     if(metaDesc)metaDesc.setAttribute("content",desc);
@@ -411,7 +412,7 @@ function TFTClash(){
     leaderboard:"/leaderboard",bracket:"/bracket",profile:"/player",
     results:"/results",events:"/events",scrims:"/scrims",pricing:"/pricing",
     milestones:"/milestones",challenges:"/challenges",hof:"/hall-of-fame",
-    archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",guide:"/guide",
+    archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",guide:"/guide",builder:"/builder",
     account:"/account","host-apply":"/host/apply","host-dashboard":"/host/dashboard",
     admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",
     tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear",sponsors:"/sponsors",donut17:"/donut17"
@@ -458,7 +459,7 @@ function TFTClash(){
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
     if(h){
-      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","guide","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login","status","sponsors","ops","content-engine","stats","brosephtech","tfttech","donut17"];
+      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","guide","builder","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login","status","sponsors","ops","content-engine","stats","brosephtech","tfttech","donut17"];
       var hParts=h.split("/");var hBase=hParts[0];var hSub=hParts[1]||"";
       var isSafe=safeScreens.includes(hBase)||hBase.indexOf("tournament-")===0;
       if(isSafe){
@@ -743,6 +744,8 @@ function TFTClash(){
         {screen==="faq"        &&<FAQScreenNew/>}
 
         {screen==="guide"      &&<GuideScreenNew/>}
+
+        {screen==="builder"    &&<BuilderScreenNew/>}
 
         {screen==="privacy"    &&<PrivacyScreenNew/>}
 

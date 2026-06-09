@@ -13,7 +13,7 @@ var SCREEN_TO_ROUTE = {
   pricing: '/pricing', sponsors: '/sponsors', account: '/account', admin: '/admin',
   marketplace: '/marketplace', roadmap: '/roadmap', predictions: '/predictions',
   'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
-  ops: '/ops', rules: '/rules', faq: '/faq', guide: '/guide', stats: '/stats',
+  ops: '/ops', rules: '/rules', faq: '/faq', guide: '/guide', builder: '/builder', stats: '/stats',
   bracket: '/bracket', profile: '/player', recap: '/season-recap',
   privacy: '/privacy', terms: '/terms', gear: '/gear', tournaments: '/tournaments',
   teams: '/teams', news: '/news'
@@ -148,7 +148,8 @@ export default function Sidebar() {
         <NavItem id="pricing" icon="sell"   label="Upgrade" />
 
         <SectionHeading label="Help" />
-        <NavItem id="guide" icon="school"    label="Climb Guide" />
+        <NavItem id="guide"   icon="school"               label="Climb Guide" />
+        <NavItem id="builder" icon="dashboard_customize"  label="Team Builder" />
         <NavItem id="rules" icon="menu_book" label="Rules" />
         <NavItem id="faq"   icon="help"      label="FAQ" />
 

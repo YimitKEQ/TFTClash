@@ -178,6 +178,11 @@ export default function GuideScreen() {
                   )
                 })}
               </ol>
+              <a href="/builder" className="group inline-flex items-center gap-2 mt-8 font-label uppercase tracking-wider text-xs font-bold text-primary hover:gap-3 transition-all">
+                <Icon name="dashboard_customize" size={16} />
+                Build your own comp
+                <Icon name="arrow_forward" size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              </a>
             </div>
           </div>
         </div>
