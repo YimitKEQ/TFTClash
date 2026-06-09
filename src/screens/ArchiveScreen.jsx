@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getSeasonChampion } from '../lib/constants.js'
-import { ARCHIVE_SEED } from '../lib/archiveSeed.js'
+import { ARCHIVE_SEED, buildStandings, formatArchiveDate, tournamentFormat } from '../lib/archiveSeed.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 
@@ -174,6 +174,7 @@ export default function ArchiveScreen() {
   var seasonConfig = ctx.seasonConfig || {}
 
   var [search, setSearch] = useState('')
+  var [selected, setSelected] = useState(null)
 
   // Build season card from live context data
   var champion = getSeasonChampion()
@@ -201,24 +202,22 @@ export default function ArchiveScreen() {
 
   var seasonDefs = [currentSeason]
 
-  // Minor events: live pastClashes plus the seeded historical archive, newest first.
+  // Full tournament objects: live pastClashes plus seeded historical archive,
+  // newest first. Each is clickable to open a generated final-standings sheet.
   var liveEvents = pastClashes.map(function(clash) {
     return {
+      id: 'live-' + clash.id,
       name: clash.name || ('Clash #' + clash.id),
       winner: clash.champion || '',
       entries: clash.players || 8,
+      lobbies: clash.lobbies || Math.ceil((clash.players || 8) / 8),
       date: clash.date || '',
+      top3: clash.top3 || (clash.champion ? [clash.champion] : []),
+      topScore: clash.topScore || 50,
+      seeded: false,
     }
   })
-  var seededEvents = ARCHIVE_SEED.map(function(clash) {
-    return {
-      name: clash.name,
-      winner: clash.winner,
-      entries: clash.entries,
-      date: clash.date,
-    }
-  })
-  var minorEvents = liveEvents.concat(seededEvents).sort(function(a, b) {
+  var minorEvents = liveEvents.concat(ARCHIVE_SEED).sort(function(a, b) {
     return String(b.date).localeCompare(String(a.date))
   })
 
@@ -257,7 +256,13 @@ export default function ArchiveScreen() {
             )
           })}
 
+          {/* Tournament detail (opens when a row is clicked) */}
+          {selected && (
+            <TournamentDetail tournament={selected} onBack={function() { setSelected(null) }} />
+          )}
+
           {/* Minor Tournaments Table */}
+          {!selected && (
           <div className="mt-4 bg-surface-container-low rounded p-1">
             <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5">
               <h3 className="font-label text-xl uppercase tracking-widest text-primary flex items-center gap-3">
@@ -312,11 +317,17 @@ export default function ArchiveScreen() {
                   )}
                   {filteredMinor.map(function(event, i) {
                     return (
-                      <tr key={event.name} className="hover:bg-white/5 transition-colors">
-                        <td className="px-8 py-5 font-bold text-on-surface">{event.name}</td>
+                      <tr
+                        key={event.id || event.name}
+                        onClick={function() { setSelected(event); if (typeof window !== 'undefined') window.scrollTo(0, 0) }}
+                        className="hover:bg-primary/5 transition-colors cursor-pointer group"
+                      >
+                        <td className="px-8 py-5 font-bold text-on-surface group-hover:text-primary transition-colors">
+                          <span className="inline-flex items-center gap-2">{event.name}<Icon name="chevron_right" size={16} className="opacity-0 group-hover:opacity-60 transition-opacity" /></span>
+                        </td>
                         <td className="px-8 py-5 font-mono text-tertiary">{event.winner}</td>
                         <td className="px-8 py-5 font-mono text-on-surface">{event.entries}</td>
-                        <td className="px-8 py-5 font-mono text-slate-500">{event.date}</td>
+                        <td className="px-8 py-5 font-mono text-slate-500">{formatArchiveDate(event.date)}</td>
                       </tr>
                     )
                   })}
@@ -324,9 +335,141 @@ export default function ArchiveScreen() {
               </table>
             </div>
           </div>
+          )}
 
         </div>
       </div>
     </PageLayout>
+  )
+}
+
+var MEDALS = ['#e8a838', '#c0c8d4', '#cd7f32']
+
+function StatTile(props) {
+  return (
+    <div className="bg-surface-container rounded p-4 text-center">
+      <p className={'font-mono text-2xl ' + (props.color || 'text-on-surface')}>{props.value}</p>
+      <p className="font-label text-xs uppercase text-slate-500">{props.label}</p>
+    </div>
+  )
+}
+
+function PodiumCard(props) {
+  var row = props.row
+  var place = props.place
+  var col = MEDALS[place]
+  var labels = ['Champion', 'Runner-up', 'Third place']
+  return (
+    <div className="flex-1 min-w-[150px] rounded-lg border p-4 flex items-center gap-4" style={{ borderColor: col + '4d', background: col + '12' }}>
+      <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-display text-lg font-bold" style={{ background: col + '22', color: col }}>
+        {place + 1}
+      </div>
+      <div className="min-w-0">
+        <p className="font-label text-[10px] uppercase tracking-wider text-slate-500">{labels[place]}</p>
+        <p className="font-display text-lg text-on-surface truncate">{row.name}</p>
+        <p className="font-mono text-xs" style={{ color: col }}>{row.points} pts <span className="text-slate-500">/ #{row.region}</span></p>
+      </div>
+    </div>
+  )
+}
+
+function TournamentDetail(props) {
+  var t = props.tournament
+  var standings = buildStandings(t)
+  var podium = standings.slice(0, 3)
+  var fmt = tournamentFormat(t)
+  var games = standings.length ? standings[0].games : 5
+  var hasFinalsCut = t.entries > 8
+
+  return (
+    <div className="mt-4">
+      <button
+        onClick={props.onBack}
+        className="inline-flex items-center gap-2 mb-6 font-label uppercase tracking-wider text-sm text-slate-400 hover:text-on-surface transition-colors"
+      >
+        <Icon name="arrow_back" size={18} />Back to archive
+      </button>
+
+      {/* Header */}
+      <div className="bg-surface-container-low rounded-lg overflow-hidden mb-6">
+        <div className="relative p-8 border-b border-white/5">
+          <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ background: 'radial-gradient(70% 120% at 0% 0%, #e8a838, transparent 60%)' }} />
+          <div className="relative">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-primary/15 text-primary">{fmt}</span>
+              <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-white/5 text-slate-400">International</span>
+              <span className="font-label text-[11px] uppercase tracking-wider font-bold rounded px-2 py-1 bg-white/5 text-slate-400">Season 1</span>
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl text-on-surface leading-tight">{t.name}</h2>
+            <p className="font-label text-slate-500 uppercase tracking-widest text-sm mt-2">{formatArchiveDate(t.date)}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
+          <StatTile label="Players" value={t.entries} />
+          <StatTile label="Lobbies" value={t.lobbies || Math.ceil(t.entries / 8)} color="text-on-surface" />
+          <StatTile label="Games" value={games} color="text-secondary" />
+          <StatTile label="Top Score" value={t.topScore} color="text-tertiary" />
+        </div>
+      </div>
+
+      {/* Podium */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        {podium.map(function(row, idx) {
+          return <PodiumCard key={row.rank} row={row} place={idx} />
+        })}
+      </div>
+
+      {/* Full standings */}
+      <div className="bg-surface-container-low rounded-lg overflow-hidden">
+        <div className="p-5 border-b border-white/5 flex items-center justify-between">
+          <h3 className="font-label text-lg uppercase tracking-widest text-primary flex items-center gap-3">
+            <Icon name="leaderboard" className="text-xl" />Final Standings
+          </h3>
+          <span className="font-mono text-xs text-slate-500">{standings.length} entries</span>
+        </div>
+        <div className="max-h-[72vh] overflow-y-auto">
+          <table className="w-full text-left font-body">
+            <thead className="sticky top-0 bg-surface-container-low z-10">
+              <tr className="font-label uppercase text-xs text-slate-500 tracking-tighter border-b border-white/5">
+                <th className="px-6 py-3 w-16">#</th>
+                <th className="px-6 py-3">Player</th>
+                <th className="px-6 py-3 text-right">Pts</th>
+                <th className="px-6 py-3 text-right hidden sm:table-cell">1st</th>
+                <th className="px-6 py-3 text-right hidden sm:table-cell">Top 4</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {standings.map(function(row) {
+                var medal = row.rank <= 3 ? MEDALS[row.rank - 1] : null
+                var rowsOut = [
+                  <tr key={row.rank} className={'transition-colors ' + (medal ? 'bg-white/[0.02]' : 'hover:bg-white/5')}>
+                    <td className="px-6 py-3">
+                      <span className="font-mono font-bold text-sm" style={{ color: medal || '#7c8aa0' }}>{row.rank}</span>
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className="font-bold text-on-surface">{row.name}</span>
+                      <span className="font-mono text-xs text-slate-600 ml-1.5">#{row.region}</span>
+                    </td>
+                    <td className="px-6 py-3 text-right font-mono font-bold text-on-surface">{row.points}</td>
+                    <td className="px-6 py-3 text-right font-mono text-slate-400 hidden sm:table-cell">{row.firsts}</td>
+                    <td className="px-6 py-3 text-right font-mono text-slate-400 hidden sm:table-cell">{row.top4}</td>
+                  </tr>,
+                ]
+                if (hasFinalsCut && row.rank === 8) {
+                  rowsOut.push(
+                    <tr key="cut" className="bg-primary/5">
+                      <td colSpan={5} className="px-6 py-1.5 text-center font-label text-[10px] uppercase tracking-widest text-primary/70 font-bold">
+                        Finals cut - Top 8 advanced
+                      </td>
+                    </tr>
+                  )
+                }
+                return rowsOut
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   )
 }
