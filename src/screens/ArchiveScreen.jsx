@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getSeasonChampion } from '../lib/constants.js'
+import { ARCHIVE_SEED } from '../lib/archiveSeed.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 
@@ -195,16 +196,30 @@ export default function ArchiveScreen() {
     bgGradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
   }
 
+  // Reflect the full archived history (live + seeded) in the clashes metric.
+  currentSeason.clashes = String(pastClashes.length + ARCHIVE_SEED.length)
+
   var seasonDefs = [currentSeason]
 
-  // Minor events from pastClashes
-  var minorEvents = pastClashes.map(function(clash) {
+  // Minor events: live pastClashes plus the seeded historical archive, newest first.
+  var liveEvents = pastClashes.map(function(clash) {
     return {
       name: clash.name || ('Clash #' + clash.id),
       winner: clash.champion || '',
       entries: clash.players || 8,
       date: clash.date || '',
     }
+  })
+  var seededEvents = ARCHIVE_SEED.map(function(clash) {
+    return {
+      name: clash.name,
+      winner: clash.winner,
+      entries: clash.entries,
+      date: clash.date,
+    }
+  })
+  var minorEvents = liveEvents.concat(seededEvents).sort(function(a, b) {
+    return String(b.date).localeCompare(String(a.date))
   })
 
   var filteredMinor = minorEvents.filter(function(e) {
