@@ -573,6 +573,32 @@ export function AppProvider(props) {
     }
   }, [currentUser]);
 
+  // ── Admin multi-tab guard ──
+  // Tournament automation (auto phase advance, no-show marking) and the
+  // tournament_state blob persistence both run in the admin's browser. Two
+  // admin tabs means last-writer-wins clobbering of live clash state.
+  // Detect a second admin tab via BroadcastChannel and warn loudly.
+  useEffect(function(){
+    if(!isAdmin)return;
+    if(typeof BroadcastChannel==='undefined')return;
+    var bc;
+    try{bc=new BroadcastChannel('tft-admin-tab');}catch(e){return;}
+    var lastWarnAt=0;
+    function warnDuplicate(){
+      var now=Date.now();
+      if(now-lastWarnAt<60000)return;
+      lastWarnAt=now;
+      toast('Another admin tab is open! Keep ONE admin tab only - extra tabs can overwrite live tournament state.','error');
+    }
+    bc.onmessage=function(ev){
+      var d=ev&&ev.data;
+      if(d==='hello'){try{bc.postMessage('present');}catch(e){}warnDuplicate();}
+      else if(d==='present'){warnDuplicate();}
+    };
+    try{bc.postMessage('hello');}catch(e){}
+    return function(){try{bc.close();}catch(e){}};
+  },[isAdmin]);
+
   // Track previous user identity for any future cross-user effect cleanup
   var prevUserIdRef = useRef(currentUser && (currentUser.auth_user_id || currentUser.id));
   useEffect(function(){

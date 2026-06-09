@@ -200,13 +200,37 @@ export function startListeners(client) {
           return;
         }
 
-        // Count registrations on this specific tournament
+        // Waitlist joins are registrations rows too (status='waitlisted') but
+        // they are NOT seats - post a small note instead of the reg embed.
+        if (row.status === 'waitlisted') {
+          const wlRes = await supabase
+            .from('registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('tournament_id', row.tournament_id)
+            .eq('status', 'waitlisted');
+          const wlPos = wlRes.count || 1;
+          const wlSlug = (tournamentName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
+          const wlTournamentCh = wlSlug ? (ch('registrations-' + wlSlug) || ch(wlSlug + '-registrations') || ch(wlSlug + '-general')) : null;
+          const wlCh = wlTournamentCh || ch('clash-registrations') || ch('registrations') || ch('clash-schedule');
+          if (wlCh) {
+            await wlCh.send({
+              content: '⏳ **' + displayName + '** joined the waitlist (position ' + wlPos + ')' + (isSeasonClash ? ' for Clash #' + clashNum : (tournamentName ? ' for ' + tournamentName : '')) + '. They will be auto-promoted when a seat opens.',
+              allowedMentions: { parse: [] },
+            });
+          }
+          console.log('[listener] Waitlist join: ' + displayName + ' (#' + wlPos + ')');
+          return;
+        }
+
+        // Count only seated registrations (registered/checked_in) - waitlisted
+        // rows live in the same table but must not inflate the seat count.
         let regCount = 0;
         if (row.tournament_id) {
           const countRes = await supabase
             .from('registrations')
             .select('*', { count: 'exact', head: true })
-            .eq('tournament_id', row.tournament_id);
+            .eq('tournament_id', row.tournament_id)
+            .in('status', ['registered', 'checked_in']);
           if (countRes.error) console.error('[listener] count query failed:', countRes.error.message);
           regCount = countRes.count || 0;
         }
@@ -438,6 +462,45 @@ export function startListeners(client) {
         var prev = payload.old || {};
         var next = payload.new || {};
         if (!next.tournament_id) return;
+
+        // Waitlist promotion (status waitlisted → registered, via the
+        // promote_next_waitlisted RPC): DM the player + drop a channel note.
+        if (prev.status === 'waitlisted' && next.status === 'registered' && next.player_id) {
+          try {
+            var promoRes = await supabase
+              .from('players')
+              .select('username, discord_user_id')
+              .eq('id', next.player_id)
+              .single();
+            var promoted = promoRes.data;
+            var promoTRes = await supabase
+              .from('tournaments')
+              .select('name')
+              .eq('id', next.tournament_id)
+              .single();
+            var promoTName = (promoTRes.data && promoTRes.data.name) || 'the active clash';
+            if (promoted && promoted.discord_user_id) {
+              try {
+                var promoUser = await client.users.fetch(promoted.discord_user_id);
+                await promoUser.send('🎟️ A seat opened up - you were promoted from the waitlist into **' + promoTName + '**! Head to the platform and check in before the window closes: https://tftclash.com/clash');
+              } catch (dmErr) {
+                console.warn('[listener] waitlist promotion DM failed: ' + ((dmErr && dmErr.message) || dmErr));
+              }
+            }
+            var promoCh = ch('clash-registrations') || ch('registrations') || ch('clash-schedule');
+            if (promoCh && promoted) {
+              await promoCh.send({
+                content: '🎟️ **' + (promoted.username || 'A player') + '** was promoted from the waitlist into ' + promoTName + '.',
+                allowedMentions: { parse: [] },
+              });
+            }
+            console.log('[listener] waitlist promotion announced: ' + (promoted && promoted.username));
+          } catch (promoErr) {
+            console.warn('[listener] waitlist promotion handler failed: ' + ((promoErr && promoErr.message) || promoErr));
+          }
+          return;
+        }
+
         var becameDQ = !!next.disqualified && !prev.disqualified;
         if (!becameDQ) return;
 

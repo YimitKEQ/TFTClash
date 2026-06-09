@@ -18,6 +18,8 @@ import { ensureNotifyRoles, addNotifyRole, removeNotifyRole } from './utils/noti
 import { hydratePanel, reactionToKind, loadPanelMessageId } from './utils/reactionRoles.js';
 import { hydrateAllPickers, handlePickerReaction } from './utils/rolePickers.js';
 import { handleHostStatusButton } from './commands/status.js';
+import { ensureAdminAlerts, postAdminAlert, attachProcessAlertHandlers } from './utils/adminAlerts.js';
+import { ensureDonateChannel } from './utils/donateChannel.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const client = new Client({
@@ -80,6 +82,18 @@ client.once(Events.ClientReady, function(c) {
     // Hydrate generalized role-picker panels so their reactions fire after restart.
     hydrateAllPickers(client).catch(function(e) {
       console.warn('[rolePickers] hydrate failed: ' + ((e && e.message) || e));
+    });
+
+    // Admin alerts channel + Sentry relay webhook + crash reporting.
+    ensureAdminAlerts(client).then(function(res) {
+      if (res.ok) attachProcessAlertHandlers(client);
+    }).catch(function(e) {
+      console.error('[adminAlerts] setup failed: ' + ((e && e.message) || e));
+    });
+
+    // Public donate channel under WELCOME (idempotent).
+    ensureDonateChannel(client).catch(function(e) {
+      console.error('[donate] setup failed: ' + ((e && e.message) || e));
     });
   }
 });
@@ -229,6 +243,8 @@ function logError(guild, userTag, command, err) {
   if (logCh) {
     logCh.send('**Error** `/' + command + '` by ' + userTag + '\n```' + err.message + '```').catch(function() {});
   }
+  // Mirror into admin-alerts so command failures surface alongside Sentry.
+  postAdminAlert(client, 'Bot command failed: /' + command, 'By ' + userTag + '\n```' + (err && err.message ? err.message : String(err)) + '```').catch(function() {});
 }
 
 client.login(process.env.DISCORD_TOKEN);

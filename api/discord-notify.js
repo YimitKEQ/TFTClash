@@ -26,6 +26,54 @@ export default async function handler(req, res) {
     return res.status(415).json({ error: 'Content-Type must be application/json' });
   }
 
+  // ── Sentry relay: Sentry webhook → private #admin-alerts channel ─────────
+  // URL: /api/discord-notify?source=sentry&secret=<SENTRY_WEBHOOK_SECRET>
+  // Sentry cannot send a Supabase JWT, so this branch authenticates with a
+  // shared secret and posts ONLY to the dedicated admin alert webhook
+  // (DISCORD_ALERT_WEBHOOK_URL) — never the public announcement webhook.
+  if (req.query && req.query.source === 'sentry') {
+    const secret = process.env.SENTRY_WEBHOOK_SECRET;
+    const alertHook = process.env.DISCORD_ALERT_WEBHOOK_URL;
+    if (!secret || !alertHook) {
+      return res.status(503).json({ error: 'Alert relay not configured' });
+    }
+    if (req.query.secret !== secret) {
+      return res.status(401).json({ error: 'Invalid secret' });
+    }
+
+    // Parse defensively: Sentry's legacy WebHooks plugin and the newer
+    // issue-alert payloads put the interesting bits in different places.
+    const b = req.body ?? {};
+    const ev = b.event ?? (b.data && b.data.event) ?? {};
+    const issue = (b.data && b.data.issue) ?? {};
+    const title = ev.title || b.message || issue.title || 'Sentry alert';
+    const level = String(ev.level || b.level || issue.level || 'error').toUpperCase();
+    const link = b.url || ev.web_url || issue.permalink || '';
+    const project = b.project_name || b.project || (issue.project && issue.project.name) || '';
+    const culprit = b.culprit || ev.culprit || issue.culprit || '';
+
+    const embed = {
+      title: ('[' + level + '] ' + title).slice(0, 250),
+      description: ((culprit ? '`' + String(culprit).slice(0, 200) + '`\n' : '') +
+        (link ? '[Open in Sentry](' + link + ')' : '')).slice(0, 2000),
+      color: 0xC0392B,
+      footer: { text: 'Sentry' + (project ? ' · ' + project : '') },
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const r = await fetch(alertHook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embeds: [embed] }),
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Discord rejected the alert' });
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(502).json({ error: 'Failed to reach Discord' });
+    }
+  }
+
   const webhook = process.env.DISCORD_WEBHOOK_URL;
   if (!webhook) {
     return res.status(503).json({ error: 'Discord notifications not configured' });
