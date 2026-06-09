@@ -636,15 +636,18 @@ export function AppProvider(props) {
         // network responses arrive.
         var reconcileDbTid=loadedTournamentState&&loadedTournamentState.dbTournamentId?String(loadedTournamentState.dbTournamentId):null;
         if(reconcileDbTid){
-          supabase.from('registrations').select('player_id,status')
+          supabase.from('registrations').select('player_id,status,created_at')
             .eq('tournament_id',reconcileDbTid)
+            .order('created_at',{ascending:true})
             .then(function(regRes){
               if(regRes.error||!regRes.data)return;
               var regIds=[];
               var checkIds=[];
+              var waitIds=[];
               regRes.data.forEach(function(r){
                 if(r.status==='registered'||r.status==='checked_in')regIds.push(String(r.player_id));
                 if(r.status==='checked_in')checkIds.push(String(r.player_id));
+                if(r.status==='waitlisted')waitIds.push(String(r.player_id));
               });
               setTournamentState(function(ts2){
                 if(!ts2||String(ts2.dbTournamentId||'')!==reconcileDbTid)return ts2;
@@ -652,7 +655,8 @@ export function AppProvider(props) {
                 // DB is source of truth. Always overwrite — never preserve stale
                 // local state, otherwise a buggy realtime write can stick around
                 // even after page reloads (see custom-tourney check-in leak fix).
-                return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds});
+                // Waitlist is DB-backed too (status='waitlisted', FIFO by created_at).
+                return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds,waitlistIds:waitIds});
               });
             });
 
@@ -750,15 +754,28 @@ export function AppProvider(props) {
     // 3-query waterfall (players + tournaments + up to 50k game_results).
     // During lobby lock that's 24+ writes in a few seconds, so every connected
     // browser was hammering the DB. Trailing debounce collapses bursts into
-    // one refetch ~600ms after the last event.
+    // one refetch after the last event. The delay carries 5-15s of per-client
+    // jitter so hundreds of browsers don't refetch in the same window
+    // (synchronized refetches are what overloaded the DB on busy clash days).
+    // Hidden tabs skip the refetch entirely and catch up once visible again.
     var loadDebounceTimer=null;
+    var hiddenDirty=false;
     function scheduleLoadPlayers(){
       if(loadDebounceTimer)clearTimeout(loadDebounceTimer);
+      var delay=5000+Math.floor(Math.random()*10000);
       loadDebounceTimer=setTimeout(function(){
         loadDebounceTimer=null;
+        if(typeof document!=='undefined'&&document.visibilityState==='hidden'){hiddenDirty=true;return;}
         loadPlayersFromTable();
-      },5000);
+      },delay);
     }
+    function onVisibilityCatchUp(){
+      if(document.visibilityState==='visible'&&hiddenDirty){
+        hiddenDirty=false;
+        loadPlayersFromTable();
+      }
+    }
+    if(typeof document!=='undefined')document.addEventListener('visibilitychange',onVisibilityCatchUp);
     var playersCh=supabase.channel('players_realtime')
       .on('postgres_changes',{event:'*',schema:'public',table:'players'},scheduleLoadPlayers)
       .subscribe();
@@ -794,6 +811,14 @@ export function AppProvider(props) {
             return Object.assign({},ts,{registeredIds:Array.from(ids)});
           });
         }
+        if(row.status==='waitlisted'){
+          setTournamentState(function(ts){
+            if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
+            var wl=(ts.waitlistIds||[]).map(String);
+            if(wl.indexOf(pid)>-1)return ts;
+            return Object.assign({},ts,{waitlistIds:wl.concat([pid])});
+          });
+        }
       })
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'registrations'},function(payload){
         var row=payload.new;
@@ -804,15 +829,22 @@ export function AppProvider(props) {
           if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
           var rids=new Set((ts.registeredIds||[]).map(String));
           var cids=new Set((ts.checkedInIds||[]).map(String));
+          var wids=(ts.waitlistIds||[]).map(String);
           if(row.status==='checked_in'){
             cids.add(pid); rids.add(pid);
+            wids=wids.filter(function(id){return id!==pid;});
           } else if(row.status==='registered'){
             rids.add(pid); cids.delete(pid);
-          } else {
-            // dropped, waitlisted, or any other status - remove from both
+            wids=wids.filter(function(id){return id!==pid;});
+          } else if(row.status==='waitlisted'){
             rids.delete(pid); cids.delete(pid);
+            if(wids.indexOf(pid)===-1)wids=wids.concat([pid]);
+          } else {
+            // dropped or any other status - remove from all three
+            rids.delete(pid); cids.delete(pid);
+            wids=wids.filter(function(id){return id!==pid;});
           }
-          return Object.assign({},ts,{registeredIds:Array.from(rids),checkedInIds:Array.from(cids)});
+          return Object.assign({},ts,{registeredIds:Array.from(rids),checkedInIds:Array.from(cids),waitlistIds:wids});
         });
       })
       .on('postgres_changes',{event:'DELETE',schema:'public',table:'registrations'},function(payload){
@@ -824,13 +856,14 @@ export function AppProvider(props) {
           if(!ts||String(ts.dbTournamentId||'')!==rTid)return ts;
           return Object.assign({},ts,{
             registeredIds:(ts.registeredIds||[]).filter(function(id){return String(id)!==pid;}),
-            checkedInIds:(ts.checkedInIds||[]).filter(function(id){return String(id)!==pid;})
+            checkedInIds:(ts.checkedInIds||[]).filter(function(id){return String(id)!==pid;}),
+            waitlistIds:(ts.waitlistIds||[]).filter(function(id){return String(id)!==pid;})
           });
         });
       })
       .subscribe();
 
-    return function(){if(loadDebounceTimer)clearTimeout(loadDebounceTimer);supabase.removeChannel(ch);supabase.removeChannel(playersCh);supabase.removeChannel(gameResultsCh);supabase.removeChannel(regCh);};
+    return function(){if(loadDebounceTimer)clearTimeout(loadDebounceTimer);if(typeof document!=='undefined')document.removeEventListener('visibilitychange',onVisibilityCatchUp);supabase.removeChannel(ch);supabase.removeChannel(playersCh);supabase.removeChannel(gameResultsCh);supabase.removeChannel(regCh);};
 
   },[]);
 

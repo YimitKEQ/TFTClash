@@ -8,6 +8,7 @@ import { computeStats, getStats, effectivePts, tiebreaker, computeClashAwards, g
 import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutLine } from '../lib/tournament.js';
 import { ordinal, rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js';
 import { writeActivityEvent, createNotification } from '../lib/notifications.js';
+import { withRetry } from '../lib/dbRetry.js';
 import { useApp } from '../context/AppContext';
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS } from '../lib/tiers.js';
 import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton, Sel, PillTab, PillTabGroup } from '../components/ui';
@@ -2254,6 +2255,26 @@ function ClashLobbyView(props) {
           return Object.assign({}, ts, { waitlistIds: wl.concat([psid]) })
         })
       }
+      // Waitlist is DB-backed: persist as a registrations row so it survives
+      // refresh, is visible to admins, and feeds promote_next_waitlisted.
+      if (supabase.from) {
+        withRetry(function() {
+          return supabase.from('registrations').upsert({
+            tournament_id: tournamentState.dbTournamentId,
+            player_id: linkedPlayer.id,
+            status: 'waitlisted'
+          }, { onConflict: 'tournament_id,player_id' })
+        }, 'waitlist-join').then(function(r) {
+          if (r && r.error) {
+            toast('Could not join the waitlist - please try again', 'error')
+            if (setTournamentState) {
+              setTournamentState(function(ts) {
+                return Object.assign({}, ts, { waitlistIds: (ts.waitlistIds || []).filter(function(id) { return id !== psid }) })
+              })
+            }
+          }
+        })
+      }
       toast(currentUser.username + ' added to waitlist', 'info')
       return
     }
@@ -2265,11 +2286,13 @@ function ClashLobbyView(props) {
       })
     }
     if (supabase.from) {
-      supabase.from('registrations').upsert({
-        tournament_id: tournamentState.dbTournamentId,
-        player_id: linkedPlayer.id,
-        status: 'registered'
-      }, { onConflict: 'tournament_id,player_id' }).then(function(r) {
+      withRetry(function() {
+        return supabase.from('registrations').upsert({
+          tournament_id: tournamentState.dbTournamentId,
+          player_id: linkedPlayer.id,
+          status: 'registered'
+        }, { onConflict: 'tournament_id,player_id' })
+      }, 'clash-register').then(function(r) {
         if (r.error) {
           var code = r.error.code || ''
           if (code === '23503' && setTournamentState) {
@@ -2307,17 +2330,25 @@ function ClashLobbyView(props) {
   function handleUnregister() {
     if (!linkedPlayer) return
     var psid = String(linkedPlayer.id)
+    var dbTid = tournamentState.dbTournamentId
     if (setTournamentState) {
       setTournamentState(function(ts) {
-        return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== psid }) })
+        return Object.assign({}, ts, {
+          registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== psid }),
+          waitlistIds: (ts.waitlistIds || []).filter(function(id) { return id !== psid })
+        })
       })
     }
-    if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').delete()
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function(r) { if (r.error) toast('Unregister may not have saved', 'error') })
-        .catch(function() { toast('Unregister may not have saved', 'error') })
+    if (supabase.from && dbTid) {
+      withRetry(function() {
+        return supabase.from('registrations').delete()
+          .eq('tournament_id', dbTid)
+          .eq('player_id', linkedPlayer.id)
+      }, 'clash-unregister').then(function(r) {
+        if (r.error) { toast('Unregister may not have saved', 'error'); return }
+        // A seat just opened: atomically promote the oldest waitlisted player.
+        if (supabase.rpc) supabase.rpc('promote_next_waitlisted', { p_tournament_id: dbTid }).then(function() {}).catch(function() {})
+      })
     }
     toast('Unregistered from ' + clashName, 'info')
   }
@@ -2339,11 +2370,13 @@ function ClashLobbyView(props) {
       })
     }
     if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function(r) { if (r.error) toast('Check-in may not have saved', 'error') })
-        .catch(function() { toast('Check-in may not have saved', 'error') })
+      withRetry(function() {
+        return supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+          .eq('tournament_id', tournamentState.dbTournamentId)
+          .eq('player_id', linkedPlayer.id)
+      }, 'clash-checkin').then(function(r) {
+        if (r.error) toast('Check-in may not have saved - tap check in again', 'error')
+      })
     }
     toast("You're checked in! Good luck", 'success')
   }

@@ -6,6 +6,7 @@ import { ordinal } from '../lib/utils.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer'
 import { writeActivityEvent } from '../lib/notifications.js'
 import { supabase } from '../lib/supabase.js'
+import { withRetry } from '../lib/dbRetry.js'
 import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
@@ -1053,6 +1054,25 @@ function ClashCard() {
           return Object.assign({}, ts, { waitlistIds: wl.concat([sid]) })
         })
       }
+      // DB-backed waitlist: survives refresh and feeds promote_next_waitlisted.
+      if (supabase.from) {
+        withRetry(function() {
+          return supabase.from('registrations').upsert({
+            tournament_id: tournamentState.dbTournamentId,
+            player_id: linkedPlayer.id,
+            status: 'waitlisted'
+          }, { onConflict: 'tournament_id,player_id' })
+        }, 'waitlist-join').then(function(r) {
+          if (r && r.error) {
+            toast('Could not join the waitlist - please try again', 'error')
+            if (setTournamentState) {
+              setTournamentState(function(ts) {
+                return Object.assign({}, ts, { waitlistIds: (ts.waitlistIds || []).filter(function(id) { return id !== sid }) })
+              })
+            }
+          }
+        })
+      }
       toast(currentUser.username + ' added to waitlist', 'info')
       return
     }
@@ -1111,18 +1131,24 @@ function ClashCard() {
   function unregisterFromClash() {
     if (!linkedPlayer) return
     var sid = String(linkedPlayer.id)
+    var dbTid = tournamentState.dbTournamentId
     if (setTournamentState) {
       setTournamentState(function(ts) {
-        var ids = ts.registeredIds || []
-        return Object.assign({}, ts, { registeredIds: ids.filter(function(id) { return id !== sid }) })
+        return Object.assign({}, ts, {
+          registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== sid }),
+          waitlistIds: (ts.waitlistIds || []).filter(function(id) { return id !== sid })
+        })
       })
     }
-    if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').delete()
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function(r) { if (r.error) toast('Unregister may not have saved', 'error') })
-        .catch(function() { toast('Unregister may not have saved', 'error') })
+    if (supabase.from && dbTid) {
+      withRetry(function() {
+        return supabase.from('registrations').delete()
+          .eq('tournament_id', dbTid)
+          .eq('player_id', linkedPlayer.id)
+      }, 'dash-unregister').then(function(r) {
+        if (r.error) { toast('Unregister may not have saved', 'error'); return }
+        if (supabase.rpc) supabase.rpc('promote_next_waitlisted', { p_tournament_id: dbTid }).then(function() {}).catch(function() {})
+      })
     }
     toast('Unregistered from ' + clashName, 'info')
   }
@@ -1144,11 +1170,13 @@ function ClashCard() {
       })
     }
     if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function(r) { if (r.error) toast('Check-in may not have saved', 'error') })
-        .catch(function() { toast('Check-in may not have saved', 'error') })
+      withRetry(function() {
+        return supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+          .eq('tournament_id', tournamentState.dbTournamentId)
+          .eq('player_id', linkedPlayer.id)
+      }, 'dash-checkin').then(function(r) {
+        if (r.error) toast('Check-in may not have saved - tap check in again', 'error')
+      })
     }
     toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
   }
@@ -1734,11 +1762,13 @@ export default function DashboardScreen() {
       return ids.includes(sid) ? ts : Object.assign({}, ts, { checkedInIds: ids.concat([sid]) })
     })
     if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function (r) { if (r.error) toast('Check-in may not have saved', 'error'); })
-        .catch(function () { toast('Check-in may not have saved', 'error'); })
+      withRetry(function () {
+        return supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+          .eq('tournament_id', tournamentState.dbTournamentId)
+          .eq('player_id', linkedPlayer.id)
+      }, 'dash-checkin').then(function (r) {
+        if (r.error) toast('Check-in may not have saved - tap check in again', 'error')
+      })
     }
     toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
   }
@@ -1763,6 +1793,23 @@ export default function DashboardScreen() {
         if (wl.includes(sid)) return ts
         return Object.assign({}, ts, { waitlistIds: wl.concat([sid]) })
       })
+      // DB-backed waitlist: survives refresh and feeds promote_next_waitlisted.
+      if (supabase.from) {
+        withRetry(function () {
+          return supabase.from('registrations').upsert({
+            tournament_id: tournamentState.dbTournamentId,
+            player_id: linkedPlayer.id,
+            status: 'waitlisted'
+          }, { onConflict: 'tournament_id,player_id' })
+        }, 'waitlist-join').then(function (r) {
+          if (r && r.error) {
+            toast('Could not join the waitlist - please try again', 'error')
+            setTournamentState(function (ts) {
+              return Object.assign({}, ts, { waitlistIds: (ts.waitlistIds || []).filter(function (id) { return id !== sid }) })
+            })
+          }
+        })
+      }
       toast(currentUser.username + ' added to waitlist (position ' + ((tournamentState.waitlistIds || []).length + 1) + ')', 'info')
       return
     }
@@ -1796,35 +1843,47 @@ export default function DashboardScreen() {
   function unregisterFromClash() {
     if (!linkedPlayer) return
     var sid = String(linkedPlayer.id)
+    var dbTid = tournamentState.dbTournamentId
     setTournamentState(function (ts) {
-      var ids = ts.registeredIds || []
-      return Object.assign({}, ts, { registeredIds: ids.filter(function (id) { return id !== sid }) })
+      return Object.assign({}, ts, {
+        registeredIds: (ts.registeredIds || []).filter(function (id) { return id !== sid }),
+        waitlistIds: (ts.waitlistIds || []).filter(function (id) { return id !== sid })
+      })
     })
-    if (supabase.from && tournamentState.dbTournamentId) {
-      supabase.from('registrations').delete()
-        .eq('tournament_id', tournamentState.dbTournamentId)
-        .eq('player_id', linkedPlayer.id)
-        .then(function (r) { if (r.error) toast('Unregister may not have saved', 'error'); })
-        .catch(function () { toast('Unregister may not have saved', 'error'); })
+    if (supabase.from && dbTid) {
+      withRetry(function () {
+        return supabase.from('registrations').delete()
+          .eq('tournament_id', dbTid)
+          .eq('player_id', linkedPlayer.id)
+      }, 'dash-unregister').then(function (r) {
+        if (r.error) { toast('Unregister may not have saved', 'error'); return }
+        // A seat just opened: the DB promotes the oldest waitlisted player
+        // atomically (and notifies them). Realtime pushes the change to
+        // every client, so no local guesswork about who moved up.
+        if (supabase.rpc) supabase.rpc('promote_next_waitlisted', { p_tournament_id: dbTid }).then(function () {}).catch(function () {})
+      })
     }
     toast('Unregistered from ' + clashName, 'info')
-    setTournamentState(function (ts2) {
-      var wl = ts2.waitlistIds || []
-      if (wl.length === 0) return ts2
-      var promoted = wl[0]
-      var remainingWl = wl.slice(1)
-      var newRegIds = (ts2.registeredIds || []).concat([promoted])
-      return Object.assign({}, ts2, { registeredIds: newRegIds, waitlistIds: remainingWl })
-    })
   }
 
   function removeFromWaitlist() {
     if (!linkedPlayer) return
     var sid = String(linkedPlayer.id)
+    var dbTid = tournamentState.dbTournamentId
     setTournamentState(function (ts) {
       var wl = ts.waitlistIds || []
       return Object.assign({}, ts, { waitlistIds: wl.filter(function (id) { return id !== sid }) })
     })
+    if (supabase.from && dbTid) {
+      withRetry(function () {
+        return supabase.from('registrations').delete()
+          .eq('tournament_id', dbTid)
+          .eq('player_id', linkedPlayer.id)
+          .eq('status', 'waitlisted')
+      }, 'waitlist-leave').then(function (r) {
+        if (r.error) toast('Leaving the waitlist may not have saved', 'error')
+      })
+    }
     toast('Removed from waitlist', 'info')
   }
 
