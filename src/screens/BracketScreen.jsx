@@ -181,7 +181,7 @@ function BroadcastStudioCard(props){
   var origin=props.origin||"";
   var toast=props.toast||function(){};
   var _sel=useState(""); var sel=_sel[0]; var setSel=_sel[1];
-  var views=[["spotlight","Player Spotlight"],["standings","Live Standings"],["soon","Starting Soon"],["lobbies","Lobby Overview"]];
+  var views=[["rotate","Auto-Rotate (all-in-one)"],["spotlight","Player Spotlight"],["standings","Live Standings"],["soon","Starting Soon"],["lobbies","Lobby Overview"]];
   function copyUrl(url){
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url);toast("Overlay URL copied","success");}
   }
