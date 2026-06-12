@@ -126,14 +126,27 @@ export default function PlayersTab() {
 
   function loadActiveSubs() {
     if (!supabase || !supabase.from) return
-    supabase.from('subscriptions')
-      .select('user_id, plan, status, current_period_end, plan_started_at, cancel_at_period_end')
-      .neq('plan', 'free')
+    // Read the canonical user_subscriptions table (same one the app + PayPal
+    // webhook use). Map its columns back onto the legacy shape this table
+    // renders (tier -> plan, current_period_start -> plan_started_at).
+    supabase.from('user_subscriptions')
+      .select('user_id, tier, status, current_period_end, current_period_start, cancel_at_period_end')
+      .neq('tier', 'free')
       .order('current_period_end', { ascending: true })
       .limit(100)
       .then(function(res) {
         if (res.error) { console.error('[PlayersTab] subs load failed:', res.error); return }
-        setActiveSubs(res.data || [])
+        var rows = (res.data || []).map(function(s) {
+          return {
+            user_id: s.user_id,
+            plan: s.tier,
+            status: s.status,
+            current_period_end: s.current_period_end,
+            plan_started_at: s.current_period_start,
+            cancel_at_period_end: s.cancel_at_period_end
+          }
+        })
+        setActiveSubs(rows)
       }).catch(function(e) { console.error('[PlayersTab] subs load failed:', e); })
   }
 

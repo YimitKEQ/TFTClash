@@ -284,6 +284,10 @@ export default function TournamentTab() {
     if (isNaN(d.getTime())) { toast('Invalid date/time', 'error'); return }
     setClashSaving(true)
     var iso = d.toISOString()
+    // Keep the tournament row's schedule columns in lockstep with clashTimestamp
+    // so every surface (NextEventCard, EventsScreen, OBS overlay) reads one truth.
+    var checkinMins = parseInt((tournamentState && tournamentState.checkinWindowMins) || 30, 10) || 30
+    var checkinOpenIso = new Date(d.getTime() - checkinMins * 60000).toISOString()
     var prizePool = buildPrizePool(clashForm.prizeRows)
     var rulesText = (clashForm.rulesOverride || '').trim()
     setTournamentState(function(s) {
@@ -300,6 +304,8 @@ export default function TournamentTab() {
     if (tId) {
       supabase.from('tournaments').update({
         date: iso.split('T')[0],
+        checkin_open_at: checkinOpenIso,
+        checkin_close_at: iso,
         name: clashForm.name || 'Weekly Clash',
         prize_pool_json: prizePool.length > 0 ? prizePool : null,
         rules_text: rulesText || null,

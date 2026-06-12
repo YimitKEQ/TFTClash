@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { EmbedBuilder } from 'discord.js';
-import { standingsEmbed, reminderEmbed } from './utils/embeds.js';
+import { standingsEmbed, reminderEmbed, discordTime } from './utils/embeds.js';
 import { getStandings, getSeasonConfig, getTournamentState, getRegistrations } from './utils/data.js';
 import { requireChannel } from './utils/channels.js';
 import { mentionFor } from './utils/notifyRoles.js';
@@ -114,12 +114,15 @@ async function postClashDayHype(client) {
 
   var tip = tips[Math.floor(Math.random() * tips.length)];
 
+  var when = discordTime(ts.clashTimestamp);
+  var whenText = when ? (when.time + ' (' + when.rel + ')') : (ts.clashTime || 'TBD');
+
   var embed = new EmbedBuilder()
     .setColor(0x4ECDC4)
     .setTitle('Clash Day - Quick Tip')
     .setDescription(
       '> *' + tip + '*\n\n' +
-      'Clash #' + (ts.clashNumber || '?') + ' today at **' + (ts.clashTime || '8:00 PM GMT') + '**\n' +
+      'Clash #' + (ts.clashNumber || '?') + ' today at **' + whenText + '**\n' +
       regCount + ' players registered.'
     )
     .setFooter({ text: 'TFT Clash - GL HF' })

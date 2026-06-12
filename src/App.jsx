@@ -97,6 +97,7 @@ var NotFoundScreen = lazyWithRetry(function(){ return import('./screens/NotFound
 var StatusScreenNew = lazyWithRetry(function(){ return import('./screens/StatusScreen'); });
 var ChangelogScreenNew = lazyWithRetry(function(){ return import('./screens/ChangelogScreen'); });
 var ObsOverlayScreenNew = lazyWithRetry(function(){ return import('./screens/ObsOverlayScreen'); });
+var BroadcastStudioScreen = lazyWithRetry(function(){ return import('./screens/BroadcastStudioScreen'); });
 var TournamentRecapScreen = lazyWithRetry(function(){ return import('./screens/TournamentRecapScreen'); });
 var StatsHubScreenNew = lazyWithRetry(function(){ return import('./screens/StatsHubScreen'); });
 
@@ -258,7 +259,7 @@ function TFTClash(){
     "/results":"results","/events":"events","/scrims":"scrims","/pricing":"pricing",
     "/milestones":"milestones","/challenges":"challenges","/hall-of-fame":"hof",
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
-    "/account":"account","/guide":"guide","/builder":"builder","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
+    "/account":"account","/guide":"guide","/builder":"builder","/host/apply":"host-apply","/host/dashboard":"host-dashboard","/overlay":"overlay",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
     "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview","/horizon-lab":"horizon-lab"
   };
@@ -629,6 +630,14 @@ function TFTClash(){
     return (
       <React.Suspense fallback={null}>
         <ObsOverlayScreenNew />
+      </React.Suspense>
+    );
+  }
+
+  if (screen === "overlay") {
+    return (
+      <React.Suspense fallback={null}>
+        <BroadcastStudioScreen />
       </React.Suspense>
     );
   }

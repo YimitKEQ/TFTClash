@@ -88,6 +88,141 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
 }
 
 // ── BracketScreen ─────────────────────────────────────────────────────────────
+// ── LobbyManagerPanel ───────────────────────────────────────────────────────
+// Admin-only surface for fixing lobbies before a game locks: move a player to a
+// different lobby, mark a no-show (removes them), or rebalance sizes. Kept
+// separate from the live placement grid so it can never corrupt locked results.
+function LobbyManagerPanel(props){
+  var lobbies=props.lobbies||[];
+  var lobbyLetters=props.lobbyLetters||[];
+  var lockedCount=props.lockedCount||0;
+  var locked=lockedCount>0;
+  var totalPlayers=lobbies.reduce(function(s,l){return s+l.length;},0);
+  var anyUneven=lobbies.some(function(l){return l.length!==8;});
+  return(
+    <div className="bg-surface-container-high border-2 border-secondary/30 rounded-lg overflow-hidden mb-5">
+      <div className="px-5 py-3 border-b border-secondary/20 bg-secondary/5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <Icon name="tune" size={18} className="text-secondary" />
+          <span className="font-label font-bold text-sm tracking-widest uppercase text-secondary">Lobby Manager</span>
+          <span className="font-mono text-[11px] text-on-surface-variant/60">{lobbies.length+" lobbies, "+totalPlayers+" players"}</span>
+        </div>
+        <button onClick={props.onClose} className="text-on-surface-variant/50 hover:text-on-surface transition-colors flex-shrink-0" aria-label="Close lobby manager">
+          <Icon name="close" size={18} />
+        </button>
+      </div>
+      {locked&&(
+        <div className="px-5 py-2 bg-error/8 text-error text-xs font-label">
+          {lockedCount+(lockedCount===1?" lobby is":" lobbies are")+" locked. Unlock all lobbies to move or remove players."}
+        </div>
+      )}
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {lobbies.map(function(lobby,li){
+          var size=lobby.length;
+          var bad=size!==8;
+          return(
+            <div key={li} className={"rounded border "+(bad?"border-amber-400/40 bg-amber-400/[.03]":"border-outline-variant/15 bg-surface-container-low")}>
+              <div className="px-3 py-2 flex items-center justify-between border-b border-outline-variant/10">
+                <span className="font-display text-sm text-on-surface-variant/80">{"LOBBY "+(lobbyLetters[li]||(li+1))}</span>
+                <span className={"font-mono text-xs font-bold "+(bad?"text-amber-400":"text-tertiary")}>{size+"/8"}</span>
+              </div>
+              <div className="divide-y divide-outline-variant/10">
+                {lobby.slice().sort(function(a,b){return (b.pts||0)-(a.pts||0);}).map(function(p){
+                  return(
+                    <div key={p.id} className="flex items-center gap-2 px-3 py-1.5">
+                      <span className="flex-1 min-w-0 truncate text-sm text-on-surface">
+                        {p.name}
+                        <span className="text-[10px] text-on-surface-variant/40 ml-1.5">{p.rank}</span>
+                      </span>
+                      <select
+                        value={String(li)}
+                        disabled={locked}
+                        onChange={function(e){props.onMove(p.id,parseInt(e.target.value,10));}}
+                        aria-label={"Move "+p.name+" to a different lobby"}
+                        className="bg-surface-container border border-outline-variant/20 rounded px-1.5 py-1 text-xs text-on-surface appearance-none cursor-pointer disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-primary/60">
+                        {lobbies.map(function(_,oi){return <option key={oi} value={oi}>{lobbyLetters[oi]||(oi+1)}</option>;})}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={function(){props.onNoShow(p);}}
+                        disabled={locked}
+                        aria-label={"Mark "+p.name+" as no-show"}
+                        title="Mark no-show (remove from lobby)"
+                        className="text-error/70 hover:text-error disabled:opacity-30 transition-colors flex-shrink-0">
+                        <Icon name="person_remove" size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {size===0&&<div className="px-3 py-2 text-[11px] text-on-surface-variant/40">Empty</div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="px-4 py-3 border-t border-outline-variant/10 flex flex-wrap gap-2 items-center">
+        <Btn variant="secondary" size="sm" onClick={props.onRebalance} disabled={locked}>
+          <Icon name="balance" size={14} className="mr-1" />Rebalance sizes
+        </Btn>
+        <Btn variant="ghost" size="sm" onClick={props.onReroll} disabled={locked}>
+          <Icon name="shuffle" size={14} className="mr-1" />Re-roll all
+        </Btn>
+        {anyUneven&&<span className="text-[11px] text-amber-400/80 font-label">Some lobbies are not 8 players. Move players or rebalance to even them out.</span>}
+      </div>
+    </div>
+  );
+}
+
+// ── BroadcastStudioCard ─────────────────────────────────────────────────────
+// Admin control surface for the OBS overlay: copy-ready browser-source URLs plus
+// a live spotlight picker that pushes the featured player to the overlay.
+function BroadcastStudioCard(props){
+  var checkedIn=props.checkedIn||[];
+  var origin=props.origin||"";
+  var toast=props.toast||function(){};
+  var _sel=useState(""); var sel=_sel[0]; var setSel=_sel[1];
+  var views=[["spotlight","Player Spotlight"],["standings","Live Standings"],["soon","Starting Soon"],["lobbies","Lobby Overview"]];
+  function copyUrl(url){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url);toast("Overlay URL copied","success");}
+  }
+  return(
+    <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-lg overflow-hidden">
+      <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+        <Icon name="cast" size={18} className="text-primary/80" />
+        <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface-variant/70">Broadcast Studio</span>
+      </div>
+      <div className="p-4 space-y-3">
+        <div className="text-[11px] text-on-surface-variant/50 font-label uppercase tracking-wider">Add these as OBS browser sources</div>
+        <div className="space-y-1.5">
+          {views.map(function(v){
+            var url=origin+"/overlay?view="+v[0];
+            return(
+              <div key={v[0]} className="flex items-center gap-2">
+                <span className="flex-1 text-sm text-on-surface truncate">{v[1]}</span>
+                <button onClick={function(){copyUrl(url);}} className="px-2 py-1 bg-primary/10 border border-primary/30 text-primary rounded text-[10px] font-label font-bold uppercase tracking-wider hover:bg-primary/20 transition-colors flex-shrink-0">Copy URL</button>
+              </div>
+            );
+          })}
+        </div>
+        <div className="pt-2 border-t border-outline-variant/10">
+          <div className="text-[11px] text-on-surface-variant/50 font-label uppercase tracking-wider mb-2">Spotlight player (live)</div>
+          <div className="flex gap-2">
+            <select value={sel} onChange={function(e){setSel(e.target.value);}}
+              className="flex-1 min-w-0 bg-surface-container border border-outline-variant/20 rounded px-2 py-1.5 text-sm text-on-surface appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/60">
+              <option value="">Select player...</option>
+              {checkedIn.slice().sort(function(a,b){return (b.pts||0)-(a.pts||0);}).map(function(p){return <option key={p.id} value={p.id}>{p.name}</option>;})}
+            </select>
+            <button onClick={function(){if(sel)props.onCast(sel);}} disabled={!sel}
+              className="px-3 py-1.5 bg-secondary text-on-secondary rounded text-xs font-label font-bold uppercase tracking-wider disabled:opacity-40 hover:brightness-110 transition-all flex-shrink-0">Cast</button>
+            <button onClick={function(){props.onCast(null);setSel("");}} title="Auto-rotate through the top players"
+              className="px-3 py-1.5 bg-surface-container-high text-on-surface/70 rounded text-xs font-label font-bold uppercase tracking-wider hover:bg-surface-container-highest transition-colors flex-shrink-0">Auto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BracketScreen(){
   var ctx=useApp();
   var players=ctx.players;
@@ -121,6 +256,10 @@ function BracketScreen(){
   var _highlightLobby=useState(null);
   var highlightLobby=_highlightLobby[0];
   var setHighlightLobby=_highlightLobby[1];
+
+  var _manageMode=useState(false);
+  var manageMode=_manageMode[0];
+  var setManageMode=_manageMode[1];
 
   var _placementEntry=useState({});
   var placementEntry=_placementEntry[0];
@@ -786,6 +925,75 @@ function BracketScreen(){
 
   var lobbyLetters=["A","B","C","D","E","F","G","H","I","J"];
 
+  // ── Live lobby management (admin) ───────────────────────────────────────────
+  // All three operate on savedLobbies (the persisted id-arrays that drive both
+  // the lobby grid and the OBS overlay). Blocked while any lobby is locked so we
+  // never re-key locked placements onto a different roster.
+  function lobbyIdMatrix(){
+    return lobbies.map(function(l){return l.map(function(p){return p.id;});});
+  }
+
+  function movePlayerToLobby(pid,toIdx){
+    if(lockedCount>0){toast("Unlock all lobbies before moving players","error");return;}
+    var arr=lobbyIdMatrix();
+    var fromIdx=-1;
+    arr.forEach(function(l,i){if(l.indexOf(pid)>=0)fromIdx=i;});
+    if(fromIdx<0||fromIdx===toIdx)return;
+    var pname=((lobbies[fromIdx]||[]).find(function(p){return p.id===pid;})||{}).name||"Player";
+    arr=arr.map(function(l){return l.filter(function(id){return id!==pid;});});
+    while(arr.length<=toIdx)arr.push([]);
+    arr[toIdx].push(pid);
+    setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:arr});});
+    toast(pname+" moved to Lobby "+(lobbyLetters[toIdx]||(toIdx+1)),"success");
+  }
+
+  function markNoShow(player){
+    if(lockedCount>0){toast("Unlock all lobbies before removing players","error");return;}
+    if(!player||!player.id)return;
+    var pid=player.id;
+    setPlayers(function(ps){return ps.map(function(p){return p.id===pid?Object.assign({},p,{checkedIn:false}):p;});});
+    setTournamentState(function(ts){
+      var base=(ts.savedLobbies&&ts.savedLobbies.length)?ts.savedLobbies:lobbyIdMatrix();
+      var arr=base.map(function(l){return l.filter(function(id){return id!==pid;});});
+      var cids=(ts.checkedInIds||[]).filter(function(id){return String(id)!==String(pid);});
+      return Object.assign({},ts,{savedLobbies:arr,checkedInIds:cids});
+    });
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('registrations').update({status:'registered'})
+        .eq('tournament_id',tournamentState.dbTournamentId).eq('player_id',pid)
+        .then(function(){}).catch(function(e){ console.error('[BracketScreen] no-show DB op failed:', e); });
+    }
+    toast((player.name||"Player")+" marked no-show, removed from lobby","info");
+  }
+
+  function rebalanceLobbies(){
+    if(lockedCount>0){toast("Unlock all lobbies before rebalancing","error");return;}
+    var arr=lobbyIdMatrix().filter(function(l){return l.length>0;});
+    if(arr.length<2){toast("Need at least two lobbies to rebalance","error");return;}
+    var guard=0;
+    while(guard++<1000){
+      var sizes=arr.map(function(l){return l.length;});
+      var maxV=Math.max.apply(null,sizes);
+      var minV=Math.min.apply(null,sizes);
+      if(maxV-minV<=1)break;
+      arr[sizes.indexOf(minV)].push(arr[sizes.indexOf(maxV)].pop());
+    }
+    setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:arr});});
+    toast("Lobbies rebalanced to even sizes","success");
+  }
+
+  // Push the broadcast spotlight selection to the OBS overlay via site_settings.
+  // playerId null = clear (overlay auto-rotates through the top players).
+  function castSpotlight(playerId){
+    var payload={spotlightPlayerId:playerId||null,mode:playerId?"manual":"auto",updatedAt:Date.now()};
+    if(!supabase.from){toast("Overlay update failed","error");return;}
+    supabase.from('site_settings').upsert({key:'broadcast_control',value:JSON.stringify(payload),updated_at:new Date().toISOString()})
+      .then(function(res){
+        if(res&&res.error){toast("Overlay update failed: "+res.error.message,"error");return;}
+        toast(playerId?"Spotlight updated on stream":"Spotlight set to auto-rotate","success");
+      }).catch(function(e){ console.error('[BracketScreen] spotlight op failed:', e); toast("Overlay update failed","error"); });
+  }
+
   return(
     <PageLayout>
       <div className="max-w-7xl mx-auto">
@@ -1167,6 +1375,15 @@ function BracketScreen(){
                   </div>
                   <div className="p-5 space-y-2">
                     <button
+                      onClick={function(){setManageMode(function(m){return !m;});}}
+                      className={"w-full text-left p-3 transition-colors flex items-center justify-between group rounded " + (manageMode?"bg-secondary/10":"hover:bg-surface-container-low")}>
+                      <span className="text-sm font-medium text-on-surface">
+                        {manageMode?"Hide Lobby Manager":"Manage Lobbies"}
+                        <span className="text-[10px] text-on-surface-variant/50 font-label ml-2">no-shows / move / rebalance</span>
+                      </span>
+                      <Icon name="tune" size={18} className={"transition-colors " + (manageMode?"text-secondary":"text-on-surface-variant group-hover:text-secondary")} />
+                    </button>
+                    <button
                       disabled={lockedCount>0}
                       onClick={function(){
                         // Re-rolling after any lobby is locked would re-key lockedPlacements
@@ -1195,6 +1412,16 @@ function BracketScreen(){
                 </div>
               )}
 
+              {/* Broadcast Studio (OBS overlay control) */}
+              {isAdmin&&(
+                <BroadcastStudioCard
+                  checkedIn={checkedIn}
+                  origin={typeof window!=="undefined"?window.location.origin:""}
+                  toast={toast}
+                  onCast={castSpotlight}
+                />
+              )}
+
               {/* Live standings */}
               {tournamentState&&isLive&&(
                 <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>
@@ -1214,6 +1441,22 @@ function BracketScreen(){
 
             {/* Right column: Lobby grid */}
             <div className="lg:col-span-8">
+              {isAdmin&&manageMode&&(
+                <LobbyManagerPanel
+                  lobbies={lobbies}
+                  lobbyLetters={lobbyLetters}
+                  lockedCount={lockedCount}
+                  onMove={movePlayerToLobby}
+                  onNoShow={markNoShow}
+                  onRebalance={rebalanceLobbies}
+                  onReroll={function(){
+                    if(lockedCount>0){toast("Unlock all lobbies before re-rolling","error");return;}
+                    setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:[]});});
+                    toast("Lobbies re-rolled!","success");
+                  }}
+                  onClose={function(){setManageMode(false);}}
+                />
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {lobbies.map(function(lobby,li){
                   var isMyLobby=effectiveHighlight===li;
@@ -1253,7 +1496,7 @@ function BracketScreen(){
                               {lobbyCode}
                             </button>
                           )}
-                          <span className="font-mono text-xs text-on-surface-variant/40">{lobby.length + " players"}</span>
+                          <span className={"font-mono text-xs " + (lobby.length!==8?"text-amber-400":"text-on-surface-variant/40")} title={lobby.length!==8?"Lobby is not 8 players":undefined}>{lobby.length + " players"}</span>
                           {locked&&isAdmin&&(
                             <button
                               onClick={function(){unlockLobby(li);}}

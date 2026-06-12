@@ -32,6 +32,35 @@ function rankIcon(rank) { return RANK_ICON[rank] ?? '🎮'; }
 const SITE_URL = 'https://tftclash.com';
 const TWITTER_URL = 'https://twitter.com/tftclash';
 
+// Convert a stored clash time (ISO string or epoch ms) into Discord dynamic
+// timestamp tokens. Discord renders these in EACH viewer's own timezone, so we
+// never have to guess GMT/CEST/BST or hardcode a display string. Returns null
+// when there is no valid timestamp so callers can fall back to legacy strings.
+//   full -> "Saturday, June 13, 2026 7:00 PM" (localized, long)
+//   rel  -> "in 26 hours" (live relative countdown)
+//   date -> localized date only
+//   time -> localized time only
+export function discordTime(value) {
+  if (!value) return null;
+  var ms = typeof value === 'number' ? value : new Date(value).getTime();
+  if (isNaN(ms)) return null;
+  var unix = Math.floor(ms / 1000);
+  return {
+    full: '<t:' + unix + ':F>',
+    rel:  '<t:' + unix + ':R>',
+    date: '<t:' + unix + ':D>',
+    time: '<t:' + unix + ':t>'
+  };
+}
+
+// Resolve the best "when" the bot knows about: prefer the real timestamp, then
+// any legacy display strings, then a safe placeholder.
+function clashWhen(ts) {
+  var dt = ts && discordTime(ts.clashTimestamp);
+  if (dt) return dt;
+  return null;
+}
+
 // ─── RULES ────────────────────────────────────────────────────────────────────
 export function rulesEmbed() {
   return new EmbedBuilder()
@@ -219,8 +248,9 @@ export function profileEmbed(player, standings, season) {
 export function clashInfoEmbed(ts, season, regCount) {
   const clashNum = (ts && ts.clashNumber) || (season && season.currentClash + 1) || '?';
   const phase = (ts && ts.phase) || 'idle';
+  const when = clashWhen(ts);
   const clashDate = (ts && ts.clashDate) || 'TBD';
-  const clashTime = (ts && ts.clashTime) || '8:00 PM GMT';
+  const clashTime = (ts && ts.clashTime) || 'TBD';
   const format = (ts && ts.format) || 'Standard - 8 per lobby';
   regCount = regCount || 0;
 
@@ -237,8 +267,9 @@ export function clashInfoEmbed(ts, season, regCount) {
     .setAuthor({ name: 'TFT Clash - Upcoming Event' })
     .setTitle('⚔️  Clash #' + clashNum + ' - ' + phaseLabel)
     .addFields(
-      { name: '📅 Date',       value: '' + clashDate,    inline: true },
-      { name: '🕗 Time',       value: '' + clashTime,    inline: true },
+      { name: '📅 Date',       value: when ? when.date : ('' + clashDate),    inline: true },
+      { name: '🕗 Time',       value: when ? when.time : ('' + clashTime),    inline: true },
+      { name: '⏳ Starts',     value: when ? when.rel : 'TBD',                 inline: true },
       { name: '⚙️ Format',     value: '' + format,       inline: true },
       { name: '👥 Registered', value: '' + regCount + ' players', inline: true },
       { name: '🎟️ Register',   value: '[Click here to register](' + SITE_URL + '/#/clash)', inline: false },
@@ -300,14 +331,22 @@ export function reminderEmbed(hoursUntil, ts) {
   const urgency = hoursUntil <= 1 ? '🚨' : '⏰';
   const label   = hoursUntil <= 1 ? 'LAST CALL - 1 hour left!' : hoursUntil + ' hours to go';
   const clashNum = (ts && ts.clashNumber) || '?';
-  const clashDate = (ts && ts.clashDate) || 'Saturday';
-  const clashTime = (ts && ts.clashTime) || '8:00 PM GMT';
+  const when = clashWhen(ts);
+
+  var whenLine;
+  if (when) {
+    whenLine = '🗓️ **' + when.full + '**\n⏳ ' + when.rel;
+  } else {
+    var clashDate = (ts && ts.clashDate) || 'Saturday';
+    var clashTime = (ts && ts.clashTime) || 'TBD';
+    whenLine = '**' + clashDate + '** at **' + clashTime + '**';
+  }
 
   return new EmbedBuilder()
     .setColor(hoursUntil <= 1 ? RED : TEAL)
     .setTitle(urgency + '  Clash #' + clashNum + ' - ' + label)
     .setDescription(
-      '**' + clashDate + '** at **' + clashTime + '**\n\n' +
+      whenLine + '\n\n' +
       'Make sure you are registered and ready in time. Late arrivals may be replaced.\n\n' +
       '🔗 [Register / Check In](' + SITE_URL + '/#/clash)'
     )
@@ -338,8 +377,9 @@ export function seasonIntroEmbed(season) {
 // ─── COUNTDOWN ───────────────────────────────────────────────────────────────
 export function countdownEmbed(ts, season) {
   const clashNum = (ts && ts.clashNumber) || '?';
+  const when = clashWhen(ts);
   const clashDate = (ts && ts.clashDate) || 'TBD';
-  const clashTime = (ts && ts.clashTime) || '8:00 PM GMT';
+  const clashTime = (ts && ts.clashTime) || 'TBD';
   const phase = (ts && ts.phase) || 'idle';
 
   let status;
@@ -360,8 +400,9 @@ export function countdownEmbed(ts, season) {
     .setTitle('⏱️  Clash #' + clashNum + ' - Countdown')
     .setDescription(status)
     .addFields(
-      { name: '📅 Date', value: '' + clashDate, inline: true },
-      { name: '🕗 Time', value: '' + clashTime, inline: true },
+      { name: '📅 Date', value: when ? when.date : ('' + clashDate), inline: true },
+      { name: '🕗 Time', value: when ? when.time : ('' + clashTime), inline: true },
+      { name: '⏳ Starts', value: when ? when.rel : 'TBD', inline: true },
     )
     .setFooter({ text: 'TFT Clash' })
     .setTimestamp();

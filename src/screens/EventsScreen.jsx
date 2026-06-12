@@ -1078,8 +1078,17 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast, hi
 function SeasonTab({ seasonConfig, tournamentState, navigate }) {
   var startIso = seasonConfig && seasonConfig.seasonStartIso
   var totalWeeks = parseInt(seasonConfig && seasonConfig.totalWeeks, 10) || 0
-  var dayOfWeek = (seasonConfig && seasonConfig.dayOfWeek) || 'Sunday'
-  var startTime = (seasonConfig && seasonConfig.startTime) || '20:00'
+  // Derive the weekly day + time from the real season-start instant (single
+  // source of truth) so the calendar never drifts from the scheduled clash.
+  // Cards are labeled "EU", so format in Europe/Amsterdam (CET/CEST).
+  var startMoment = startIso ? new Date(startIso) : null
+  var validStart = startMoment && !isNaN(startMoment.getTime())
+  var dayOfWeek = validStart
+    ? startMoment.toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'Europe/Amsterdam' })
+    : ((seasonConfig && seasonConfig.dayOfWeek) || 'Saturday')
+  var startTime = validStart
+    ? startMoment.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Amsterdam' })
+    : ((seasonConfig && seasonConfig.startTime) || '19:00')
 
   if (!startIso || totalWeeks <= 0) {
     return (
@@ -1163,12 +1172,7 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
               {!isComplete && (
                 <div className="mt-3">
                   <AddToCalendarBtn
-                    start={(function(){
-                      var parts = timeStr.split(':')
-                      var d = new Date(w.date.getTime())
-                      d.setHours(parseInt(parts[0], 10) || 20, parseInt(parts[1], 10) || 0, 0, 0)
-                      return d
-                    })()}
+                    start={w.date}
                     durationMinutes={180}
                     title={'TFT Clash - Week ' + w.number}
                     description={'Free weekly TFT tournament. Register at https://tftclash.com/events'}
