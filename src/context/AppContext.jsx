@@ -189,6 +189,12 @@ export function AppProvider(props) {
   var subscriptions = _sub[0];
   var setSubscriptions = _sub[1];
 
+  // True once the current user's subscription has been fetched (or determined N/A).
+  // Used to gate ad loading so paid tiers never briefly load ads before tier resolves.
+  var _subsLoaded = useState(false);
+  var subscriptionsLoaded = _subsLoaded[0];
+  var setSubscriptionsLoaded = _subsLoaded[1];
+
   var _authScreen = useState(null); // "login" | "signup" | null
   var authScreen = _authScreen[0];
   var setAuthScreen = _authScreen[1];
@@ -372,8 +378,9 @@ export function AppProvider(props) {
 
   // ── useEffect: load own subscription ──
   useEffect(function(){
-    if(!currentUser || !supabase.from) return;
-    if(!isUuid(currentUser.auth_user_id)) return;
+    if(!currentUser){ setSubscriptionsLoaded(false); return; }
+    if(!supabase.from || !isUuid(currentUser.auth_user_id)){ setSubscriptionsLoaded(true); return; }
+    setSubscriptionsLoaded(false);
     supabase.from("user_subscriptions").select("*").eq("user_id", currentUser.auth_user_id).limit(1).then(function(res){
       if(res.data && res.data.length){
         var map={};
@@ -381,7 +388,8 @@ export function AppProvider(props) {
         map[currentUser.id]=s;
         setSubscriptions(map);
       }
-    });
+      setSubscriptionsLoaded(true);
+    }).catch(function(){ setSubscriptionsLoaded(true); });
   },[currentUser]);
 
   // ── useEffect: auth listener ──
@@ -1362,6 +1370,7 @@ export function AppProvider(props) {
       isAuthLoading: isAuthLoading,
       isOffline: isOffline,
       subscriptions: subscriptions, setSubscriptions: setSubscriptions,
+      subscriptionsLoaded: subscriptionsLoaded,
       authScreen: authScreen, setAuthScreen: setAuthScreen,
       cookieConsent: cookieConsent, setCookieConsent: setCookieConsent,
       showOnboarding: showOnboarding, setShowOnboarding: setShowOnboarding,
@@ -1392,7 +1401,7 @@ export function AppProvider(props) {
     hostApps, hostTournaments, hostBranding, hostAnnouncements,
     pastClashes, featuredEvents, challengeCompletions,
     currentUser, isAuthLoading, isOffline,
-    subscriptions, authScreen, cookieConsent,
+    subscriptions, subscriptionsLoaded, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
     userTier, pendingResults, allPendingResults, liveResults,
     passwordRecovery

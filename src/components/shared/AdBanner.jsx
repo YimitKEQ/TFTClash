@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import Icon from '../ui/Icon'
+import { ADSENSE_PUBLISHER_ID, ADSENSE_SLOT, isAdFreeTier } from '../../lib/adsense'
 
-var ADSENSE_CLIENT = import.meta.env.VITE_ADSENSE_CLIENT
-var ADSENSE_SLOT = import.meta.env.VITE_ADSENSE_SLOT
+var ADSENSE_CLIENT = ADSENSE_PUBLISHER_ID
 
 // ── AdsenseSlot ───────────────────────────────────────────────────────────────
 // Renders a real Google AdSense unit. Only mounted when VITE_ADSENSE_CLIENT is set.
@@ -105,13 +105,15 @@ export default function AdBanner(props) {
   var userTier = ctx.userTier || 'free'
 
   // Pro, Bundle, and Host tiers are ad-free
-  if (userTier === 'pro' || userTier === 'bundle' || userTier === 'host') return null
+  if (isAdFreeTier(userTier)) return null
 
   var resolvedSize = size || 'banner'
 
+  // Real ad units render only once an ad-unit slot id is configured
+  // (VITE_ADSENSE_SLOT). Until then, show the Pro upsell house ad.
   return (
     <div className={className || ''}>
-      {ADSENSE_CLIENT
+      {ADSENSE_SLOT
         ? <AdsenseSlot size={resolvedSize} />
         : <HouseAd size={resolvedSize} />
       }

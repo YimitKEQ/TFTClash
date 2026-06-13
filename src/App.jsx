@@ -119,6 +119,7 @@ import PlayerComparisonModal from './components/shared/PlayerComparisonModal';
 import OnboardingFlow from './components/shared/OnboardingFlow';
 import BroadcastOverlay from './components/shared/BroadcastOverlay';
 import CommandPalette from './components/shared/CommandPalette';
+import AdSenseScript from './components/shared/AdSenseScript';
 import { Btn } from './components/ui';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
@@ -682,6 +683,8 @@ function TFTClash(){
   return(
 
     <>
+
+      <AdSenseScript/>
 
       <Hexbg/>
 
