@@ -566,6 +566,16 @@ export default function AccountScreen() {
             <div className="flex items-center gap-3">
               {linkedPlayer && (
                 <Btn
+                  variant="primary"
+                  size="sm"
+                  icon="account_circle"
+                  onClick={function() { navigate('/player/' + (user.username || linkedPlayer.name)); }}
+                >
+                  Public Profile
+                </Btn>
+              )}
+              {linkedPlayer && (
+                <Btn
                   variant="secondary"
                   size="sm"
                   icon="share"
