@@ -223,44 +223,44 @@ export function computeSeasonBonuses(player, currentClashId, allClashIds, season
 
 export var ACHIEVEMENTS = [
   // PLACEMENT MILESTONES
-  {id:"first_blood",    tier:"bronze",    icon:"droplet-fill",  name:"First Blood",       desc:"Win your first clash game",                            check:function(p){ return p.wins>=1; }},
-  {id:"hat_trick",      tier:"bronze",    icon:"mortarboard-fill",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:function(p){ return p.wins>=3; }},
-  {id:"top4_machine",   tier:"silver",    icon:"gear-fill",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:function(p){ return p.top4>=10; }},
-  {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:function(p){ return p.wins>=5; }},
-  {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
-  {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:function(p){ return p.wins>=10; }},
-  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"100% top 4 rate across all games played",              check:function(p){ return p.games>=3&&p.top4>=p.games; }},
-  {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:function(p){ return p.games>=30; }},
+  {id:"first_blood",    tier:"bronze",    icon:"water_drop",  name:"First Blood",       desc:"Win your first clash game",                            check:function(p){ return p.wins>=1; }},
+  {id:"hat_trick",      tier:"bronze",    icon:"school",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:function(p){ return p.wins>=3; }},
+  {id:"top4_machine",   tier:"silver",    icon:"settings",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:function(p){ return p.top4>=10; }},
+  {id:"podium_hunter",  tier:"silver",    icon:"military_tech",  name:"Podium Hunter",      desc:"5 wins total",                                         check:function(p){ return p.wins>=5; }},
+  {id:"clutch_god",     tier:"gold",      icon:"bolt",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
+  {id:"dynasty",        tier:"gold",      icon:"emoji_events",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:function(p){ return p.wins>=10; }},
+  {id:"untouchable",    tier:"legendary", icon:"diamond",  name:"Untouchable",        desc:"100% top 4 rate across all games played",              check:function(p){ return p.games>=3&&p.top4>=p.games; }},
+  {id:"the_grind",      tier:"legendary", icon:"bedtime",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:function(p){ return p.games>=30; }},
   // STREAK ACHIEVEMENTS
-  {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:function(p){ return p.wins>=1&&p.games<=8; }},
-  {id:"on_fire",        tier:"silver",    icon:"graph-up-arrow",  name:"On Fire",            desc:"3 win streak at any point",                            check:function(p){ return p.bestStreak>=3; }},
-  {id:"cant_stop",      tier:"gold",      icon:"rocket-takeoff-fill",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:function(p){ return p.bestStreak>=5; }},
-  {id:"goat_streak",    tier:"legendary", icon:"star-fill",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:function(p){ return p.bestStreak>=7; }},
+  {id:"hot_start",      tier:"bronze",    icon:"local_fire_department",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:function(p){ return p.wins>=1&&p.games<=8; }},
+  {id:"on_fire",        tier:"silver",    icon:"trending_up",  name:"On Fire",            desc:"3 win streak at any point",                            check:function(p){ return p.bestStreak>=3; }},
+  {id:"cant_stop",      tier:"gold",      icon:"rocket_launch",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:function(p){ return p.bestStreak>=5; }},
+  {id:"goat_streak",    tier:"legendary", icon:"star",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:function(p){ return p.bestStreak>=7; }},
   // POINTS ACHIEVEMENTS
-  {id:"point_getter",   tier:"bronze",    icon:"coin",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:function(p){ return p.pts>=100; }},
-  {id:"century",        tier:"silver",    icon:"gem",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:function(p){ return p.pts>=500; }},
-  {id:"big_dog",        tier:"gold",      icon:"trophy-fill",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:function(p){ return p.pts>=800; }},
-  {id:"thousand_club",  tier:"legendary", icon:"sun-fill",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:function(p){ return p.pts>=1000; }},
+  {id:"point_getter",   tier:"bronze",    icon:"paid",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:function(p){ return p.pts>=100; }},
+  {id:"century",        tier:"silver",    icon:"diamond",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:function(p){ return p.pts>=500; }},
+  {id:"big_dog",        tier:"gold",      icon:"emoji_events",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:function(p){ return p.pts>=800; }},
+  {id:"thousand_club",  tier:"legendary", icon:"wb_sunny",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:function(p){ return p.pts>=1000; }},
   // SOCIAL / COMMUNITY
-  {id:"regular",        tier:"bronze",    icon:"calendar-check-fill",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:function(p){ return p.games>=5; }},
-  {id:"veteran",        tier:"silver",    icon:"shield-check",  name:"Veteran",            desc:"20 total games across the season",                     check:function(p){ return p.games>=20; }},
-  {id:"season_finisher",tier:"gold",      icon:"patch-check-fill",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:function(p){ return p.games>=28; }},
-  {id:"champion",       tier:"legendary", icon:"award-fill",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:function(p){var sc=getSeasonChampion();return sc&&p.name===sc.name;}},
+  {id:"regular",        tier:"bronze",    icon:"event_available",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:function(p){ return p.games>=5; }},
+  {id:"veteran",        tier:"silver",    icon:"verified_user",  name:"Veteran",            desc:"20 total games across the season",                     check:function(p){ return p.games>=20; }},
+  {id:"season_finisher",tier:"gold",      icon:"verified",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:function(p){ return p.games>=28; }},
+  {id:"champion",       tier:"legendary", icon:"military_tech",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:function(p){var sc=getSeasonChampion();return sc&&p.name===sc.name;}},
   // RARE / EASTER EGG
-  {id:"dishsoap",       tier:"legendary", icon:"droplet",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:function(p){ return p.name==="Dishsoap"||(p.riotId?.toLowerCase().indexOf("dishsoap")>=0); }},
-  {id:"perfect_lobby",  tier:"legendary", icon:"bullseye",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:function(p){ return (p.clashHistory||[]).some(function(g){ return (g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(function(v){ return v<=3; }):true); }); }},
-  {id:"silent_grinder", tier:"gold",      icon:"eye-fill",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:function(p){ return p.pts>=400&&p.wins===0; }},
+  {id:"dishsoap",       tier:"legendary", icon:"water_drop",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:function(p){ return p.name==="Dishsoap"||(p.riotId?.toLowerCase().indexOf("dishsoap")>=0); }},
+  {id:"perfect_lobby",  tier:"legendary", icon:"adjust",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:function(p){ return (p.clashHistory||[]).some(function(g){ return (g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(function(v){ return v<=3; }):true); }); }},
+  {id:"silent_grinder", tier:"gold",      icon:"visibility",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:function(p){ return p.pts>=400&&p.wins===0; }},
 ];
 
 export var MILESTONES = [
-  {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:function(p){ return p.pts>=100; }},
-  {id:"m2",icon:"shield-fill",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:function(p){ return p.pts>=300; }},
-  {id:"m3",icon:"shield-fill",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:function(p){ return p.pts>=600; }},
-  {id:"m4",icon:"gem",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:function(p){ return p.pts>=800; }},
-  {id:"m5",icon:"trophy-fill",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:function(p){ return p.pts>=1000; }},
-  {id:"m6",icon:"fire",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:function(p){ return isHotStreak(p); }},
-  {id:"m7",icon:"trophy-fill",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:function(p){ return p.wins>=1; }},
-  {id:"m8",icon:"lightning-charge-fill",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
+  {id:"m1",icon:"shield",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:function(p){ return p.pts>=100; }},
+  {id:"m2",icon:"shield",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:function(p){ return p.pts>=300; }},
+  {id:"m3",icon:"shield",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:function(p){ return p.pts>=600; }},
+  {id:"m4",icon:"diamond",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:function(p){ return p.pts>=800; }},
+  {id:"m5",icon:"emoji_events",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:function(p){ return p.pts>=1000; }},
+  {id:"m6",icon:"local_fire_department",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:function(p){ return isHotStreak(p); }},
+  {id:"m7",icon:"emoji_events",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:function(p){ return p.wins>=1; }},
+  {id:"m8",icon:"bolt",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
 ];
 
 export function getAchievements(p) { return ACHIEVEMENTS.filter(function(a) { try { return a.check(p); } catch(e) { return false; } }); }
@@ -268,15 +268,15 @@ export function getAchievements(p) { return ACHIEVEMENTS.filter(function(a) { tr
 // ─── CHALLENGES ───────────────────────────────────────────────────────────────
 
 export var WEEKLY_CHALLENGES = [
-  {id:"w1",icon:"fire",name:"On A Roll",desc:"Win 2 lobbies this week",xp:120,type:"weekly",progress:1,goal:2},
-  {id:"w2",icon:"bar-chart-line-fill",name:"Consistency Check",desc:"Average top 3 across 3 games",xp:100,type:"weekly",progress:2,goal:3},
-  {id:"w3",icon:"trophy-fill",name:"Podium Finish",desc:"Top 3 in a clash event",xp:150,type:"weekly",progress:0,goal:1},
+  {id:"w1",icon:"local_fire_department",name:"On A Roll",desc:"Win 2 lobbies this week",xp:120,type:"weekly",progress:1,goal:2},
+  {id:"w2",icon:"bar_chart",name:"Consistency Check",desc:"Average top 3 across 3 games",xp:100,type:"weekly",progress:2,goal:3},
+  {id:"w3",icon:"emoji_events",name:"Podium Finish",desc:"Top 3 in a clash event",xp:150,type:"weekly",progress:0,goal:1},
 ];
 
 export var DAILY_CHALLENGES = [
-  {id:"d1",icon:"bullseye",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
-  {id:"d2",icon:"lightning-charge-fill",name:"Speed Run",desc:"Complete a game in under 30 mins",xp:40,type:"daily",progress:0,goal:1},
-  {id:"d3",icon:"shield-fill",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
+  {id:"d1",icon:"adjust",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
+  {id:"d2",icon:"bolt",name:"Speed Run",desc:"Complete a game in under 30 mins",xp:40,type:"daily",progress:0,goal:1},
+  {id:"d3",icon:"shield",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
 ];
 
 export function checkAchievements(player, rank) {
@@ -383,14 +383,14 @@ export function computeClashAwards(players) {
   var onFire = eligible.slice().sort(function(a, b) { return (b.bestStreak || 0) - (a.bestStreak || 0); })[0];
 
   return [
-    lobbyBully && {icon: "crosshair", id: "bully", title: "Lobby Bully", desc: "Most 1st place finishes", winner: lobbyBully, stat: lobbyBully.wins + " wins", color: "#E8A838"},
-    choker && choker !== lobbyBully && {icon: "emoji-dizzy", id: "choker", title: "The Choker", desc: "Highest AVP in the top half - ouch", winner: choker, stat: "AVP " + getStats(choker).avgPlacement, color: "#F87171"},
-    singleMVP && {icon: "lightning-charge-fill", id: "single", title: "Single Clash MVP", desc: "Highest points in one event", winner: singleMVP, stat: (singleMVP.bestHaul || 0) + " pts haul", color: "#EAB308"},
-    mostImproved && {icon: "graph-up-arrow", id: "improved", title: "Most Improved", desc: "Biggest AVP improvement this season", winner: mostImproved, stat: "AVP " + getStats(mostImproved).avgPlacement, color: "#52C47C"},
-    iceCold && iceCold !== mostImproved && {icon: "snow", id: "cold", title: "Ice Cold", desc: "Longest streak outside top 4", winner: iceCold, stat: "AVP " + getStats(iceCold).avgPlacement, color: "#4ECDC4"},
-    onFire && {icon: "fire", id: "streak", title: "On Fire", desc: "Best 1st place streak this season", winner: onFire, stat: (onFire.bestStreak || 0) + " in a row", color: "#F97316"},
-    byPts[0] && {icon: "trophy-fill", id: "mvp", title: "MVP", desc: "Highest season points", winner: byPts[0], stat: byPts[0].pts + " pts", color: "#E8A838"},
-    byPts[0] && {icon: "clipboard-data-fill", id: "consistent2", title: "Most Consistent", desc: "Lowest AVP (3+ games)", winner: byAvp[0], stat: "AVP " + (byAvp[0] ? getStats(byAvp[0]).avgPlacement : "-"), color: "#C4B5FD"},
+    lobbyBully && {icon: "adjust", id: "bully", title: "Lobby Bully", desc: "Most 1st place finishes", winner: lobbyBully, stat: lobbyBully.wins + " wins", color: "#E8A838"},
+    choker && choker !== lobbyBully && {icon: "sentiment_dissatisfied", id: "choker", title: "The Choker", desc: "Highest AVP in the top half - ouch", winner: choker, stat: "AVP " + getStats(choker).avgPlacement, color: "#F87171"},
+    singleMVP && {icon: "bolt", id: "single", title: "Single Clash MVP", desc: "Highest points in one event", winner: singleMVP, stat: (singleMVP.bestHaul || 0) + " pts haul", color: "#EAB308"},
+    mostImproved && {icon: "trending_up", id: "improved", title: "Most Improved", desc: "Biggest AVP improvement this season", winner: mostImproved, stat: "AVP " + getStats(mostImproved).avgPlacement, color: "#52C47C"},
+    iceCold && iceCold !== mostImproved && {icon: "ac_unit", id: "cold", title: "Ice Cold", desc: "Longest streak outside top 4", winner: iceCold, stat: "AVP " + getStats(iceCold).avgPlacement, color: "#4ECDC4"},
+    onFire && {icon: "local_fire_department", id: "streak", title: "On Fire", desc: "Best 1st place streak this season", winner: onFire, stat: (onFire.bestStreak || 0) + " in a row", color: "#F97316"},
+    byPts[0] && {icon: "emoji_events", id: "mvp", title: "MVP", desc: "Highest season points", winner: byPts[0], stat: byPts[0].pts + " pts", color: "#E8A838"},
+    byPts[0] && {icon: "assignment", id: "consistent2", title: "Most Consistent", desc: "Lowest AVP (3+ games)", winner: byAvp[0], stat: "AVP " + (byAvp[0] ? getStats(byAvp[0]).avgPlacement : "-"), color: "#C4B5FD"},
   ].filter(Boolean);
 }
 

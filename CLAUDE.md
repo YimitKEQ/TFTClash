@@ -144,7 +144,9 @@ A graphify knowledge graph of `src/` lives in `graphify-out/` (graph.json, graph
 GRAPH_REPORT.md). Built 2026-06-02 from 243 code files -> 1401 nodes, 3028 edges,
 77 communities. For codebase questions ("how does X work", "what calls Y"), run
 `python -m graphify query "<question>"` before grepping. After code changes, refresh
-with `python -m graphify --update src` (AST-only, no LLM cost for code files).
+with `python -m graphify update src` (AST-only, no LLM cost for code files). The
+canonical graph lives at the repo-root `graphify-out/`; if a CLI version writes to
+`src/graphify-out/`, sync `graph.json`/`graph.html`/`GRAPH_REPORT.md` back to the root.
 
 ---
 

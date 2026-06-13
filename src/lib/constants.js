@@ -74,15 +74,15 @@ export var TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#5
 // ─── PLATFORM RANKING SYSTEM ─────────────────────────────────────────────────
 
 export var CLASH_RANKS = [
-  {id:"iron",       name:"Iron",        icon:"gear-fill",  color:"#BECBD9", minXp:0,    maxXp:200},
-  {id:"bronze",     name:"Bronze",      icon:"shield-fill",  color:"#CD7F32", minXp:200,  maxXp:500},
-  {id:"silver",     name:"Silver",      icon:"shield-fill",  color:"#C0C0C0", minXp:500,  maxXp:900},
-  {id:"gold",       name:"Gold",        icon:"shield-fill",  color:"#E8A838", minXp:900,  maxXp:1400},
-  {id:"platinum",   name:"Platinum",    icon:"diamond-half",  color:"#4ECDC4", minXp:1400, maxXp:2000},
-  {id:"diamond",    name:"Diamond",     icon:"gem",  color:"#9B72CF", minXp:2000, maxXp:2800},
+  {id:"iron",       name:"Iron",        icon:"settings",  color:"#BECBD9", minXp:0,    maxXp:200},
+  {id:"bronze",     name:"Bronze",      icon:"shield",  color:"#CD7F32", minXp:200,  maxXp:500},
+  {id:"silver",     name:"Silver",      icon:"shield",  color:"#C0C0C0", minXp:500,  maxXp:900},
+  {id:"gold",       name:"Gold",        icon:"shield",  color:"#E8A838", minXp:900,  maxXp:1400},
+  {id:"platinum",   name:"Platinum",    icon:"diamond",  color:"#4ECDC4", minXp:1400, maxXp:2000},
+  {id:"diamond",    name:"Diamond",     icon:"diamond",  color:"#9B72CF", minXp:2000, maxXp:2800},
   {id:"master",     name:"Master",      icon:"stars",  color:"#EAB308", minXp:2800, maxXp:3800},
-  {id:"grandmaster",name:"Grandmaster", icon:"eye-fill",  color:"#F87171", minXp:3800, maxXp:5000},
-  {id:"challenger", name:"Clash Challenger",icon:"trophy-fill",color:"#E8A838",minXp:5000,maxXp:99999},
+  {id:"grandmaster",name:"Grandmaster", icon:"visibility",  color:"#F87171", minXp:3800, maxXp:5000},
+  {id:"challenger", name:"Clash Challenger",icon:"emoji_events",color:"#E8A838",minXp:5000,maxXp:99999},
 ];
 
 // XP rewards per action
@@ -275,10 +275,10 @@ export var DEFAULT_TFT_RULES = [
 // ─── RULES SECTIONS ──────────────────────────────────────────────────────────
 
 export var RULES_SECTIONS = [
-  {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly clashes with 3-5 games per session. 8 players per lobby. Standard placement scoring."},
-  {id:"points",title:"Points System",icon:"chart-bar",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
-  {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Most Top 4 finishes. 3. Fewest Bot 3s (6th/7th/8th). 4. Most 1st place finishes. 5. Best placement in the most recent game."},
-  {id:"registration",title:"Registration and Check-in",icon:"clipboard-check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
+  {id:"format",title:"Tournament Format",icon:"account_tree",content:"Weekly clashes with 3-5 games per session. 8 players per lobby. Standard placement scoring."},
+  {id:"points",title:"Points System",icon:"bar_chart",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
+  {id:"tiebreakers",title:"Tiebreakers",icon:"swap_vert",content:"1. Total tournament points. 2. Most Top 4 finishes. 3. Fewest Bot 3s (6th/7th/8th). 4. Most 1st place finishes. 5. Best placement in the most recent game."},
+  {id:"registration",title:"Registration and Check-in",icon:"fact_check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
   {id:"results",title:"Result Submission",icon:"send",content:"Any player in a lobby can submit results. A different player must confirm. If disputed, an admin reviews. Admin can always override."},
   {id:"swiss",title:"Swiss Reseeding",icon:"refresh",content:"When Swiss mode is enabled, lobbies are reseeded after every 2 games. Players are sorted by cumulative points and snake-seeded into new lobbies."},
   {id:"conduct",title:"Code of Conduct",icon:"shield",content:"Respectful behavior is required. Intentional disconnects, collusion, or abusive communication may result in warnings, temporary bans, or permanent removal."},
@@ -298,12 +298,12 @@ export var FAQ_DATA = [
     {q:"How do I submit results?",a:"After each game, any player in the lobby can submit placements. Another player must confirm them."},
     {q:"What if results are wrong?",a:"Click Dispute on the result. An admin will review within 24 hours."}
   ]},
-  {cat:"Scoring and Rankings",icon:"chart-bar",items:[
+  {cat:"Scoring and Rankings",icon:"bar_chart",items:[
     {q:"How does scoring work?",a:"Standard TFT placement scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
     {q:"How are tiebreakers resolved?",a:"Total points first, then most Top 4 finishes, then fewest Bot 3s (6th/7th/8th), then most 1st place finishes, and finally the best placement in the most recent game."},
     {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
   ]},
-  {cat:"Pro and Host Tiers",icon:"crown",items:[
+  {cat:"Pro and Host Tiers",icon:"workspace_premium",items:[
     {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, auto check-in, priority registration, and an exclusive Pro Discord role."},
     {q:"What does Host unlock?",a:"Create and brand your own tournaments, custom landing pages, featured event placement, and full analytics dashboard."},
     {q:"Can I cancel anytime?",a:"Yes. Your tier remains active until the end of the billing period."}
