@@ -13,7 +13,7 @@ import PageLayout from '../components/layout/PageLayout'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 
 // ── LiveStandingsPanel ─────────────────────────────────────────────────────────
-function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
+function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round,liveResults}){
   var clashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:"";
   var cutLine=tournamentState&&tournamentState.cutLine?tournamentState.cutLine:0;
   var cutAfterGame=tournamentState&&tournamentState.cutAfterGame?tournamentState.cutAfterGame:0;
@@ -27,10 +27,10 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
   var ladderCutsThisGame=ladderMode&&ladderCutsAfterGame(ladderStartSize,round);
   var ladderAdvance=ladderMode?advanceCountAfterGame(ladderStartSize,round):0;
 
+  var lrMap=liveResults||{};
   var liveRows=checkedIn.map(function(p){
-    var earned=0;var gamesPlayed=0;
-    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place||h.placement]||0);gamesPlayed+=1;}});
-    return {name:p.name,id:p.id,earned:earned,gamesPlayed:gamesPlayed};
+    var lr=lrMap[String(p.id)]||{points:0,games:0};
+    return {name:p.name,id:p.id,earned:lr.points||0,gamesPlayed:lr.games||0};
   }).sort(function(a,b){return b.earned-a.earned;});
 
   var lockedCount=tournamentState&&tournamentState.lockedLobbies?tournamentState.lockedLobbies.length:0;
@@ -231,6 +231,7 @@ function BracketScreen(){
   var setPlayers=ctx.setPlayers;
   var toast=ctx.toast;
   var isAdmin=ctx.isAdmin;
+  var liveResults=ctx.liveResults||{};
   var currentUser=ctx.currentUser;
   var setProfilePlayer=ctx.setProfilePlayer;
   var navigate=useNavigate();
@@ -1424,7 +1425,7 @@ function BracketScreen(){
 
               {/* Live standings */}
               {tournamentState&&isLive&&(
-                <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>
+                <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round} liveResults={liveResults}/>
               )}
 
               {/* Finals display */}

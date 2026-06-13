@@ -107,6 +107,15 @@ export function AppProvider(props) {
   var tournamentStateNa = _tournamentStateNa[0];
   var setTournamentStateNa = _tournamentStateNa[1];
 
+  // Live results for the active clash, aggregated from game_results and kept warm
+  // via realtime so the bracket Live Standings / Live Top 10 / Activity feed update
+  // as lobbies lock. Keyed by player id: { points, games, wins, rounds:{game:place} }.
+  // The clashHistory enrich path keys entries by tournamentId (not clashId) and is not
+  // refreshed on result writes, so the live clash panels showed nothing — this fixes it.
+  var _liveResults = useState({});
+  var liveResults = _liveResults[0];
+  var setLiveResults = _liveResults[1];
+
   var _seasonConfig = useState(DEFAULT_SEASON_CONFIG);
   var seasonConfig = _seasonConfig[0];
   var setSeasonConfig = _seasonConfig[1];
@@ -1244,6 +1253,42 @@ export function AppProvider(props) {
     return function(){supabase.removeChannel(lobChannel);};
   },[tournamentState&&tournamentState.dbTournamentId,tournamentState&&tournamentState.round]);
 
+  // ── Live clash results: aggregate game_results for the active clash + realtime ──
+  // Light, focused load (one small query for a single tournament, debounced on
+  // change) — NOT the heavy 50k-row enrich. Feeds the live clash standings panels.
+  useEffect(function(){
+    var tid=tournamentState&&tournamentState.dbTournamentId;
+    if(!tid||!supabase.from){ setLiveResults({}); return; }
+    var cancelled=false;
+    var timer=null;
+    function load(){
+      supabase.from('game_results').select('player_id,placement,points,game_number')
+        .eq('tournament_id',tid)
+        .then(function(res){
+          if(cancelled||res.error||!res.data)return;
+          var agg={};
+          res.data.forEach(function(r){
+            var pid=String(r.player_id);
+            if(!agg[pid])agg[pid]={points:0,games:0,wins:0,rounds:{}};
+            agg[pid].points+=(r.points!=null?r.points:0);
+            agg[pid].games+=1;
+            if(r.placement===1)agg[pid].wins+=1;
+            agg[pid].rounds[r.game_number]=r.placement;
+          });
+          setLiveResults(agg);
+        }).catch(function(e){ console.error('[TFT] live results load failed:', e); });
+    }
+    function debouncedLoad(){ if(timer)clearTimeout(timer); timer=setTimeout(load,800); }
+    load();
+    var ch=null;
+    if(supabase.channel){
+      ch=supabase.channel('live_results_'+tid)
+        .on('postgres_changes',{event:'*',schema:'public',table:'game_results',filter:'tournament_id=eq.'+tid},function(){ debouncedLoad(); })
+        .subscribe();
+    }
+    return function(){ cancelled=true; if(timer)clearTimeout(timer); if(ch)supabase.removeChannel(ch); };
+  },[tournamentState&&tournamentState.dbTournamentId]);
+
   // ── Load pending disputes for admin badge ──
   useEffect(function(){
     if(!isAdmin||!supabase.from)return;
@@ -1310,6 +1355,7 @@ export function AppProvider(props) {
       challengeCompletions: challengeCompletions, setChallengeCompletions: setChallengeCompletions,
       pendingResults: pendingResults,
       allPendingResults: allPendingResults,
+      liveResults: liveResults,
 
       // Auth
       currentUser: currentUser, setCurrentUser: setCurrentUser,
@@ -1348,7 +1394,7 @@ export function AppProvider(props) {
     currentUser, isAuthLoading, isOffline,
     subscriptions, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
-    userTier, pendingResults, allPendingResults,
+    userTier, pendingResults, allPendingResults, liveResults,
     passwordRecovery
   ]);
 

@@ -12,6 +12,7 @@ function ClashLiveDashboard() {
   var players = ctx.players || []
   var tournamentState = ctx.tournamentState || {}
   var currentUser = ctx.currentUser
+  var liveResults = ctx.liveResults || {}
 
   var clashId = tournamentState.clashId || ''
   var clashName = tournamentState.clashName || 'TFT Clash'
@@ -32,19 +33,12 @@ function ClashLiveDashboard() {
 
   var standings = useMemo(function () {
     var rows = checkedIn.map(function (p) {
-      var earned = 0
-      var games = 0
-      ;(p.clashHistory || []).forEach(function (h) {
-        if (h.clashId === clashId) {
-          earned += (PTS[h.place || h.placement] || 0)
-          games += 1
-        }
-      })
-      return { id: p.id, name: p.name, points: earned, games: games }
+      var lr = liveResults[String(p.id)] || { points: 0, games: 0 }
+      return { id: p.id, name: p.name, points: lr.points || 0, games: lr.games || 0 }
     })
     rows.sort(function (a, b) { return b.points - a.points })
     return rows
-  }, [checkedIn, clashId])
+  }, [checkedIn, liveResults])
 
   var myStatus = useMemo(function () {
     if (!currentUser) return null
@@ -78,10 +72,10 @@ function ClashLiveDashboard() {
     }
     var winners = []
     checkedIn.forEach(function (p) {
-      ;(p.clashHistory || []).forEach(function (h) {
-        if (h.clashId === clashId && (h.place || h.placement) === 1) {
-          winners.push({ name: p.name, lobby: h.lobbyNumber || h.lobby_number || null, round: h.round || null })
-        }
+      var lr = liveResults[String(p.id)]
+      if (!lr || !lr.rounds) return
+      Object.keys(lr.rounds).forEach(function (rk) {
+        if (lr.rounds[rk] === 1) winners.push({ name: p.name, round: parseInt(rk, 10) })
       })
     })
     winners.sort(function (a, b) { return (b.round || 0) - (a.round || 0) })
@@ -89,11 +83,11 @@ function ClashLiveDashboard() {
       entries.push({
         icon: 'star',
         tone: 'win',
-        text: w.name + ' won ' + (w.lobby ? 'Lobby ' + w.lobby : 'their lobby') + (w.round ? ' (R' + w.round + ')' : '')
+        text: w.name + ' won their lobby' + (w.round ? ' (R' + w.round + ')' : '')
       })
     })
     return entries.slice(0, 12)
-  }, [lockedLobbies, checkedIn, clashId])
+  }, [lockedLobbies, checkedIn, liveResults])
 
   var titleParts = clashName.includes(':')
     ? { left: clashName.split(':')[0].trim(), right: clashName.split(':').slice(1).join(':').trim() }
