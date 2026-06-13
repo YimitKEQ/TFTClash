@@ -99,6 +99,7 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
   return hist.map(function(g, i) {
     var isDropped = dropped[g.clashId || 'c0'];
     var place = g.place || g.placement;
+    var rowPts = (g.points != null ? g.points : (g.pts || 0));
     return (
       <div
         key={g.clashId || g.name || ("clash-" + i)}
@@ -126,7 +127,7 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
         </div>
         <div className="text-right flex-shrink-0">
           <div className={'font-mono text-base font-bold ' + (isDropped ? 'text-on-surface-variant line-through' : 'text-primary')}>
-            {'+' + g.pts + 'pts'}
+            {'+' + rowPts + 'pts'}
           </div>
           {(g.bonusPts || 0) > 0 && !isDropped && (
             <div className="font-mono text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
