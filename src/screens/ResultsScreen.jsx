@@ -117,6 +117,8 @@ export default function ResultsScreen() {
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
   var tournamentState = ctx.tournamentState
+  var currentUser = ctx.currentUser
+  var liveResults = ctx.liveResults || {}
   var toast = ctx.toast || function() {}
   var navigate = useNavigate()
 
@@ -149,6 +151,16 @@ export default function ResultsScreen() {
 
   var awards = computeClashAwards(players.length > 0 ? players : sorted)
   var clashName = (focusClash && focusClash.name) || (tournamentState && tournamentState.clashName) || 'Recent Clash'
+  var myName = currentUser ? (currentUser.username || currentUser.name) : null
+  var myIdx = myName ? sorted.findIndex(function(p) { return (p.name || '') === myName }) : -1
+  var myResult = null
+  if (myIdx >= 0) {
+    var myP = sorted[myIdx]
+    var myWeeklyPts = (liveResults[String(myP.id)] && liveResults[String(myP.id)].points != null)
+      ? liveResults[String(myP.id)].points
+      : (myP.pts || 0)
+    myResult = { place: myIdx + 1, pts: myWeeklyPts }
+  }
   var clashDate = (focusClash && focusClash.date) || (tournamentState && tournamentState.clashDate) || ''
   var clashPlayerCount = (focusClash && focusClash.players) || sorted.length
 
@@ -699,6 +711,17 @@ export default function ResultsScreen() {
 
             {/* Social Share */}
             <div className="space-y-3">
+              {myResult && (
+                <button
+                  onClick={function() {
+                    shareToTwitter(buildShareText('result', { placement: myResult.place, clashName: clashName, points: myResult.pts, ref: myName }))
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3 rounded-full font-label font-bold text-xs uppercase transition-transform hover:scale-[1.02]"
+                >
+                  <Icon name="share" size={14} />
+                  <span>{'Tweet My Result (+' + myResult.pts + ' pts)'}</span>
+                </button>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={function() {

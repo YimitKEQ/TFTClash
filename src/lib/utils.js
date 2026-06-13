@@ -35,10 +35,10 @@ export function buildShareText(type, data) {
   var ref = data.ref || data.referrer || null;
   if (type === "result") {
     var place = ordinal(data.placement);
-    var line = data.placement === 1
-      ? "Just took the dub - 1st place in " + data.clashName + " (+" + data.points + " season pts)"
-      : "Locked " + place + " in " + data.clashName + " (+" + data.points + " season pts)";
-    return line + ".\n\nFree weekly TFT tournaments, all ranks welcome.\n#TFTClash #TFT\n" + withRef("/", ref);
+    var head = data.placement === 1
+      ? "I just won " + data.clashName + " with " + data.points + " points! 🏆"
+      : "I scored " + data.points + " points and finished " + place + " in " + data.clashName + "! 🏆";
+    return head + "\n\nMassive thanks to @tftclash for the weekly grind, and @AutoFullGlobal for backing the prizes. 🙌\n\nFree weekly TFT tournaments, all ranks welcome 👇\n#TFTClash #TFT\n" + withRef("/", ref);
   }
   if (type === "profile") {
     var who = data.name || "Player";
