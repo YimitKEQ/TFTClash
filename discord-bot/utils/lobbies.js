@@ -172,7 +172,13 @@ async function postLobbyRosters(guild, lobbies, ts) {
 
 export async function setupLobbyRound(guild, ts) {
   if (!guild || !ts) return { ok: false, reason: 'missing-args' };
-  var lobbies = ts.lockedLobbies || ts.savedLobbies || [];
+  // savedLobbies holds the actual lobby rosters. lockedLobbies is just an array
+  // of locked lobby *indices* and is [] at round start — and an empty array is
+  // truthy, so the old `ts.lockedLobbies || ts.savedLobbies` always short-circuited
+  // to [] and reported "no lobbies". Use the real roster source, length-checked.
+  var lobbies = (ts.savedLobbies && ts.savedLobbies.length) ? ts.savedLobbies
+    : (ts.lobbies && ts.lobbies.length) ? ts.lobbies
+    : [];
   if (!lobbies.length) {
     console.log('[lobbies] setup: no lobbies in tournament state');
     return { ok: false, reason: 'no-lobbies' };
