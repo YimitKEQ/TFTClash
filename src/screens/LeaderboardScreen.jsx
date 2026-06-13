@@ -178,10 +178,10 @@ export default function LeaderboardScreen(props) {
   var tierFilter = _tierFilter[0]
   var setTierFilter = _tierFilter[1]
 
-  var _expanded = useState({})
-  var expanded = _expanded[0]
-  var setExpanded = _expanded[1]
-  var TIER_CAP = 25
+  var _showAll = useState(false)
+  var showAll = _showAll[0]
+  var setShowAll = _showAll[1]
+  var FLAT_CAP = 100
 
   var sorted = useMemo(function() {
     var f = players.filter(function(p) {
@@ -367,55 +367,34 @@ export default function LeaderboardScreen(props) {
                     <th className="px-2 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
                   </tr>
                 </thead>
-                {TIER_DIVIDERS.map(function(divider) {
-                  var tierPlayers = tierGroups[divider.key] || []
-                  if (tierPlayers.length === 0) return null
-                  var isExpanded = !!expanded[divider.key]
-                  var capped = isExpanded || tierPlayers.length <= TIER_CAP
-                    ? tierPlayers
-                    : tierPlayers.slice(0, TIER_CAP)
-                  var hidden = tierPlayers.length - capped.length
-                  return (
-                    <tbody key={divider.key} className="divide-y divide-outline-variant/5">
-                      <TierDividerRow divider={divider} />
-                      {capped.map(function(player) {
-                        var rank = ranksMap[player.name]
-                        var isMe = currentUser && player.name === currentUser.username
-                        return (
-                          <TableRow
-                            key={player.id || player.name}
-                            player={player}
-                            rank={rank}
-                            isMe={isMe}
-                            onClick={function() { openPlayer(player) }}
-                          />
-                        )
-                      })}
-                      {(hidden > 0 || isExpanded) && (
-                        <tr>
-                          <td colSpan={6} className="px-2 sm:px-8 py-3 text-center bg-surface-container-lowest/30">
-                            <button
-                              type="button"
-                              onClick={function() {
-                                setExpanded(function(prev) {
-                                  var next = Object.assign({}, prev)
-                                  if (isExpanded) delete next[divider.key]
-                                  else next[divider.key] = true
-                                  return next
-                                })
-                              }}
-                              className="font-label text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
-                            >
-                              {isExpanded
-                                ? 'Show top ' + TIER_CAP
-                                : 'Show ' + hidden + ' more in ' + divider.label}
-                            </button>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  )
-                })}
+                <tbody className="divide-y divide-outline-variant/5">
+                  {(showAll ? sorted : sorted.slice(0, FLAT_CAP)).map(function(player) {
+                    var rank = ranksMap[player.name]
+                    var isMe = currentUser && player.name === currentUser.username
+                    return (
+                      <TableRow
+                        key={player.id || player.name}
+                        player={player}
+                        rank={rank}
+                        isMe={isMe}
+                        onClick={function() { openPlayer(player) }}
+                      />
+                    )
+                  })}
+                  {sorted.length > FLAT_CAP && (
+                    <tr>
+                      <td colSpan={6} className="px-2 sm:px-8 py-3 text-center bg-surface-container-lowest/30">
+                        <button
+                          type="button"
+                          onClick={function() { setShowAll(function(s) { return !s }) }}
+                          className="font-label text-[11px] uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                        >
+                          {showAll ? ('Show top ' + FLAT_CAP) : ('Show all ' + sorted.length)}
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
               </table>
             </div>
 
