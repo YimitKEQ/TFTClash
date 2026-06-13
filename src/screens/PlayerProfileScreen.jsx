@@ -57,7 +57,7 @@ function renderSparklineSvg(clashHistory) {
   var cumulativePts = [];
   var running = 0;
   hist.forEach(function(g) {
-    running += (g.pts || 0);
+    running += (g.points != null ? g.points : (g.pts || 0));
     cumulativePts.push(running);
   });
   var maxPts = Math.max.apply(null, cumulativePts) || 1;
@@ -91,7 +91,7 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
     var clashMap = {};
     hist.forEach(function(g) {
       var cid = g.clashId || 'c0';
-      clashMap[cid] = (clashMap[cid] || 0) + (g.pts || 0);
+      clashMap[cid] = (clashMap[cid] || 0) + (g.points != null ? g.points : (g.pts || 0));
     });
     var sorted2 = Object.entries(clashMap).sort(function(a, b) { return a[1] - b[1]; });
     sorted2.slice(0, seasonConfig.dropWeeks).forEach(function(e) { dropped[e[0]] = true; });
@@ -948,7 +948,7 @@ export default function PlayerProfileScreen() {
                       </div>
                       <div className="text-right">
                         <span className={'block font-mono text-sm ' + (isTop4 ? 'text-primary' : 'text-on-surface')}>
-                          {'+' + (g.pts || 0) + ' LP'}
+                          {'+' + (g.points != null ? g.points : (g.pts || 0)) + ' LP'}
                         </span>
                         <span className="block font-label text-[10px] text-on-surface/40 uppercase">
                           {isWin ? 'Victory' : isTop4 ? 'Top 4' : 'Secure'}
@@ -1016,7 +1016,7 @@ export default function PlayerProfileScreen() {
                     </div>
                   );
                 })}
-                <div className="font-mono text-sm font-bold text-primary text-center">{'+' + g.pts}</div>
+                <div className="font-mono text-sm font-bold text-primary text-center">{'+' + (g.points != null ? g.points : (g.pts || 0))}</div>
               </div>
             );
           })}
