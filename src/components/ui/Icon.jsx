@@ -23,7 +23,11 @@ var ICON_ALIASES = {
 };
 
 export default function Icon({ name, children, fill = false, size = 24, className = '' }) {
-  var resolved = (name && ICON_ALIASES[name]) || name;
+  // Icons may be passed via the `name` prop OR as children (<Icon>home</Icon>).
+  // Resolve whichever is used through the alias map so legacy Bootstrap/Tabler
+  // names heal in both cases (achievements etc. pass the name as children).
+  var raw = name != null ? name : children;
+  var resolved = (typeof raw === 'string' && ICON_ALIASES[raw]) ? ICON_ALIASES[raw] : raw;
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -32,7 +36,7 @@ export default function Icon({ name, children, fill = false, size = 24, classNam
         fontVariationSettings: `'FILL' ${fill ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' ${size}`
       }}
     >
-      {resolved || children}
+      {resolved}
     </span>
   )
 }
