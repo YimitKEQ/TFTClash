@@ -19,7 +19,7 @@ var ICON_ALIASES = {
   'coin': 'paid', 'bullseye': 'adjust', 'crosshair': 'adjust',
   'snow': 'ac_unit', 'crown': 'workspace_premium', 'tournament': 'account_tree',
   'trophy': 'emoji_events', 'checkmark': 'check', 'bell': 'notifications',
-  'spark': 'auto_awesome'
+  'spark': 'auto_awesome', 'target': 'adjust', 'discord': 'forum'
 };
 
 export default function Icon({ name, children, fill = false, size = 24, className = '' }) {
