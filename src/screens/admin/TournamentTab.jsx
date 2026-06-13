@@ -351,7 +351,23 @@ export default function TournamentTab() {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
     var tId = ts.activeTournamentId || ts.dbTournamentId
     if (tId) {
-      supabase.from('tournaments').update({ phase: toDbPhase(phase) }).eq('id', tId).then(function(r) {
+      var dbPhase = toDbPhase(phase)
+      var patch = { phase: dbPhase }
+      // Opening check-in must also open the DB check-in time-window. The
+      // enforce_registration_lifecycle trigger gates self check-in on
+      // checkin_open_at / checkin_close_at, so flipping phase alone leaves
+      // players with "Check-in window has not opened yet" until the originally
+      // scheduled open time (launch incident 2026-06-13). Keep them in lockstep:
+      // open now, and hold the window until clash start (min 30 min out) so a
+      // manual early-open never sets a close time in the past.
+      if (dbPhase === 'check_in') {
+        patch.checkin_open_at = new Date().toISOString()
+        var closeMs = ts.clashTimestamp ? new Date(ts.clashTimestamp).getTime() : 0
+        var minCloseMs = Date.now() + 30 * 60000
+        if (!closeMs || closeMs < minCloseMs) closeMs = minCloseMs
+        patch.checkin_close_at = new Date(closeMs).toISOString()
+      }
+      supabase.from('tournaments').update(patch).eq('id', tId).then(function(r) {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
       }).catch(function() { toast('DB phase update failed', 'error') })
     }
