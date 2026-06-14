@@ -876,7 +876,11 @@ function BracketScreen(){
   // advanceTriggeredRef guards against double-fire if state churns rapidly at countdown=0.
   var advanceTriggeredRef=useRef(false);
   useEffect(function(){
-    if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||4)){
+    // Checkmate finals are admin-paced: never auto-advance the single Top-8 lobby,
+    // so a clinched champion is finalized (not skipped into another game) and the
+    // host controls when the next finals game starts.
+    var checkmateFinals=isCheckmate&&lobbies.length===1;
+    if(!isAdmin||!allLocked||checkmateFinals||round>=(tournamentState.totalGames||4)){
       if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
       setAutoAdvanceCountdown(null);
       advanceTriggeredRef.current=false;
@@ -893,7 +897,7 @@ function BracketScreen(){
       });
     },1000);
     return function(){if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}};
-  },[allLocked,isAdmin,round,tournamentState.totalGames]);
+  },[allLocked,isAdmin,round,tournamentState.totalGames,isCheckmate,lobbies.length]);
 
   // Trigger advance when countdown hits 0. Delegates to performRoundAdvance so the
   // cut line is applied on auto-advance exactly as it is on the manual button.
@@ -957,7 +961,10 @@ function BracketScreen(){
       var lastKey=null;
       var lastRank=0;
       var rows=ranked.map(function(r,idx){
-        if(forceWinner)return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:idx+1};
+        // Pin the checkmate champion to a unique 1st (sentinel key stops a
+        // same-key non-winner from sharing rank 1), then fall through to the
+        // normal shared-rank tiebreaker for everyone else.
+        if(forceWinner&&idx===0){lastKey='__champion__';lastRank=1;return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:1};}
         var k=tieKey(r);
         if(k!==lastKey){lastRank=idx+1;lastKey=k;}
         return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:lastRank};

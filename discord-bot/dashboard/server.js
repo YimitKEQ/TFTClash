@@ -14,24 +14,18 @@ import { postStandings, postReminder24h, postReminder1h } from '../scheduler.js'
 import { syncAllRoles, syncPlayerRoles, manualRoleAssign, getMemberRoles, ALL_MANAGED } from '../utils/roles.js';
 import { createLobbyChannels, destroyLobbyChannels, clearLobbyChannels } from '../utils/lobbies.js';
 import { supabase } from '../utils/supabase.js';
-import { mentionFor, NOTIFY_KINDS } from '../utils/notifyRoles.js';
+import { buildNotifyPing, NOTIFY_KINDS } from '../utils/notifyRoles.js';
 
 // Build send opts that respect notifyKind (clash | tournament | live) and never
-// allow @everyone / @here even if the body text contains them.
+// allow @everyone / @here even if the body text contains them. Routes through
+// buildNotifyPing so the "Fuck it ping me" catch-all role is included on every
+// dashboard announcement, exactly like the scheduler/listeners paths.
 function buildSendOpts(guild, notifyKind, embed) {
-  var mention = '';
-  var allowedRoleIds = [];
-  if (notifyKind && NOTIFY_KINDS[notifyKind]) {
-    mention = mentionFor(guild, notifyKind);
-    if (mention) {
-      var idMatch = mention.match(/<@&(\d+)>/);
-      if (idMatch) allowedRoleIds.push(idMatch[1]);
-    }
-  }
+  var ping = (notifyKind && NOTIFY_KINDS[notifyKind]) ? buildNotifyPing(guild, notifyKind) : { content: '', roleIds: [] };
   return {
-    content: mention || undefined,
+    content: ping.content || undefined,
     embeds: [embed],
-    allowedMentions: { roles: allowedRoleIds, parse: [] },
+    allowedMentions: { roles: ping.roleIds, parse: [] },
   };
 }
 

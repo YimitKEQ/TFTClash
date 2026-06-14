@@ -70,7 +70,7 @@ client.once(Events.ClientReady, function(c) {
       if (!res.ok) {
         console.warn('[notifyRoles] startup not OK — hierarchy=' + res.hierarchyOk + ' manage=' + res.manageOk + '. Reactions will still register but role grants may fail until fixed.');
       } else {
-        console.log('[notifyRoles] all 4 managed roles present, hierarchy OK');
+        console.log('[notifyRoles] all ' + Object.keys(res.roles || {}).length + ' managed roles present, hierarchy OK');
       }
       // Hydrate panel cache so reaction events fire after restart.
       hydratePanel(client).then(function(h) {
