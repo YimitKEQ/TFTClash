@@ -32,13 +32,17 @@ export async function execute(interaction) {
   var sub = interaction.options.getSubcommand();
   var member = interaction.member;
   if (sub === 'list') {
-    var lines = ['**Available notification kinds:**'];
+    var hasRole = function(name) {
+      return !!(member && member.roles && member.roles.cache.find(function(r) { return r.name === name; }));
+    };
+    var lines = ['**Notification kinds** (✅ = you are subscribed):'];
     Object.keys(NOTIFY_KINDS).forEach(function(k) {
       var d = NOTIFY_KINDS[k];
-      lines.push(d.emoji + '  **' + d.label + '** — ' + d.desc);
+      var on = hasRole(d.roleName);
+      lines.push((on ? '✅' : d.emoji) + '  **' + d.label + '** — ' + d.desc);
     });
     lines.push('');
-    lines.push('Use `/notify subscribe kind:<name>` to opt in, or react in #notifications.');
+    lines.push('Use `/notify subscribe kind:<name>` to opt in, `/notify unsubscribe` to opt out, or react in the roles channel.');
     return interaction.reply({ content: lines.join('\n'), ephemeral: true });
   }
   var kind = interaction.options.getString('kind');

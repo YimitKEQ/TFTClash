@@ -17,14 +17,20 @@ export var NOTIFY_KINDS = Object.freeze({
   clash:      { roleName: 'Clash Notify',      emoji: '\u2694\uFE0F', label: 'Clash Notify',      desc: 'Season clash open / live / reminders' },
   tournament: { roleName: 'Tournament Notify', emoji: '\uD83C\uDFC6', label: 'Tournament Notify', desc: 'Custom tournament open / start' },
   live:       { roleName: 'Live Updates',      emoji: '\uD83D\uDD34', label: 'Live Updates',      desc: 'Live game-by-game results (coming soon)' },
+  all:        { roleName: 'Fuck it ping me',   emoji: '\uD83D\uDD14', label: 'Fuck it ping me',   desc: 'Ping me for EVERYTHING - clash, tournament, live, reminders' },
 });
 
 export var PRE_GAME_ROLE = 'Pre-Game';
+
+// The catch-all kind. Anyone holding this role is mentioned on every notify
+// send, regardless of which specific kind fired.
+export var ALL_KIND = 'all';
 
 var ROLE_COLOR = {
   'Clash Notify':      0x4ECDC4,
   'Tournament Notify': 0xE8A838,
   'Live Updates':      0xC0392B,
+  'Fuck it ping me':   0xFF4D4D,
   'Pre-Game':          0x9B72CF,
 };
 
@@ -61,11 +67,12 @@ export async function ensureNotifyRoles(guild) {
   var clash      = await ensureRole(guild, NOTIFY_KINDS.clash.roleName);
   var tournament = await ensureRole(guild, NOTIFY_KINDS.tournament.roleName);
   var live       = await ensureRole(guild, NOTIFY_KINDS.live.roleName);
+  var all        = await ensureRole(guild, NOTIFY_KINDS.all.roleName);
   var preGame    = await ensureRole(guild, PRE_GAME_ROLE);
 
   var me = guild.members.me;
   var botTop = me ? me.roles.highest.position : 0;
-  var managed = [clash, tournament, live, preGame].filter(Boolean);
+  var managed = [clash, tournament, live, all, preGame].filter(Boolean);
   var blocking = managed.filter(function(r) { return r.position >= botTop; });
   var hierarchyOk = blocking.length === 0;
   if (!hierarchyOk) {
@@ -75,11 +82,31 @@ export async function ensureNotifyRoles(guild) {
   if (!manageOk) console.warn('[notifyRoles] bot is missing ManageRoles permission');
 
   return {
-    ok: !!(clash && tournament && live && preGame) && hierarchyOk && manageOk,
-    roles: { clash: clash, tournament: tournament, live: live, preGame: preGame },
+    ok: !!(clash && tournament && live && all && preGame) && hierarchyOk && manageOk,
+    roles: { clash: clash, tournament: tournament, live: live, all: all, preGame: preGame },
     hierarchyOk: hierarchyOk,
     manageOk: !!manageOk,
   };
+}
+
+/**
+ * Build the ping payload for a notify send: combines the specific kind's role
+ * mention with the catch-all "Fuck it ping me" role so a single opt-in covers
+ * everything. Returns { content, roleIds } — content is the space-joined
+ * mention string (or ''), roleIds is the deduped list for allowedMentions.
+ */
+export function buildNotifyPing(guild, kind) {
+  if (!guild) return { content: '', roleIds: [] };
+  var parts = [];
+  var ids = [];
+  var def = NOTIFY_KINDS[kind];
+  if (def) {
+    var r = findRole(guild, def.roleName);
+    if (r) { parts.push('<@&' + r.id + '>'); ids.push(r.id); }
+  }
+  var allRole = findRole(guild, NOTIFY_KINDS.all.roleName);
+  if (allRole && ids.indexOf(allRole.id) < 0) { parts.push('<@&' + allRole.id + '>'); ids.push(allRole.id); }
+  return { content: parts.join(' '), roleIds: ids };
 }
 
 /**

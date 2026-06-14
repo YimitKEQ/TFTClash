@@ -20,7 +20,7 @@ import {
   findTournamentRole,
 } from './utils/tournamentRoles.js';
 import { resolveChannel } from './utils/channels.js';
-import { mentionFor, sweepPreGameRole } from './utils/notifyRoles.js';
+import { mentionFor, sweepPreGameRole, buildNotifyPing } from './utils/notifyRoles.js';
 import { sendCheckinNudge, clearCheckinNudge } from './utils/checkinNudge.js';
 import { promoteNextStandby } from './utils/standby.js';
 
@@ -83,16 +83,16 @@ export function startListeners(client) {
         const schedCh = ch('clash-schedule');
         const annCh = ch('announcements');
 
-        var clashMention = mentionFor(guild(), 'clash');
+        // Opt-in only: ping Clash Notify + the "Fuck it ping me" catch-all on
+        // registration + inprogress. Checkin gets no mention (channel post only) —
+        // registered players already get a DM nudge via checkinNudge.js.
+        var ping = buildNotifyPing(guild(), 'clash');
+        var shouldPing = (val.phase === 'registration' || val.phase === 'inprogress');
         if (schedCh) {
-          // Opt-in only: ping Clash Notify role on registration + inprogress.
-          // Checkin gets no mention (channel post only) — registered players
-          // already get a DM nudge via checkinNudge.js.
-          var schedPing = (val.phase === 'registration' || val.phase === 'inprogress') ? (clashMention + ' ') : '';
-          await schedCh.send({ content: schedPing || undefined, embeds: [embed], allowedMentions: { roles: clashMention ? [clashMention.replace(/[<@&>]/g, '')] : [] } });
+          await schedCh.send({ content: (shouldPing && ping.content) ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: shouldPing ? ping.roleIds : [] } });
         }
-        if (annCh && (val.phase === 'registration' || val.phase === 'inprogress')) {
-          await annCh.send({ content: clashMention ? (clashMention + ' ') : undefined, embeds: [embed], allowedMentions: { roles: clashMention ? [clashMention.replace(/[<@&>]/g, '')] : [] } });
+        if (annCh && shouldPing) {
+          await annCh.send({ content: ping.content ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: ping.roleIds } });
         }
         if (val.phase === 'complete') {
           sweepPreGameRole(guild()).catch(function(e) { console.warn('[listener] Pre-Game sweep failed: ' + ((e && e.message) || e)); });
