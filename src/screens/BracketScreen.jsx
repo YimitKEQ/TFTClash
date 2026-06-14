@@ -1156,6 +1156,25 @@ function BracketScreen(){
           </div>
         ):null)}
 
+        {/* Admin next-step hint */}
+        {isAdmin&&isLive&&(
+          <div className="mb-6 rounded-lg border border-secondary/25 bg-secondary/5 px-4 py-2.5 flex items-center gap-3 flex-wrap">
+            <Icon name="bolt" size={16} className="text-secondary flex-shrink-0" />
+            <span className="text-[10px] font-label tracking-widest uppercase text-secondary/80">Next step</span>
+            <span className="text-xs text-on-surface-variant/85 font-mono">
+              {isCheckmate&&checkmateWinner
+                ? ("Champion detected - click \"Crown " + (checkmateWinnerPlayer?checkmateWinnerPlayer.name:"Winner") + "\" to finalize")
+                : !allLocked
+                  ? ("Enter results, then lock every lobby (" + (lockedLobbies||[]).length + "/" + lobbies.length + " locked)")
+                  : (isCheckmate&&lobbies.length===1)
+                    ? "All locked - play the next finals game, or finalize once someone clinches"
+                    : round>=(tournamentState.totalGames||4)
+                      ? "All locked - finalize the clash to post results"
+                      : ("All locked - advance to Game " + (round+1))}
+            </span>
+          </div>
+        )}
+
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
