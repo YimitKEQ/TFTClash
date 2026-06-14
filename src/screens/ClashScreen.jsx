@@ -1508,7 +1508,11 @@ function BracketScreen(props) {
         if (place > 0) gameRows.push({ tournament_id: dbTid, round_number: round, player_id: p.id, placement: place, points: PTS[place] || 0, is_dnp: false, game_number: round });
       });
       if (gameRows.length > 0) {
-        supabase.from('game_results').insert(gameRows).then(function(res) {
+        // Upsert (not insert) on the mig-052 unique key so re-locking a lobby to
+        // CORRECT a mistake overwrites the prior row instead of hitting the unique
+        // constraint and silently failing. The refresh_player_stats trigger then
+        // recalculates cleanly with no double-count.
+        supabase.from('game_results').upsert(gameRows, { onConflict: 'tournament_id,game_number,player_id' }).then(function(res) {
           if (res.error) { toast("Failed to save game results", "error"); }
           else {
             // DB trigger refresh_player_stats handles authoritative stat update
@@ -1552,7 +1556,7 @@ function BracketScreen(props) {
         game_number: round
       };
     });
-    supabase.from('game_results').insert(gameRows).then(function(res) {
+    supabase.from('game_results').upsert(gameRows, { onConflict: 'tournament_id,game_number,player_id' }).then(function(res) {
       if (res.error) { toast('Failed to save results: ' + res.error.message, 'error'); return; }
 
       // DB trigger refresh_player_stats handles authoritative stat update

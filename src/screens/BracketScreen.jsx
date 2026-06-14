@@ -504,9 +504,16 @@ function BracketScreen(){
     return rangeValid&&unique;
   }
 
+  var lockingRef=useRef({});
   function applyGameResults(li){
     var lobby=lobbies[li];
     if(!placementEntry[li])return;
+    // Guard against a fast double-click locking the same lobby twice (which would
+    // append a duplicate clashHistory entry and inflate local points until reload).
+    // The DB upsert is already idempotent; this keeps optimistic local state honest.
+    if(lockingRef.current[li]||(lockedLobbies||[]).indexOf(li)>=0)return;
+    lockingRef.current[li]=true;
+    setTimeout(function(){delete lockingRef.current[li];},2000);
     var placements={};
     lobby.forEach(function(p){placements[p.id]=parseInt(placementEntry[li].placements[p.id]||"0");});
     var allClashIds=pastClashes.map(function(c){return "c"+c.id;});

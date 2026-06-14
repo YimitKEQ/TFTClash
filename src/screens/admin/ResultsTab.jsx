@@ -132,6 +132,28 @@ export default function ResultsTab() {
       }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e) })
     }
 
+    // Capture the pre-override placements so the audit log records exactly what
+    // changed (old -> new) when correcting a mistake, not just "overridden".
+    function logDeltas() {
+      if (!isPublished || !tId) return
+      var pids = lobbyPlayers.map(function(p) { return p.id })
+      supabase.from('game_results')
+        .select('player_id, placement')
+        .eq('tournament_id', tId).eq('game_number', lobby).in('player_id', pids)
+        .then(function(old) {
+          if (old.error || !old.data) return
+          var oldMap = {}
+          old.data.forEach(function(o) { oldMap[o.player_id] = o.placement })
+          var changes = rows.filter(function(rw) { return oldMap[rw.player_id] != null && oldMap[rw.player_id] !== rw.placement })
+            .map(function(rw) {
+              var pl = lobbyPlayers.find(function(p) { return p.id === rw.player_id })
+              return (pl ? pl.name : rw.player_id) + ' ' + oldMap[rw.player_id] + '->' + rw.placement
+            })
+          if (changes.length) addAudit('CORRECTION', 'Lobby ' + lobby + ' placement fix: ' + changes.join(', '))
+        }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e) })
+    }
+    if (isPublished) logDeltas()
+
     // Atomic upsert on (tournament_id, game_number, player_id). The previous
     // delete-then-insert pair could orphan a lobby if insert failed after delete
     // succeeded (refresh_player_stats trigger then recalculates with a hole).

@@ -88,6 +88,18 @@ export async function execute(interaction) {
 
   var currentRound = ts.round || 1;
 
+  // Was there a prior submission this round? Used to give clear "updated" feedback
+  // so a player who mis-tapped knows their correction landed (re-running /submit
+  // simply overwrites the previous value via the unique key below).
+  var priorRes = await supabase
+    .from('pending_results')
+    .select('placement, status')
+    .eq('tournament_id', tournamentId)
+    .eq('round', currentRound)
+    .eq('player_id', player.id)
+    .maybeSingle();
+  var prior = (priorRes && priorRes.data) || null;
+
   // Upsert into pending_results. Unique key: (tournament_id, round, player_id).
   var upsertRes = await supabase
     .from('pending_results')
@@ -106,5 +118,11 @@ export async function execute(interaction) {
     return interaction.editReply('Failed to submit placement. Try again or submit on the website.');
   }
 
-  return interaction.editReply('Submitted placement **' + placement + '** for Round ' + currentRound + '. An admin will verify shortly.');
+  if (prior && prior.placement === placement) {
+    return interaction.editReply('You already submitted **' + placement + '** for Game ' + currentRound + ' (Lobby ' + lobbyNumber + '). Nothing changed. Run `/submit` again with a different number to fix it.');
+  }
+  if (prior) {
+    return interaction.editReply('Updated your Game ' + currentRound + ' placement: **' + prior.placement + ' -> ' + placement + '** (Lobby ' + lobbyNumber + '). Made a mistake? Just run `/submit` again.');
+  }
+  return interaction.editReply('Submitted placement **' + placement + '** for Game ' + currentRound + ' (Lobby ' + lobbyNumber + '). Mis-tapped? Run `/submit` again to correct it. An admin will verify.');
 }
