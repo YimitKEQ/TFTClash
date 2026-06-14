@@ -16,6 +16,9 @@ import {
   advanceCountAfterGame,
   ladderCutsAfterGame,
   applyLadderCut,
+  checkCheckmateWinner,
+  checkmateProgress,
+  FINALS_CHECK_DEFAULT_THRESHOLD,
   TOURNAMENT_FORMATS
 } from '../tournament.js';
 
@@ -274,4 +277,105 @@ test('scoreLobbyGame: dispatches by pointsScale', function () {
 
   var solo = scoreLobbyGame({ pointsScale: 'standard' }); // no playerPlacements
   assert.deepEqual(solo, []);
+});
+
+// ─── FINALS CHECKMATE MODE ───────────────────────────────────────────────────
+// Build a finals row. points falls back to PTS[placement] inside the engine.
+function fr(playerId, gameNumber, placement, points) {
+  var o = { player_id: playerId, game_number: gameNumber, placement: placement };
+  if (points != null) o.points = points;
+  return o;
+}
+
+test('checkmate: default threshold constant is 20', function () {
+  assert.equal(FINALS_CHECK_DEFAULT_THRESHOLD, 20);
+});
+
+test('checkmate: no winner while everyone is below threshold', function () {
+  // Two finals games. Best cumulative is A with 8+7=15 (< 20). No champion.
+  var rows = [
+    fr('A', 1, 1, 8), fr('B', 1, 2, 7),
+    fr('A', 2, 2, 7), fr('B', 2, 1, 8)
+  ];
+  assert.equal(checkCheckmateWinner(rows, 20), null);
+});
+
+test('checkmate: winner is the 1st-place finisher who reaches threshold on the winning game', function () {
+  // A wins G1 (8) and G2 (8) -> 16, then wins G3 (8) -> 24 >= 20 AND placed 1st.
+  var rows = [
+    fr('A', 1, 1, 8), fr('B', 1, 2, 7),
+    fr('A', 2, 1, 8), fr('B', 2, 2, 7),
+    fr('A', 3, 1, 8), fr('B', 3, 2, 7)
+  ];
+  var w = checkCheckmateWinner(rows, 20);
+  assert.equal(w.winnerId, 'A');
+  assert.equal(w.winningGame, 3);
+  assert.equal(w.points, 24);
+});
+
+test('checkmate: being over threshold without a 1st does NOT win', function () {
+  // A is at 21 after two 2nds+ but never places 1st; B keeps winning but is low.
+  // A: G1 2nd(7), G2 1st(8), G3 2nd(7) -> after G2 A has 15 (1st) <20; after G3 A=22 but 2nd.
+  // B: G1 1st(8), G2 2nd(7), G3 1st(8) -> after G3 B=23 AND placed 1st -> B wins on G3.
+  var rows = [
+    fr('A', 1, 2, 7), fr('B', 1, 1, 8),
+    fr('A', 2, 1, 8), fr('B', 2, 2, 7),
+    fr('A', 3, 2, 7), fr('B', 3, 1, 8)
+  ];
+  var w = checkCheckmateWinner(rows, 20);
+  assert.equal(w.winnerId, 'B');
+  assert.equal(w.winningGame, 3);
+});
+
+test('checkmate: earliest qualifying game wins even if a later game also qualifies', function () {
+  // A clinches on G3 (24). Even though more rows exist for G4, the engine
+  // returns the FIRST qualifying game.
+  var rows = [
+    fr('A', 1, 1, 8), fr('A', 2, 1, 8), fr('A', 3, 1, 8), fr('A', 4, 1, 8),
+    fr('Z', 1, 2, 7), fr('Z', 2, 2, 7), fr('Z', 3, 2, 7), fr('Z', 4, 2, 7)
+  ];
+  var w = checkCheckmateWinner(rows, 20);
+  assert.equal(w.winningGame, 3);
+});
+
+test('checkmate: rows out of game order still resolve to the correct game', function () {
+  // Shuffle input order; engine sorts by game_number internally.
+  var rows = [
+    fr('A', 3, 1, 8), fr('A', 1, 1, 8), fr('A', 2, 1, 8)
+  ];
+  var w = checkCheckmateWinner(rows, 20);
+  assert.equal(w.winnerId, 'A');
+  assert.equal(w.winningGame, 3);
+});
+
+test('checkmate: points fall back to PTS[placement] when omitted', function () {
+  // No explicit points; 1st=8 each game. After 3 wins A=24 >= 20.
+  var rows = [ fr('A', 1, 1), fr('A', 2, 1), fr('A', 3, 1) ];
+  var w = checkCheckmateWinner(rows, 20);
+  assert.equal(w.winnerId, 'A');
+  assert.equal(w.points, 24);
+});
+
+test('checkmate: custom threshold respected', function () {
+  // Threshold 8: A wins on the very first game (8 >= 8).
+  var rows = [ fr('A', 1, 1, 8), fr('B', 1, 2, 7) ];
+  var w = checkCheckmateWinner(rows, 8);
+  assert.equal(w.winnerId, 'A');
+  assert.equal(w.winningGame, 1);
+});
+
+test('checkmate: empty / nullish input returns null', function () {
+  assert.equal(checkCheckmateWinner([], 20), null);
+  assert.equal(checkCheckmateWinner(null, 20), null);
+  assert.equal(checkCheckmateWinner(undefined), null);
+});
+
+test('checkmateProgress: sums cumulative finals points per player', function () {
+  var rows = [
+    fr('A', 1, 1, 8), fr('B', 1, 2, 7),
+    fr('A', 2, 3, 6), fr('B', 2, 1, 8)
+  ];
+  var prog = checkmateProgress(rows);
+  assert.equal(prog['A'], 14);
+  assert.equal(prog['B'], 15);
 });

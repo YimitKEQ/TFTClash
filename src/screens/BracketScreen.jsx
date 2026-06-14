@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
-import { applyCutLine, applyLadderCut, advanceCountAfterGame, ladderCutsAfterGame } from '../lib/tournament.js'
+import { applyCutLine, applyLadderCut, advanceCountAfterGame, ladderCutsAfterGame, checkCheckmateWinner, checkmateProgress, FINALS_CHECK_DEFAULT_THRESHOLD } from '../lib/tournament.js'
 import { sfxLock, sfxAdvance, sfxWin, sfxFinalTick, sfxTick } from '../lib/audio.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
 import { Panel, Btn, Inp, Sel } from '../components/ui'
@@ -376,6 +376,49 @@ function BracketScreen(){
     return computeLobbies();
   },[tournamentState&&tournamentState.savedLobbies,checkedIn,round]);
 
+  // ── FINALS "CHECKMATE" MODE (opt-in; standard clashes skip all of this) ──────
+  // In checkmate the Top-8 finals lobby keeps playing until a player wins a game
+  // while sitting at/over the threshold in finals points. finalsStartRound marks
+  // the first round at the Top-8 single lobby so only finals games count.
+  var finalsMode=(tournamentState&&tournamentState.finalsMode)||'standard';
+  var isCheckmate=finalsMode==='checkmate';
+  var finalsThreshold=(tournamentState&&tournamentState.finalsThreshold)?tournamentState.finalsThreshold:FINALS_CHECK_DEFAULT_THRESHOLD;
+  var finalsStartRound=(tournamentState&&tournamentState.finalsStartRound)||0;
+
+  useEffect(function(){
+    if(!isCheckmate||!isAdmin)return;
+    if(finalsStartRound>0)return;
+    if(lobbies.length===1&&checkedIn.length<=8&&checkedIn.length>0){
+      setTournamentState(function(ts){return Object.assign({},ts,{finalsStartRound:ts.round||round});});
+    }
+  },[isCheckmate,isAdmin,finalsStartRound,lobbies.length,checkedIn.length,round]);
+
+  var checkmate=useMemo(function(){
+    if(!isCheckmate)return {winner:null,progress:{}};
+    var startR=finalsStartRound>0?finalsStartRound:round;
+    var rows=[];
+    checkedIn.forEach(function(p){
+      (p.clashHistory||[]).forEach(function(h){
+        if(h.clashId!==currentClashId)return;
+        if((h.round||0)<startR)return;
+        rows.push({player_id:p.id,game_number:h.round,placement:(h.place||h.placement)||9,points:(h.pts||0)});
+      });
+    });
+    return {winner:checkCheckmateWinner(rows,finalsThreshold),progress:checkmateProgress(rows)};
+  },[isCheckmate,finalsStartRound,round,checkedIn,currentClashId,finalsThreshold]);
+
+  var checkmateWinner=checkmate.winner;
+  var checkmateWinnerPlayer=checkmateWinner?checkedIn.find(function(p){return p.id===checkmateWinner.winnerId;}):null;
+
+  var checkmateSfxRef=useRef(null);
+  useEffect(function(){
+    if(checkmateWinner&&checkmateSfxRef.current!==checkmateWinner.winnerId){
+      checkmateSfxRef.current=checkmateWinner.winnerId;
+      sfxWin();
+    }
+    if(!checkmateWinner)checkmateSfxRef.current=null;
+  },[checkmateWinner]);
+
   // Load existing player_reports from DB on mount
   useEffect(function(){
     if(!supabase.from||!tournamentState.dbTournamentId)return;
@@ -702,7 +745,11 @@ function BracketScreen(){
   // never silently skipped. No-ops on the final round (finalize is handled separately).
   function performRoundAdvance(isAuto){
     var maxRounds=tournamentState.totalGames||4;
-    if(round>=maxRounds)return;
+    // Checkmate finals are open-ended: keep playing the Top-8 lobby past the
+    // nominal game count until someone clinches. Everywhere else, no-op on the
+    // final round (finalize is handled separately).
+    var checkmateExtend=isCheckmate&&!checkmateWinner&&lobbies.length===1;
+    if(round>=maxRounds&&!checkmateExtend)return;
     var nextRound=round+1;
     var cutMode=tournamentState.cutMode||"threshold";
     var cutL=tournamentState.cutLine||0;
@@ -774,7 +821,11 @@ function BracketScreen(){
       newRoundLobbies[round]=currentLobbies.map(function(lobby){
         return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});
       });
-      return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies});
+      var patch={round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies};
+      // Extending the checkmate finals past the nominal count: keep the display
+      // (Game X of Y) honest by growing totalGames to match.
+      if(checkmateExtend&&nextRound>(ts.totalGames||0))patch.totalGames=nextRound;
+      return Object.assign({},ts,patch);
     });
     if(isAuto)sfxAdvance();
     toast((isAuto?"Auto-advanced to Game ":"Advanced to Game ")+nextRound+cutMsg,"success");
@@ -821,7 +872,7 @@ function BracketScreen(){
     toast("Auto-advance cancelled","info");
   }
 
-  function saveResultsToSupabase(allPlayers,clashId){
+  function saveResultsToSupabase(allPlayers,clashId,forceWinnerId){
     if(!supabase.from)return;
     var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
     var doSave=function(tId){
@@ -854,10 +905,18 @@ function BracketScreen(){
         if(a._placeSum!==b._placeSum)return a._placeSum-b._placeSum;
         return a._lastPlacement-b._lastPlacement;
       });
+      // Checkmate finals: the champion is whoever clinched the win, not whoever
+      // has the most total points. Pin them to the front and rank strictly so
+      // they take 1st regardless of the points tiebreaker chain.
+      var forceWinner=forceWinnerId?ranked.find(function(r){return r.player_id===forceWinnerId;}):null;
+      if(forceWinner){
+        ranked=[forceWinner].concat(ranked.filter(function(r){return r.player_id!==forceWinnerId;}));
+      }
       function tieKey(r){return [r.total_points,(r.wins*2)+r.top4_count,r.wins,r.top4_count,-r._placeSum,-r._lastPlacement].join('|');}
       var lastKey=null;
       var lastRank=0;
       var rows=ranked.map(function(r,idx){
+        if(forceWinner)return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:idx+1};
         var k=tieKey(r);
         if(k!==lastKey){lastRank=idx+1;lastKey=k;}
         return {tournament_id:r.tournament_id,player_id:r.player_id,total_points:r.total_points,wins:r.wins,top4_count:r.top4_count,final_placement:lastRank};
@@ -1022,9 +1081,9 @@ function BracketScreen(){
                 <button
                   onClick={function(){
                     setShowFinalizeConfirm(false);
-                    saveResultsToSupabase(playersRef.current,currentClashId);
+                    saveResultsToSupabase(playersRef.current,currentClashId,checkmateWinner?checkmateWinner.winnerId:null);
                     setTournamentState(function(ts){return Object.assign({},ts,{phase:"complete",lockedLobbies:[],savedLobbies:[]});});
-                    toast("Clash complete! View results","success");
+                    toast(checkmateWinnerPlayer?("Checkmate! "+checkmateWinnerPlayer.name+" is champion"):"Clash complete! View results","success");
                   }}
                   className="px-5 py-2.5 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
                   Finalize Clash
@@ -1033,6 +1092,28 @@ function BracketScreen(){
             </div>
           </div>
         )}
+
+        {/* Checkmate finals banner */}
+        {isCheckmate&&isLive&&(checkmateWinner?(
+          <div className="mb-6 rounded-xl border border-primary/40 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent px-5 py-4 flex items-center gap-4">
+            <Icon name="military_tech" size={32} fill className="text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-xl md:text-2xl text-primary uppercase tracking-tight truncate">
+                {"Checkmate · " + (checkmateWinnerPlayer?checkmateWinnerPlayer.name:"Winner") + " takes it"}
+              </div>
+              <div className="text-xs text-on-surface-variant/80 font-mono">
+                {"Won game " + checkmateWinner.winningGame + " at " + checkmateWinner.points + " finals pts (threshold " + finalsThreshold + "). " + (isAdmin?"Click Crown · Finalize to lock it in.":"Awaiting host to finalize.")}
+              </div>
+            </div>
+          </div>
+        ):lobbies.length===1?(
+          <div className="mb-6 rounded-xl border border-tertiary/30 bg-tertiary/5 px-5 py-3 flex items-center gap-3">
+            <Icon name="swords" size={20} className="text-tertiary flex-shrink-0" />
+            <div className="text-xs md:text-sm text-on-surface-variant/85 font-mono">
+              {"Checkmate finals — first to WIN a game at " + finalsThreshold + "+ finals points is champion. Keep playing until someone clinches."}
+            </div>
+          </div>
+        ):null)}
 
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -1073,14 +1154,22 @@ function BracketScreen(){
                 Prev Round
               </button>
               <button
-                disabled={!allLocked}
+                disabled={!allLocked&&!(isCheckmate&&checkmateWinner)}
                 onClick={function(){
                   var maxRounds=tournamentState.totalGames||4;
-                  if(round>=maxRounds){setShowFinalizeConfirm(true);}
+                  // Checkmate: a clinched winner -> finalize; otherwise keep
+                  // playing finals games even past the nominal count.
+                  if(isCheckmate&&checkmateWinner){setShowFinalizeConfirm(true);}
+                  else if(isCheckmate&&lobbies.length===1){performRoundAdvance(false);}
+                  else if(round>=maxRounds){setShowFinalizeConfirm(true);}
                   else{performRoundAdvance(false);}
                 }}
                 className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold font-label uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110">
-                {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game"}
+                {isCheckmate&&checkmateWinner
+                  ?("Crown "+(checkmateWinnerPlayer?checkmateWinnerPlayer.name:"Winner")+" · Finalize")
+                  :isCheckmate&&lobbies.length===1
+                    ?"Next Finals Game"
+                    :round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game"}
               </button>
               {allLocked&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames&&(
                 <button

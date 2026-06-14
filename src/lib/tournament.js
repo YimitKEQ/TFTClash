@@ -493,6 +493,73 @@ export function applyLadderCut(sortedStandings, advanceCount) {
   };
 }
 
+// ─── FINALS "CHECKMATE" VICTORY MODE ─────────────────────────────────────────
+//
+// An optional finals format for the Top-8 final lobby. Instead of the title
+// being decided by total points after a fixed number of games, the finals lobby
+// keeps playing games and points accumulate. A player wins the tournament the
+// moment they place 1st in a finals game while their cumulative finals points
+// (including that winning game) are at or above the threshold (default 20).
+//
+// In TFT this is commonly called the "Checkmate" format: reach the threshold,
+// then close it out with a win. It only ever applies to the final lobby and is
+// fully opt-in (finalsMode === 'checkmate'); standard clashes are untouched.
+export var FINALS_CHECK_DEFAULT_THRESHOLD = 20;
+
+// Evaluate a checkmate finals from its per-game results.
+//   finalsResults: array of { player_id, game_number, placement, points? }
+//     covering ONLY the finals games (caller filters to game_number >= finals
+//     start). `points` is optional; falls back to PTS[placement].
+//   threshold: points needed to be "on checkmate" (default 20).
+// Games are evaluated in ascending game_number order; the FIRST game whose
+// 1st-place finisher has cumulative-through-that-game points >= threshold
+// decides the champion. Pure: returns a new object, mutates nothing.
+// Returns { winnerId, winningGame, points } or null if no champion yet.
+export function checkCheckmateWinner(finalsResults, threshold) {
+  threshold = (threshold == null) ? FINALS_CHECK_DEFAULT_THRESHOLD : threshold;
+  var rows = Array.isArray(finalsResults) ? finalsResults : [];
+  if (rows.length === 0) return null;
+
+  // Group rows by game so we can walk games in order and find each game winner.
+  var byGame = {};
+  rows.forEach(function(r) {
+    if (r == null || r.player_id == null || r.game_number == null) return;
+    var gn = r.game_number;
+    if (!byGame[gn]) byGame[gn] = [];
+    byGame[gn].push(r);
+  });
+  var gameNums = Object.keys(byGame).map(Number).sort(function(a, b) { return a - b; });
+
+  var cumulative = {};
+  for (var i = 0; i < gameNums.length; i++) {
+    var gn2 = gameNums[i];
+    var winnerOfGame = null;
+    byGame[gn2].forEach(function(r) {
+      var pts = (r.points != null) ? r.points : (PTS[r.placement] || 0);
+      cumulative[r.player_id] = (cumulative[r.player_id] || 0) + pts;
+      if (r.placement === 1) winnerOfGame = r.player_id;
+    });
+    if (winnerOfGame != null && (cumulative[winnerOfGame] || 0) >= threshold) {
+      return { winnerId: winnerOfGame, winningGame: gn2, points: cumulative[winnerOfGame] };
+    }
+  }
+  return null;
+}
+
+// Cumulative finals points per player (sum across all finals games). Useful for
+// showing live progress toward the checkmate threshold. Returns a plain map
+// { player_id: points }. Pure.
+export function checkmateProgress(finalsResults) {
+  var rows = Array.isArray(finalsResults) ? finalsResults : [];
+  var out = {};
+  rows.forEach(function(r) {
+    if (r == null || r.player_id == null) return;
+    var pts = (r.points != null) ? r.points : (PTS[r.placement] || 0);
+    out[r.player_id] = (out[r.player_id] || 0) + pts;
+  });
+  return out;
+}
+
 // Cut line: determine which players advance after N games
 export function applyCutLine(playerStandings, cutLine, cutAfterGame) {
   if (!cutLine || cutLine <= 0) return {advancing: playerStandings, eliminated: []};

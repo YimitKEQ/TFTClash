@@ -104,7 +104,7 @@ export default function TournamentTab() {
   var opening = _opening[0]
   var setOpening = _opening[1]
 
-  var _roundConfig = useState({ maxPlayers: '24', roundCount: '3', checkinWindowMins: '30', cutLine: '0', cutAfterGame: '0', cutMode: 'threshold' })
+  var _roundConfig = useState({ maxPlayers: '24', roundCount: '3', checkinWindowMins: '30', cutLine: '0', cutAfterGame: '0', cutMode: 'threshold', finalsMode: 'standard', finalsThreshold: '20' })
   var roundConfig = _roundConfig[0]
   var setRoundConfig = _roundConfig[1]
 
@@ -147,7 +147,9 @@ export default function TournamentTab() {
         roundCount: String(t.totalGames || t.roundCount || c.roundCount),
         cutLine: String(t.cutLine != null ? t.cutLine : c.cutLine),
         cutAfterGame: String(t.cutAfterGame != null ? t.cutAfterGame : c.cutAfterGame),
-        cutMode: t.cutMode || c.cutMode
+        cutMode: t.cutMode || c.cutMode,
+        finalsMode: t.finalsMode || c.finalsMode || 'standard',
+        finalsThreshold: String(t.finalsThreshold != null && t.finalsThreshold > 0 ? t.finalsThreshold : c.finalsThreshold)
       })
     })
     if (t.seedingMethod) setSeedAlgo(t.seedingMethod)
@@ -484,6 +486,11 @@ export default function TournamentTab() {
       var rounds = roundsCheck
       var cutLine = cutLineCheck
       var cutAfterGame = cutAfterGameCheck
+      // Finals "Checkmate" mode: the Top-8 final lobby keeps playing until a
+      // player wins a game while at/over the threshold. Opt-in; standard clashes
+      // leave finalsMode === 'standard' and behave exactly as before.
+      var finalsMode = roundConfig.finalsMode === 'checkmate' ? 'checkmate' : 'standard'
+      var finalsThreshold = finalsMode === 'checkmate' ? (parseInt(roundConfig.finalsThreshold) || 20) : 0
       var checkinMins = parseInt(roundConfig.checkinWindowMins) || 30
       if (checkinMins < 1 || checkinMins > 1440) { toast('Check-in window must be 1-1440 minutes', 'error'); setOpening(false); return }
       var prizePool = buildPrizePool(clashForm.prizeRows)
@@ -528,6 +535,8 @@ export default function TournamentTab() {
             cutAfterGame: cutAfterGame,
             cutMode: ladderMode ? 'ladder' : 'threshold',
             ladderStartSize: ladderMode ? maxP : 0,
+            finalsMode: finalsMode,
+            finalsThreshold: finalsThreshold,
             checkinWindowMins: checkinMins,
             formatPreset: formatPreset,
             seedingMethod: seedAlgo || 'rank-based',
@@ -1142,6 +1151,28 @@ export default function TournamentTab() {
             </Sel>
           </div>
         </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-3 pt-3 border-t border-outline-variant/10">
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Finals Mode</label>
+            <Sel value={roundConfig.finalsMode || 'standard'} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setRoundConfig(Object.assign({}, roundConfig, { finalsMode: val })); setFormatPreset('custom') }}>
+              <option value="standard">Standard (points decide)</option>
+              <option value="checkmate">Checkmate (win while at threshold)</option>
+            </Sel>
+          </div>
+          {roundConfig.finalsMode === 'checkmate' && (
+            <div>
+              <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Checkmate Points</label>
+              <Inp type="number" min="1" step="1" value={roundConfig.finalsThreshold} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { finalsThreshold: typeof v === 'string' ? v : v.target.value })) }} />
+            </div>
+          )}
+          {roundConfig.finalsMode === 'checkmate' && (
+            <div className="col-span-2 text-[10px] text-tertiary/90 font-mono leading-relaxed">
+              {'Top-8 finals keep playing until someone WINS a game while at ' + (parseInt(roundConfig.finalsThreshold) || 20) + '+ finals points. First to do so is champion.'}
+            </div>
+          )}
+        </div>
+
         <Btn variant="secondary" size="sm" onClick={function() {
           var ladderMode = roundConfig.cutMode === 'ladder'
           var maxP = parseInt(roundConfig.maxPlayers) || 24
@@ -1149,6 +1180,8 @@ export default function TournamentTab() {
           if (games < 1 || games > 20) { toast('Games per clash must be between 1 and 20', 'error'); return }
           var cl = ladderMode ? 0 : (parseInt(roundConfig.cutLine) || 0)
           var cag = ladderMode ? 0 : (parseInt(roundConfig.cutAfterGame) || 0)
+          var fMode = roundConfig.finalsMode === 'checkmate' ? 'checkmate' : 'standard'
+          var fThresh = fMode === 'checkmate' ? (parseInt(roundConfig.finalsThreshold) || 20) : 0
           setTournamentState(function(s) {
             return Object.assign({}, s, {
               maxPlayers: maxP,
@@ -1158,6 +1191,8 @@ export default function TournamentTab() {
               cutAfterGame: cag,
               cutMode: ladderMode ? 'ladder' : 'threshold',
               ladderStartSize: ladderMode ? maxP : 0,
+              finalsMode: fMode,
+              finalsThreshold: fThresh,
               seedingMethod: seedAlgo
             })
           })
