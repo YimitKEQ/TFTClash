@@ -115,6 +115,15 @@ in-tournament chain (`RULES_SECTIONS`, `FAQ_DATA`, `RulesScreen.TIEBREAKER_ITEMS
   (`ladderSchedule`/`applyLadderCut`, spec Section 4.4/8.8). Canonical 64p/128p
   schedules in `LADDER_SCHEDULES`; selectable in the admin clash setup.
 
+**Finals mode** (`finalsMode` on tournament state, default `standard`):
+- `checkmate`: opt-in Top-8 finals. The final lobby keeps playing past the
+  nominal game count until a player WINS a game while at/over `finalsThreshold`
+  (default 20) in finals points - first to clinch is champion, pinned to 1st.
+  Engine: `checkCheckmateWinner`/`checkmateProgress` in `lib/tournament.js`
+  (unit-tested). Admin selector in `TournamentTab` (Finals Mode + threshold);
+  live detection/banner/extend-finals/crown in `BracketScreen`. Standard clashes
+  are completely unaffected.
+
 **Soft bans** (migration 114, spec Section 2.6/8.10): `soft_bans` table + a
 registration trigger that forces a soft-banned player onto the waitlist for their
 next tournament, auto-lifting after they sit one out. Admin UI in `PlayersTab`;
