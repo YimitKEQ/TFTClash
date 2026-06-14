@@ -13,7 +13,7 @@ import PageLayout from '../components/layout/PageLayout'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 
 // ── LiveStandingsPanel ─────────────────────────────────────────────────────────
-function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round,liveResults}){
+function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round,liveResults,currentUser,isCheckmate,checkmate,finalsThreshold}){
   var clashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:"";
   var cutLine=tournamentState&&tournamentState.cutLine?tournamentState.cutLine:0;
   var cutAfterGame=tournamentState&&tournamentState.cutAfterGame?tournamentState.cutAfterGame:0;
@@ -26,14 +26,41 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round,liveResults
   var ladderStartSize=tournamentState&&tournamentState.ladderStartSize?tournamentState.ladderStartSize:0;
   var ladderCutsThisGame=ladderMode&&ladderCutsAfterGame(ladderStartSize,round);
   var ladderAdvance=ladderMode?advanceCountAfterGame(ladderStartSize,round):0;
+  var cmProgress=(checkmate&&checkmate.progress)||{};
 
   var lrMap=liveResults||{};
   var liveRows=checkedIn.map(function(p){
     var lr=lrMap[String(p.id)]||{points:0,games:0};
-    return {name:p.name,id:p.id,earned:lr.points||0,gamesPlayed:lr.games||0};
+    return {name:p.name,id:p.id,earned:lr.points||0,gamesPlayed:lr.games||0,cmPts:cmProgress[p.id]||0};
   }).sort(function(a,b){return b.earned-a.earned;});
 
   var lockedCount=tournamentState&&tournamentState.lockedLobbies?tournamentState.lockedLobbies.length:0;
+
+  // An always-on plain-language explainer of how this clash is decided, so a
+  // player never has to guess what the format is mid-game.
+  var formatLine=isCheckmate
+    ?("Checkmate finals - first to WIN a game at " + (finalsThreshold||20) + "+ finals points is champion")
+    :ladderMode
+      ?(ladderCutsThisGame?("Elimination ladder - top " + ladderAdvance + " advance after Game " + round + ", the rest are cut")
+        :"Elimination ladder - no cut this game, everyone plays on")
+      :(cutLine>0&&cutAfterGame>0)
+        ?(round>=cutAfterGame?("Cut line: " + cutLine + " pts - below the line is out after Game " + cutAfterGame)
+          :("Cut after Game " + cutAfterGame + " at " + cutLine + " pts - everyone plays until then"))
+        :"All games count - highest total points wins, no cuts";
+
+  // The current player's own row, for the "Your Status" header.
+  var meName=currentUser?currentUser.username:null;
+  var meIdx=meName?liveRows.findIndex(function(r){return r.name===meName;}):-1;
+  var meRow=meIdx>=0?liveRows[meIdx]:null;
+  function statusFor(ri,earned){
+    var belowCut=ladderMode?(ladderCutsThisGame&&ri>=ladderAdvance):(showCutLine&&earned<cutLine);
+    var nearCut=ladderMode?(ladderCutsThisGame&&!belowCut&&ri>=ladderAdvance-2):(showCutLine&&!belowCut&&earned<=cutLine+2);
+    return {belowCut:belowCut,nearCut:nearCut};
+  }
+  var meStatus=meRow?statusFor(meIdx,meRow.earned):null;
+  var meChampion=isCheckmate&&checkmate&&checkmate.winner&&meRow&&checkmate.winner.winnerId===meRow.id;
+  var meLabel=meChampion?"CHAMPION":meStatus?(meStatus.belowCut?"ELIMINATED":meStatus.nearCut?"BUBBLE":"SAFE"):"SAFE";
+  var meColor=meChampion?"text-primary bg-primary/15 border-primary/40":(meLabel==="ELIMINATED"?"text-error bg-error/10 border-error/30":meLabel==="BUBBLE"?"text-secondary bg-secondary/10 border-secondary/30":"text-success bg-success/10 border-success/30");
 
   return(
     <div className="mt-6 bg-surface-container-low rounded-lg border border-outline-variant/15 overflow-hidden">
@@ -46,38 +73,45 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round,liveResults
           {"(" + lockedCount + "/" + lobbies.length + " locked)"}
         </span>
       </div>
-      {showCutLine&&(
-        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
-          {"Cut line: " + cutLine + " pts - players below the line are eliminated after Game " + cutAfterGame}
-        </div>
-      )}
-      {ladderMode&&ladderCutsThisGame&&(
-        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
-          {"Elimination ladder: top " + ladderAdvance + " advance after Game " + round + " - the rest are cut"}
+      <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
+        {formatLine}
+      </div>
+      {meRow&&(
+        <div className="px-5 py-2.5 border-b border-outline-variant/10 flex items-center gap-2 flex-wrap bg-surface-container/40">
+          <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60">Your status</span>
+          <span className={"text-[10px] font-bold font-label tracking-widest uppercase px-2 py-0.5 rounded border " + meColor}>{meLabel}</span>
+          <span className="text-xs font-mono text-on-surface-variant/80">{"#" + (meIdx+1) + " of " + liveRows.length}</span>
+          <span className="text-xs font-mono text-tertiary ml-auto">{(isCheckmate?(meRow.cmPts+" finals pts"):(meRow.earned+" pts"))}</span>
         </div>
       )}
       <div className="divide-y divide-outline-variant/5">
         {liveRows.map(function(row,ri){
           var isLeader=ri===0&&row.earned>0;
-          // Threshold: pts >= cutLine survives. Ladder: top `ladderAdvance` by rank survive.
-          var belowCut=ladderMode?(ladderCutsThisGame&&ri>=ladderAdvance):(showCutLine&&row.earned<cutLine);
-          var nearCut=ladderMode?(ladderCutsThisGame&&!belowCut&&ri>=ladderAdvance-2):(showCutLine&&!belowCut&&row.earned<=cutLine+2);
+          var st=statusFor(ri,row.earned);
+          var belowCut=st.belowCut;
+          var nearCut=st.nearCut;
+          var isMe=meName&&row.name===meName;
+          var onCheckmate=isCheckmate&&row.cmPts>=(finalsThreshold||20);
           return(
-            <div key={row.id} className={"flex items-center gap-3 px-5 py-2 " + (belowCut?"opacity-60 bg-error/5":isLeader?"bg-primary/5":"")}>
+            <div key={row.id} className={"flex items-center gap-3 px-5 py-2 " + (isMe?"bg-tertiary/10 ring-1 ring-inset ring-tertiary/40 ":"") + (belowCut?"opacity-60 bg-error/5":isLeader?"bg-primary/5":"")}>
               <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (belowCut?"text-error":ri===0?"text-primary":ri===1?"text-on-surface-variant":ri===2?"text-on-surface-variant/70":"text-on-surface-variant/40")}>
                 {ri+1}
               </span>
-              <span className={"flex-1 text-sm " + (belowCut?"text-error":isLeader?"text-primary font-bold":"text-on-surface")}>
+              <span className={"flex-1 text-sm " + (belowCut?"text-error":isLeader?"text-primary font-bold":isMe?"text-tertiary font-bold":"text-on-surface")}>
                 {row.name}
+                {isMe&&<span className="ml-2 text-[9px] font-bold font-label tracking-widest text-tertiary bg-tertiary/15 border border-tertiary/30 px-1 py-0.5 rounded align-middle">YOU</span>}
               </span>
+              {onCheckmate&&!belowCut&&(
+                <span className="text-[9px] font-bold font-label tracking-widest text-primary bg-primary/15 border border-primary/30 px-1.5 py-0.5 rounded">CHECKMATE</span>
+              )}
               {belowCut&&(
                 <span className="text-[9px] font-bold font-label tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded">CUT</span>
               )}
-              {nearCut&&(
+              {nearCut&&!onCheckmate&&(
                 <span className="text-[10px] font-bold font-label tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded">BUBBLE</span>
               )}
               <span className={"font-mono text-xs font-bold " + (belowCut?"text-error":row.earned>0?"text-tertiary":"text-on-surface-variant/40")}>
-                {row.earned>0?"+"+row.earned+" pts":"- pts"}
+                {isCheckmate?(row.cmPts+"/"+(finalsThreshold||20)):(row.earned>0?"+"+row.earned+" pts":"- pts")}
               </span>
             </div>
           );
@@ -1521,7 +1555,7 @@ function BracketScreen(){
 
               {/* Live standings */}
               {tournamentState&&isLive&&(
-                <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round} liveResults={liveResults}/>
+                <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round} liveResults={liveResults} currentUser={currentUser} isCheckmate={isCheckmate} checkmate={checkmate} finalsThreshold={finalsThreshold}/>
               )}
 
               {/* Finals display */}
