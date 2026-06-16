@@ -17,6 +17,11 @@ if (!process.env.BT_DISCORD_TOKEN || !process.env.BT_CLIENT_ID || !process.env.B
   process.exit(1);
 }
 
+if (process.env.BT_DISCORD_TOKEN.indexOf('PASTE') !== -1) {
+  console.error('BT_DISCORD_TOKEN is still the placeholder. Paste the real bot token from the Discord Developer Portal (your app > Bot tab > Reset Token) into bt-bot/.env, then run npm run deploy again.');
+  process.exit(1);
+}
+
 var rest = new REST({ version: '10' }).setToken(process.env.BT_DISCORD_TOKEN);
 
 (async function() {
@@ -28,7 +33,11 @@ var rest = new REST({ version: '10' }).setToken(process.env.BT_DISCORD_TOKEN);
     );
     console.log('Registered ' + commands.length + ' slash command(s).');
   } catch (err) {
-    console.error(err);
-    process.exit(1);
+    if (err && err.status === 401) {
+      console.error('401 Unauthorized: Discord rejected the bot token. Reset it in the Bot tab and update BT_DISCORD_TOKEN in bt-bot/.env (the token is the secret, not the Application ID).');
+    } else {
+      console.error('Failed to register commands: ' + ((err && err.message) || err));
+    }
+    process.exitCode = 1;
   }
 })();

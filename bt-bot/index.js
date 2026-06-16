@@ -16,10 +16,12 @@ import { startScheduler } from './scheduler.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Only the Guilds intent is needed: the bot posts embeds and replies to slash
+// commands. It never reads message content or fetches members (mentions use
+// raw user ids), so no privileged intents are required.
 var client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
   ],
 });
 

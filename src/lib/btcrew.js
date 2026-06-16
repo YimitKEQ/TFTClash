@@ -196,6 +196,24 @@ function workloadStatus(activeCount) {
 
 // Departments group crew work into top-level lanes for the BT command center.
 // Colors mirror the glassmorphism palette; accents/halos are tuned for orbs.
+//
+// Each department also carries its OWN vocabulary so one shared board can speak
+// the right language per team:
+//   noun     - what a single card is called ("video", "task", "asset"...)
+//   types    - the work-type options shown in the card editor + chip
+//   tagLabel - what the free-text tag field means (Patch for content, Version
+//              for engineering, Campaign for marketing...)
+//   stages   - the display label for each pipeline column id. The underlying
+//              column ids never change; only the words on screen do.
+var DEFAULT_STAGES = {
+  ideas: 'Backlog',
+  writing: 'Planned',
+  production: 'In Progress',
+  review: 'Review',
+  published: 'Done',
+  archive: 'Archive',
+};
+
 var BT_DEPARTMENTS = [
   {
     id: 'content',
@@ -204,6 +222,14 @@ var BT_DEPARTMENTS = [
     color: '#5BA3DB',
     accent: 'rgba(91,163,219,0.15)',
     halo: 'rgba(91,163,219,0.55)',
+    noun: 'video',
+    tagLabel: 'Patch',
+    types: [
+      { id: 'short', label: 'Short' },
+      { id: 'longform', label: 'Long-form' },
+      { id: 'collab', label: 'Collab' },
+    ],
+    stages: { ideas: 'Ideas', writing: 'Writing', production: 'Production', review: 'Review', published: 'Published', archive: 'Archive' },
   },
   {
     id: 'engineering',
@@ -212,6 +238,16 @@ var BT_DEPARTMENTS = [
     color: '#818CF8',
     accent: 'rgba(129,140,248,0.15)',
     halo: 'rgba(129,140,248,0.55)',
+    noun: 'task',
+    tagLabel: 'Version',
+    types: [
+      { id: 'feature', label: 'Feature' },
+      { id: 'bug', label: 'Bug' },
+      { id: 'chore', label: 'Chore' },
+      { id: 'spike', label: 'Spike' },
+      { id: 'release', label: 'Release' },
+    ],
+    stages: { ideas: 'Backlog', writing: 'Planned', production: 'Building', review: 'In Review', published: 'Shipped', archive: 'Archive' },
   },
   {
     id: 'design',
@@ -220,6 +256,16 @@ var BT_DEPARTMENTS = [
     color: '#F472B6',
     accent: 'rgba(244,114,182,0.15)',
     halo: 'rgba(244,114,182,0.55)',
+    noun: 'asset',
+    tagLabel: 'Version',
+    types: [
+      { id: 'ui', label: 'UI' },
+      { id: 'ux', label: 'UX' },
+      { id: 'asset', label: 'Asset' },
+      { id: 'brand', label: 'Brand' },
+      { id: 'proto', label: 'Prototype' },
+    ],
+    stages: { ideas: 'Backlog', writing: 'Briefed', production: 'Designing', review: 'Review', published: 'Delivered', archive: 'Archive' },
   },
   {
     id: 'marketing',
@@ -228,6 +274,16 @@ var BT_DEPARTMENTS = [
     color: '#E8A020',
     accent: 'rgba(232,160,32,0.15)',
     halo: 'rgba(232,160,32,0.55)',
+    noun: 'campaign',
+    tagLabel: 'Campaign',
+    types: [
+      { id: 'campaign', label: 'Campaign' },
+      { id: 'post', label: 'Post' },
+      { id: 'ad', label: 'Ad' },
+      { id: 'email', label: 'Email' },
+      { id: 'partner', label: 'Partnership' },
+    ],
+    stages: { ideas: 'Backlog', writing: 'Drafting', production: 'Producing', review: 'Review', published: 'Live', archive: 'Archive' },
   },
   {
     id: 'ops',
@@ -236,6 +292,15 @@ var BT_DEPARTMENTS = [
     color: '#34D399',
     accent: 'rgba(52,211,153,0.15)',
     halo: 'rgba(52,211,153,0.55)',
+    noun: 'task',
+    tagLabel: 'Ref',
+    types: [
+      { id: 'admin', label: 'Admin' },
+      { id: 'finance', label: 'Finance' },
+      { id: 'legal', label: 'Legal' },
+      { id: 'process', label: 'Process' },
+    ],
+    stages: { ideas: 'Backlog', writing: 'Planned', production: 'Doing', review: 'Review', published: 'Done', archive: 'Archive' },
   },
 ];
 
@@ -260,6 +325,36 @@ function getDepartment(value) {
   return BT_DEPARTMENTS_BY_ID[resolveDepartment(value)] || BT_DEPARTMENTS_BY_ID.content;
 }
 
+// The work-type options for a department (Feature/Bug for engineering, etc.).
+function departmentTypes(value) {
+  var dept = getDepartment(value);
+  return (dept && dept.types) || [];
+}
+
+// The label for a type id within a department (falls back to the raw id).
+function departmentTypeLabel(value, typeId) {
+  if (!typeId) return '';
+  var types = departmentTypes(value);
+  for (var i = 0; i < types.length; i += 1) {
+    if (types[i].id === typeId) return types[i].label;
+  }
+  return typeId;
+}
+
+// What the free-text tag field is called for a department (Patch, Version...).
+function departmentTagLabel(value) {
+  var dept = getDepartment(value);
+  return (dept && dept.tagLabel) || 'Tag';
+}
+
+// The on-screen label for a pipeline column id, in a department's language.
+// An empty department falls back to the content vocabulary (the All view).
+function columnLabel(value, columnId) {
+  var dept = getDepartment(value);
+  if (dept && dept.stages && dept.stages[columnId]) return dept.stages[columnId];
+  return DEFAULT_STAGES[columnId] || columnId;
+}
+
 export {
   BT_CREW,
   BT_CREW_NAMES,
@@ -276,4 +371,8 @@ export {
   BT_DEPARTMENTS_BY_ID,
   resolveDepartment,
   getDepartment,
+  departmentTypes,
+  departmentTypeLabel,
+  departmentTagLabel,
+  columnLabel,
 };

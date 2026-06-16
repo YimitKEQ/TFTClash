@@ -2,12 +2,26 @@ import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
 import { MECHANIC_TERMS, PATCHES } from '../../lib/btset17';
-import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus, BT_DEPARTMENTS, BT_DEPARTMENT_IDS, resolveDepartment, getDepartment } from '../../lib/btcrew';
+import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus, BT_DEPARTMENTS, BT_DEPARTMENT_IDS, resolveDepartment, getDepartment, departmentTypes, departmentTypeLabel, departmentTagLabel, columnLabel } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 var BOARD_TABLES = ['bt_content_cards', 'bt_card_templates'];
 
-var TEMPLATE_FIELDS = ['title', 'description', 'column_id', 'department', 'content_type', 'platform', 'assignees', 'subtasks', 'priority', 'patch_id', 'brief'];
+var TEMPLATE_FIELDS = ['title', 'description', 'column_id', 'department', 'content_type', 'platform', 'assignees', 'subtasks', 'priority', 'patch_id', 'links', 'brief'];
+
+// Normalize a card's links into a deduped array of trimmed url/label strings.
+function normalizeLinks(value) {
+  if (!Array.isArray(value)) return [];
+  var seen = {};
+  var out = [];
+  value.forEach(function(v) {
+    var s = typeof v === 'string' ? v.trim() : '';
+    if (!s || seen[s]) return;
+    seen[s] = true;
+    out.push(s);
+  });
+  return out;
+}
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -69,6 +83,8 @@ var EMPTY_FORM = {
   priority: 'medium',
   due_date: '',
   patch_id: '',
+  links: [],
+  blocked: false,
   brief: null,
 };
 
@@ -1177,6 +1193,26 @@ function CardFields(props) {
   var set = props.set;
   var activeDept = resolveDepartment(form.department);
   var isContent = activeDept === 'content';
+  var typeOptions = departmentTypes(activeDept);
+  var tagLabel = departmentTagLabel(activeDept);
+
+  function changeDepartment(id) {
+    set('department', id);
+    var nextTypes = departmentTypes(id);
+    var stillValid = nextTypes.some(function(t) { return t.id === form.content_type; });
+    if (!stillValid && nextTypes.length) set('content_type', nextTypes[0].id);
+  }
+
+  var titlePlaceholder = isContent
+    ? 'e.g. Set 14 1-cost carries tier list'
+    : activeDept === 'engineering'
+      ? 'e.g. Add draft simulator to Barontactics'
+      : activeDept === 'design'
+        ? 'e.g. Redesign the Barontactics home screen'
+        : activeDept === 'marketing'
+          ? 'e.g. Launch week reel for Barontactics'
+          : 'e.g. Set up the Barontactics support inbox';
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -1184,7 +1220,7 @@ function CardFields(props) {
         <Inp
           value={form.title}
           onChange={function(e) { set('title', e.target.value); }}
-          placeholder="e.g. Set 14 1-cost carries tier list"
+          placeholder={titlePlaceholder}
           autoFocus={!props.isEdit}
         />
       </div>
@@ -1198,7 +1234,7 @@ function CardFields(props) {
               <button
                 key={d.id}
                 type="button"
-                onClick={function() { set('department', d.id); }}
+                onClick={function() { changeDepartment(d.id); }}
                 className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-semibold transition-all ' + (active ? '' : 'border-white/8 text-white/55 hover:text-white/90 hover:border-white/20')}
                 style={active ? {
                   borderColor: d.color + '99',
@@ -1223,7 +1259,7 @@ function CardFields(props) {
           <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Column</label>
           <Sel value={form.column_id} onChange={function(e) { set('column_id', e.target.value); }}>
             {COLUMNS.map(function(c) {
-              return <option key={c.id} value={c.id}>{c.label}</option>;
+              return <option key={c.id} value={c.id}>{columnLabel(activeDept, c.id)}</option>;
             })}
           </Sel>
         </div>
@@ -1237,16 +1273,16 @@ function CardFields(props) {
         </div>
       </div>
 
-      {isContent && (
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
-            <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
-              {CONTENT_TYPES.map(function(t) {
-                return <option key={t.id} value={t.id}>{t.label}</option>;
-              })}
-            </Sel>
-          </div>
+      <div className={isContent ? 'grid grid-cols-2 gap-3' : ''}>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
+          <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
+            {typeOptions.map(function(t) {
+              return <option key={t.id} value={t.id}>{t.label}</option>;
+            })}
+          </Sel>
+        </div>
+        {isContent && (
           <div>
             <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Platform</label>
             <Sel value={form.platform} onChange={function(e) { set('platform', e.target.value); }}>
@@ -1255,8 +1291,23 @@ function CardFields(props) {
               })}
             </Sel>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Status</label>
+        <button
+          type="button"
+          onClick={function() { set('blocked', !form.blocked); }}
+          className={'w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm font-semibold transition-all ' + (form.blocked ? 'border-red-500/50 bg-red-500/10 text-red-300' : 'border-white/10 bg-[#0b0e1a] text-white/55 hover:text-white/80')}
+        >
+          <span className="flex items-center gap-2">
+            <Icon name={form.blocked ? 'block' : 'play_circle'} className="text-base" />
+            {form.blocked ? 'Blocked' : 'Not blocked'}
+          </span>
+          <span className="text-[10px] uppercase tracking-wider opacity-70">{form.blocked ? 'Tap to clear' : 'Tap if stuck on a blocker'}</span>
+        </button>
+      </div>
 
       <div>
         <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
@@ -1281,17 +1332,26 @@ function CardFields(props) {
         />
       </div>
 
-      {isContent && (
-        <div>
-          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Patch tag</label>
-          <Inp
-            value={form.patch_id || ''}
-            onChange={function(e) { set('patch_id', e.target.value); }}
-            placeholder="e.g. 17.2 or set-17"
-          />
-          <p className="text-[10px] text-white/30 mt-1.5">Tag a patch so timeline can group cards</p>
-        </div>
-      )}
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Links</label>
+        <ListEditor
+          items={Array.isArray(form.links) ? form.links : []}
+          onChange={function(next) { set('links', normalizeLinks(next)); }}
+          singular="link"
+          placeholder={isContent ? 'VOD, doc, tweet, screenshot...' : 'PR, issue, Figma, build, doc...'}
+        />
+        <p className="text-[10px] text-white/30 mt-1.5">{isContent ? 'Reference links for this video.' : 'PRs, issues, designs, or builds tied to this card.'}</p>
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">{tagLabel} tag</label>
+        <Inp
+          value={form.patch_id || ''}
+          onChange={function(e) { set('patch_id', e.target.value); }}
+          placeholder={isContent ? 'e.g. 17.2 or set-17' : 'e.g. v0.3.0 or sprint-4'}
+        />
+        <p className="text-[10px] text-white/30 mt-1.5">Group cards by {tagLabel.toLowerCase()} on the timeline.</p>
+      </div>
 
       <div>
         <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Notes</label>
@@ -1497,8 +1557,11 @@ function KanbanCard(props) {
     setDragging(false);
   }
 
-  var typeLabel = (CONTENT_TYPES.find(function(t) { return t.id === card.content_type; }) || {}).label || card.content_type;
+  var dept = getDepartment(card.department);
+  var isContent = dept.id === 'content';
+  var typeLabel = departmentTypeLabel(card.department, card.content_type);
   var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
+  var linkCount = normalizeLinks(card.links).length;
 
   var overdue = false;
   if (card.due_date) {
@@ -1517,8 +1580,6 @@ function KanbanCard(props) {
   var assignedNames = cardAssignees(card);
   var progress = subtaskProgress(card);
   var staleDays = cardStaleDays(card);
-  var dept = getDepartment(card.department);
-  var isContent = dept.id === 'content';
 
   return (
     <div
@@ -1526,7 +1587,7 @@ function KanbanCard(props) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={function() { props.onEdit(card); }}
-      className={'group bg-[#0b0e1a] border rounded-xl p-3 cursor-pointer transition-all ' + (dragging ? 'opacity-40 scale-95 border-[#5BA3DB]/50' : 'border-white/5 hover:border-white/15 hover:bg-[#0e1222] hover:-translate-y-0.5')}
+      className={'group bg-[#0b0e1a] border rounded-xl p-3 cursor-pointer transition-all ' + (dragging ? 'opacity-40 scale-95 border-[#5BA3DB]/50' : (card.blocked ? 'border-red-500/30 hover:border-red-500/50 hover:bg-[#0e1222] hover:-translate-y-0.5' : 'border-white/5 hover:border-white/15 hover:bg-[#0e1222] hover:-translate-y-0.5'))}
     >
       <div className="flex items-start justify-between gap-2 mb-2.5">
         <p className="text-white text-[13px] font-medium leading-snug flex-1">{card.title}</p>
@@ -1538,6 +1599,12 @@ function KanbanCard(props) {
       </div>
 
       <div className="flex flex-wrap gap-1.5 items-center">
+        {card.blocked && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide flex items-center gap-0.5 bg-red-500/15 text-red-300" title="Blocked">
+            <Icon name="block" className="text-[11px]" />
+            Blocked
+          </span>
+        )}
         <span
           className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide flex items-center gap-0.5"
           style={{ backgroundColor: dept.accent, color: dept.color }}
@@ -1546,7 +1613,7 @@ function KanbanCard(props) {
           <span className="material-symbols-outlined text-[12px]">{dept.icon}</span>
           {dept.label}
         </span>
-        {isContent && (
+        {typeLabel && (
           <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
             {typeLabel}
           </span>
@@ -1566,6 +1633,12 @@ function KanbanCard(props) {
           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5" title="Brief written">
             <Icon name="auto_stories" className="text-[11px]" />
             Brief
+          </span>
+        )}
+        {linkCount > 0 && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55 flex items-center gap-0.5" title={linkCount + ' link' + (linkCount === 1 ? '' : 's')}>
+            <Icon name="link" className="text-[11px]" />
+            {linkCount}
           </span>
         )}
         {assignedNames.length > 0 && (
@@ -1684,6 +1757,9 @@ function BoardStats(props) {
     return due < today;
   }).length;
   var inReview = cards.filter(function(c) { return c.column_id === 'review'; }).length;
+  var blockedCards = cards.filter(function(c) {
+    return c.blocked && !['published','archive'].includes(c.column_id);
+  }).length;
   var publishedThisMonth = cards.filter(function(c) {
     if (c.column_id !== 'published') return false;
     var updated = new Date(c.updated_at || c.created_at);
@@ -1694,12 +1770,13 @@ function BoardStats(props) {
   var stats = [
     { label: 'Active', value: activeCards, color: '#5BA3DB', icon: 'bolt' },
     { label: 'In Review', value: inReview, color: '#EC4899', icon: 'visibility' },
+    { label: 'Blocked', value: blockedCards, color: blockedCards > 0 ? '#EF4444' : '#6B7280', icon: 'block' },
     { label: 'Overdue', value: overdueCards, color: overdueCards > 0 ? '#EF4444' : '#6B7280', icon: 'warning' },
-    { label: 'Published this month', value: publishedThisMonth, color: '#10B981', icon: 'check_circle' },
+    { label: 'Shipped this month', value: publishedThisMonth, color: '#10B981', icon: 'check_circle' },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       {stats.map(function(s) {
         return (
           <div key={s.label} className="bg-[#13172a] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
@@ -1723,8 +1800,11 @@ function ListCardRow(props) {
   var prevCol = idx > 0 ? cols[idx - 1] : null;
   var nextCol = idx < cols.length - 1 ? cols[idx + 1] : null;
 
-  var typeLabel = (CONTENT_TYPES.find(function(t) { return t.id === card.content_type; }) || {}).label || card.content_type;
+  var dept = getDepartment(card.department);
+  var isContent = dept.id === 'content';
+  var typeLabel = departmentTypeLabel(card.department, card.content_type);
   var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
+  var linkCount = normalizeLinks(card.links).length;
 
   var hasBrief = !!(card.brief && (
     (card.brief.hookLine && card.brief.hookLine.trim()) ||
@@ -1734,8 +1814,6 @@ function ListCardRow(props) {
   var assignedNames = cardAssignees(card);
   var progress = subtaskProgress(card);
   var staleDays = cardStaleDays(card);
-  var dept = getDepartment(card.department);
-  var isContent = dept.id === 'content';
 
   function move(dir, e) {
     e.stopPropagation();
@@ -1746,7 +1824,7 @@ function ListCardRow(props) {
   return (
     <div
       onClick={function() { props.onEdit(card); }}
-      className="bg-[#0b0e1a] border border-white/5 rounded-xl p-3 active:bg-[#0e1222] transition-all flex items-center gap-3"
+      className={'border rounded-xl p-3 active:bg-[#0e1222] transition-all flex items-center gap-3 ' + (card.blocked ? 'bg-[#0b0e1a] border-red-500/30' : 'bg-[#0b0e1a] border-white/5')}
     >
       <span
         className="w-1 self-stretch rounded-full shrink-0"
@@ -1758,6 +1836,12 @@ function ListCardRow(props) {
           {assignedNames.length > 0 && <AvatarStack names={assignedNames} size={18} />}
         </div>
         <div className="flex flex-wrap gap-1 mt-1.5 items-center">
+          {card.blocked && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide flex items-center gap-0.5 bg-red-500/15 text-red-300" title="Blocked">
+              <Icon name="block" className="text-[10px]" />
+              Blocked
+            </span>
+          )}
           <span
             className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide flex items-center gap-0.5"
             style={{ backgroundColor: dept.accent, color: dept.color }}
@@ -1766,7 +1850,7 @@ function ListCardRow(props) {
             <span className="material-symbols-outlined text-[11px]">{dept.icon}</span>
             {dept.label}
           </span>
-          {isContent && (
+          {typeLabel && (
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
               {typeLabel}
             </span>
@@ -1786,6 +1870,12 @@ function ListCardRow(props) {
             <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5">
               <Icon name="auto_stories" className="text-[10px]" />
               Brief
+            </span>
+          )}
+          {linkCount > 0 && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55 flex items-center gap-0.5" title={linkCount + ' link' + (linkCount === 1 ? '' : 's')}>
+              <Icon name="link" className="text-[10px]" />
+              {linkCount}
             </span>
           )}
           {progress && (
@@ -2420,6 +2510,8 @@ function BTBoard() {
       priority: form.priority,
       due_date: form.due_date || null,
       patch_id: form.patch_id || null,
+      links: normalizeLinks(form.links),
+      blocked: !!form.blocked,
       brief: form.brief || null,
     };
     var editId = form.id || null;
@@ -2619,6 +2711,12 @@ function BTBoard() {
     deptCounts[id] += 1;
   });
 
+  // Columns keep their stable ids/colors but speak the active department's
+  // language. With no department filter, the content vocabulary is the default.
+  var displayColumns = COLUMNS.map(function(c) {
+    return Object.assign({}, c, { label: columnLabel(filterDepartment, c.id) });
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
@@ -2697,8 +2795,8 @@ function BTBoard() {
       {cards.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 bg-[#13172a]/40 border border-dashed border-white/10 rounded-2xl">
           <Icon name="dashboard_customize" className="text-5xl text-white/20 mb-3" />
-          <p className="text-white/60 text-sm font-semibold mb-1">No content cards yet</p>
-          <p className="text-white/30 text-xs mb-5">Drop your first TFT content idea in to get started</p>
+          <p className="text-white/60 text-sm font-semibold mb-1">No cards yet</p>
+          <p className="text-white/30 text-xs mb-5">Add your first card, content or Barontactics, to get going.</p>
           <button
             onClick={function() { handleAddCard('ideas'); }}
             className="px-5 py-2 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] text-white text-sm font-semibold transition-colors"
@@ -2708,7 +2806,7 @@ function BTBoard() {
         </div>
       ) : view === 'kanban' ? (
         <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2">
-          {COLUMNS.map(function(col) {
+          {displayColumns.map(function(col) {
             var colCards = visibleCards.filter(function(c) { return c.column_id === col.id; });
             return (
               <KanbanColumn
@@ -2724,7 +2822,7 @@ function BTBoard() {
         </div>
       ) : (
         <BoardListView
-          columns={COLUMNS}
+          columns={displayColumns}
           cards={visibleCards}
           onAddCard={handleAddCard}
           onEditCard={handleEditCard}
