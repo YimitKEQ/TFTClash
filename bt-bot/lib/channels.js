@@ -20,8 +20,15 @@ export function resolveChannel(guild, nameOrId) {
   var byId = guild.channels.cache.get(needle);
   if (isTextChannel(byId)) return byId;
 
-  // Then a name substring match (case-insensitive).
+  // Exact (case-insensitive) name match first, so bt-board never resolves to a
+  // longer channel that merely contains "bt-board".
   var lower = needle.toLowerCase();
+  var exact = guild.channels.cache.find(function(ch) {
+    return isTextChannel(ch) && ch.name && ch.name.toLowerCase() === lower;
+  });
+  if (exact) return exact;
+
+  // Substring fallback for friendly names passed via env.
   var match = guild.channels.cache.find(function(ch) {
     return isTextChannel(ch) && ch.name && ch.name.toLowerCase().indexOf(lower) !== -1;
   });

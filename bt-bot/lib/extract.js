@@ -12,7 +12,7 @@ var DEPT_IDS = BT_DEPARTMENTS.map(function(d) { return d.id; });
 
 function clamp(value, n) {
   var s = String(value == null ? '' : value);
-  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  return s.length > n ? s.slice(0, n - 3) + '...' : s;
 }
 
 function knownDept(value) {

@@ -13,6 +13,7 @@ import path from 'path';
 import 'dotenv/config';
 
 import { startScheduler } from './scheduler.js';
+import { startFeed } from './lib/feed.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -46,6 +47,9 @@ client.once(Events.ClientReady, function(c) {
     status: 'online',
   });
   startScheduler(client);
+  startFeed(client).catch(function(e) {
+    console.error('[feed] startFeed failed: ' + ((e && e.message) || e));
+  });
 });
 
 // ---- Interaction handler -----------------------------------------------------

@@ -74,7 +74,7 @@ export function standupEmbed(accountability, now) {
     return embed;
   }
 
-  embed.setDescription('Here is where things stand this morning. Owners are pinged below.');
+  embed.setDescription('Here is where things stand this morning. Owners are listed below.');
 
   var allLines = attention.map(function(card) {
     var reasonBits = [];

@@ -42,7 +42,9 @@ var PATCH_TEMPLATES = [
   { kind: 'short',    column: 'ideas',      title: 'Patch X.Y - the secret nerf nobody noticed', hook: 'Riot snuck in a nerf on patch X.Y that breaks the meta.' },
 ];
 
-var PRIORITY_COLORS = { high: '#EF4444', medium: '#F59E0B', low: '#6B7280' };
+// High priority is brand coral, not red: red is reserved for state (blocked,
+// overdue) so one hue never means three different things on a single card.
+var PRIORITY_COLORS = { high: '#EF8B8C', medium: '#F59E0B', low: '#6B7280' };
 var PRIORITY_LABELS = { high: 'High', medium: 'Med', low: 'Low' };
 
 var CONTENT_TYPES = [
@@ -241,6 +243,92 @@ function Icon(props) {
     <span className={'material-symbols-outlined ' + (props.className || '')} style={props.style}>
       {props.name}
     </span>
+  );
+}
+
+// Shared card-chip primitive so KanbanCard and ListCardRow render an identical
+// taxonomy. The only difference between the two surfaces is density: the list
+// rows are a touch smaller. Pass dense to get the compact variant.
+//
+// tone:
+//   'dept'    - department-tinted, takes color/bg + a leading icon
+//   'neutral' - quiet attribute chip (type, platform, patch, links, progress)
+//   'blocked' - the unmistakable red status chip
+//   'brief'   - the gold "brief written" marker
+//   'stuck'   - the gold staleness warning
+function CardChip(props) {
+  var dense = !!props.dense;
+  var size = dense
+    ? 'text-[9px] px-1.5 py-0.5 rounded gap-0.5'
+    : 'text-[10px] px-1.5 py-0.5 rounded-md gap-1';
+  var iconSize = dense ? 'text-[10px]' : 'text-[11px]';
+  var base = 'inline-flex items-center font-semibold uppercase tracking-wide whitespace-nowrap ' + size;
+
+  var toneClass = '';
+  var toneStyle = {};
+  if (props.tone === 'blocked') {
+    toneClass = 'font-bold bg-red-500/15 text-red-300';
+  } else if (props.tone === 'brief') {
+    toneClass = 'bg-[#E8A020]/15 text-[#E8A020]';
+  } else if (props.tone === 'stuck') {
+    toneStyle = { background: 'rgba(232,160,32,0.18)', color: '#FFD487' };
+  } else if (props.tone === 'dept') {
+    toneStyle = { backgroundColor: props.color, color: props.fg };
+  } else {
+    // neutral attribute chip
+    toneClass = 'bg-white/[0.04] border border-white/10 text-white/55';
+  }
+
+  return (
+    <span className={base + ' ' + toneClass} style={toneStyle} title={props.title}>
+      {props.icon && <span className={'material-symbols-outlined ' + iconSize}>{props.icon}</span>}
+      {props.dot && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: props.dot }} />}
+      {props.children}
+    </span>
+  );
+}
+
+// Build the canonical chip row for a card once, so both the kanban card and the
+// list row stay perfectly in sync. dense controls the compact list density.
+function CardChips(props) {
+  var card = props.card;
+  var dense = !!props.dense;
+  var dept = getDepartment(card.department);
+  var isContent = dept.id === 'content';
+  var typeLabel = departmentTypeLabel(card.department, card.content_type);
+  var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
+  var linkCount = normalizeLinks(card.links).length;
+  var progress = subtaskProgress(card);
+  var includeProgress = !!props.includeProgress && !!progress;
+
+  return (
+    <React.Fragment>
+      {card.blocked && (
+        <CardChip tone="blocked" dense={dense} icon="block" title="Blocked - this card is stuck on a dependency">Blocked</CardChip>
+      )}
+      <CardChip tone="dept" dense={dense} color={dept.accent} fg={dept.color} icon={dept.icon} title={dept.label + ' department'}>
+        {dept.label}
+      </CardChip>
+      {typeLabel && (
+        <CardChip tone="neutral" dense={dense} title="Work type">{typeLabel}</CardChip>
+      )}
+      {isContent && (
+        <CardChip tone="neutral" dense={dense} dot={platform.color} title="Platform">{platform.label}</CardChip>
+      )}
+      {card.patch_id && (
+        <CardChip tone="neutral" dense={dense} title={departmentTagLabel(card.department) + ' tag'}>{card.patch_id}</CardChip>
+      )}
+      {props.hasBrief && (
+        <CardChip tone="brief" dense={dense} icon="auto_stories" title="Brief written">Brief</CardChip>
+      )}
+      {linkCount > 0 && (
+        <CardChip tone="neutral" dense={dense} icon="link" title={linkCount + ' link' + (linkCount === 1 ? '' : 's')}>{linkCount}</CardChip>
+      )}
+      {includeProgress && (
+        <CardChip tone="neutral" dense={dense} icon="checklist" title="Subtask progress">{progress.done}/{progress.total}</CardChip>
+      )}
+      {props.children}
+    </React.Fragment>
   );
 }
 
@@ -1424,7 +1512,11 @@ function CardModal(props) {
     (form.brief.titleOptions && form.brief.titleOptions.length)
   ));
 
-  var isContent = resolveDepartment(form.department) === 'content';
+  var activeDept = getDepartment(form.department);
+  var isContent = activeDept.id === 'content';
+  var modalTitle = props.isEdit
+    ? 'Edit ' + activeDept.noun
+    : 'New ' + activeDept.label + ' ' + activeDept.noun;
 
   // The Brief & Title tab is content-only. If a non-content department is
   // selected while sitting on that tab, fall back to the Card tab.
@@ -1439,9 +1531,14 @@ function CardModal(props) {
         onClick={function(e) { e.stopPropagation(); }}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
-          <h3 className="text-white font-semibold flex items-center gap-2">
-            <Icon name={props.isEdit ? 'edit_note' : 'add_circle'} style={{ color: '#5BA3DB' }} />
-            {props.isEdit ? 'Edit card' : 'New content card'}
+          <h3 className="text-white font-semibold flex items-center gap-2.5 min-w-0">
+            <span
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ backgroundColor: activeDept.accent, color: activeDept.color }}
+            >
+              <Icon name={props.isEdit ? 'edit_note' : activeDept.icon} className="text-lg" />
+            </span>
+            <span className="capitalize truncate">{modalTitle}</span>
           </h3>
           <button
             onClick={props.onClose}
@@ -1557,12 +1654,6 @@ function KanbanCard(props) {
     setDragging(false);
   }
 
-  var dept = getDepartment(card.department);
-  var isContent = dept.id === 'content';
-  var typeLabel = departmentTypeLabel(card.department, card.content_type);
-  var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
-  var linkCount = normalizeLinks(card.links).length;
-
   var overdue = false;
   if (card.due_date) {
     var due = new Date(card.due_date + 'T00:00:00');
@@ -1599,48 +1690,7 @@ function KanbanCard(props) {
       </div>
 
       <div className="flex flex-wrap gap-1.5 items-center">
-        {card.blocked && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide flex items-center gap-0.5 bg-red-500/15 text-red-300" title="Blocked">
-            <Icon name="block" className="text-[11px]" />
-            Blocked
-          </span>
-        )}
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide flex items-center gap-0.5"
-          style={{ backgroundColor: dept.accent, color: dept.color }}
-          title={dept.label + ' department'}
-        >
-          <span className="material-symbols-outlined text-[12px]">{dept.icon}</span>
-          {dept.label}
-        </span>
-        {typeLabel && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
-            {typeLabel}
-          </span>
-        )}
-        {isContent && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/65 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: platform.color }} />
-            {platform.label}
-          </span>
-        )}
-        {card.patch_id && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55">
-            {card.patch_id}
-          </span>
-        )}
-        {hasBrief && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5" title="Brief written">
-            <Icon name="auto_stories" className="text-[11px]" />
-            Brief
-          </span>
-        )}
-        {linkCount > 0 && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55 flex items-center gap-0.5" title={linkCount + ' link' + (linkCount === 1 ? '' : 's')}>
-            <Icon name="link" className="text-[11px]" />
-            {linkCount}
-          </span>
-        )}
+        <CardChips card={card} hasBrief={hasBrief} />
         {assignedNames.length > 0 && (
           <span className="ml-auto"><AvatarStack names={assignedNames} size={20} /></span>
         )}
@@ -1658,25 +1708,22 @@ function KanbanCard(props) {
         </div>
       )}
 
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
-        {card.due_date && (
-          <div className={'flex items-center gap-1 text-[10px] ' + (overdue ? 'text-red-400' : 'text-white/30')}>
-            <Icon name="calendar_today" className="text-[11px]" />
-            {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            {overdue && <span className="ml-1 font-semibold">OVERDUE</span>}
-          </div>
-        )}
-        {staleDays > 0 && (
-          <span
-            className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide flex items-center gap-0.5"
-            style={{ background: 'rgba(232,160,32,0.18)', color: '#FFD487' }}
-            title={'No column move in ' + staleDays + ' days'}
-          >
-            <Icon name="hourglass_top" className="text-[11px]" />
-            Stuck {staleDays}d
-          </span>
-        )}
-      </div>
+      {(card.due_date || staleDays > 0) && (
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {card.due_date && (
+            <div className={'flex items-center gap-1 text-[10px] ' + (overdue ? 'text-red-400' : 'text-white/30')}>
+              <Icon name="calendar_today" className="text-[11px]" />
+              {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              {overdue && <span className="ml-1 font-semibold">OVERDUE</span>}
+            </div>
+          )}
+          {staleDays > 0 && (
+            <CardChip tone="stuck" icon="hourglass_top" title={'No column move in ' + staleDays + ' days'}>
+              Stuck {staleDays}d
+            </CardChip>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1767,23 +1814,36 @@ function BoardStats(props) {
     return updated.getMonth() === now.getMonth() && updated.getFullYear() === now.getFullYear();
   }).length;
 
+  // alert stats (Blocked, Overdue) only light up red when they have a count;
+  // at zero they sit quiet so the row reads calm until something needs eyes.
   var stats = [
     { label: 'Active', value: activeCards, color: '#5BA3DB', icon: 'bolt' },
     { label: 'In Review', value: inReview, color: '#EC4899', icon: 'visibility' },
-    { label: 'Blocked', value: blockedCards, color: blockedCards > 0 ? '#EF4444' : '#6B7280', icon: 'block' },
-    { label: 'Overdue', value: overdueCards, color: overdueCards > 0 ? '#EF4444' : '#6B7280', icon: 'warning' },
+    { label: 'Blocked', value: blockedCards, color: '#EF4444', icon: 'block', alert: true },
+    { label: 'Overdue', value: overdueCards, color: '#EF4444', icon: 'warning', alert: true },
     { label: 'Shipped this month', value: publishedThisMonth, color: '#10B981', icon: 'check_circle' },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
       {stats.map(function(s) {
+        var hot = s.alert && s.value > 0;
+        var quiet = s.alert && s.value === 0;
+        var accent = quiet ? '#6B7280' : s.color;
         return (
-          <div key={s.label} className="bg-[#13172a] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
-            <Icon name={s.icon} className="text-xl" style={{ color: s.color }} />
-            <div>
-              <p className="text-xl font-bold text-white leading-none">{s.value}</p>
-              <p className="text-[11px] text-white/40 mt-1 uppercase tracking-wide">{s.label}</p>
+          <div
+            key={s.label}
+            className={'rounded-xl px-4 py-3 flex items-center gap-3 transition-colors ' + (hot ? 'bg-red-500/[0.07] border border-red-500/40' : 'bg-[#13172a] border border-white/5')}
+          >
+            <span
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ backgroundColor: accent + '1f', color: accent }}
+            >
+              <Icon name={s.icon} className="text-lg" />
+            </span>
+            <div className="min-w-0">
+              <p className={'text-xl font-bold leading-none tabular-nums ' + (hot ? 'text-red-300' : 'text-white')}>{s.value}</p>
+              <p className="text-[11px] text-white/40 mt-1 uppercase tracking-wide truncate">{s.label}</p>
             </div>
           </div>
         );
@@ -1800,19 +1860,12 @@ function ListCardRow(props) {
   var prevCol = idx > 0 ? cols[idx - 1] : null;
   var nextCol = idx < cols.length - 1 ? cols[idx + 1] : null;
 
-  var dept = getDepartment(card.department);
-  var isContent = dept.id === 'content';
-  var typeLabel = departmentTypeLabel(card.department, card.content_type);
-  var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
-  var linkCount = normalizeLinks(card.links).length;
-
   var hasBrief = !!(card.brief && (
     (card.brief.hookLine && card.brief.hookLine.trim()) ||
     (card.brief.talkingPoints && card.brief.talkingPoints.length)
   ));
 
   var assignedNames = cardAssignees(card);
-  var progress = subtaskProgress(card);
   var staleDays = cardStaleDays(card);
 
   function move(dir, e) {
@@ -1836,66 +1889,18 @@ function ListCardRow(props) {
           {assignedNames.length > 0 && <AvatarStack names={assignedNames} size={18} />}
         </div>
         <div className="flex flex-wrap gap-1 mt-1.5 items-center">
-          {card.blocked && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide flex items-center gap-0.5 bg-red-500/15 text-red-300" title="Blocked">
-              <Icon name="block" className="text-[10px]" />
-              Blocked
-            </span>
-          )}
-          <span
-            className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide flex items-center gap-0.5"
-            style={{ backgroundColor: dept.accent, color: dept.color }}
-            title={dept.label + ' department'}
-          >
-            <span className="material-symbols-outlined text-[11px]">{dept.icon}</span>
-            {dept.label}
-          </span>
-          {typeLabel && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
-              {typeLabel}
-            </span>
-          )}
-          {isContent && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/65 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: platform.color }} />
-              {platform.label}
-            </span>
-          )}
-          {card.patch_id && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55">
-              {card.patch_id}
-            </span>
-          )}
-          {hasBrief && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5">
-              <Icon name="auto_stories" className="text-[10px]" />
-              Brief
-            </span>
-          )}
-          {linkCount > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55 flex items-center gap-0.5" title={linkCount + ' link' + (linkCount === 1 ? '' : 's')}>
-              <Icon name="link" className="text-[10px]" />
-              {linkCount}
-            </span>
-          )}
-          {progress && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-[#10B981]/15 text-[#10B981] flex items-center gap-0.5" title="Subtask progress">
-              <Icon name="checklist" className="text-[10px]" />
-              {progress.done}/{progress.total}
-            </span>
-          )}
-          {card.due_date && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/5 text-white/40 flex items-center gap-0.5">
-              <Icon name="calendar_today" className="text-[10px]" />
-              {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </span>
-          )}
-          {staleDays > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide flex items-center gap-0.5" style={{ background: 'rgba(232,160,32,0.18)', color: '#FFD487' }} title={'No column move in ' + staleDays + ' days'}>
-              <Icon name="hourglass_top" className="text-[10px]" />
-              Stuck {staleDays}d
-            </span>
-          )}
+          <CardChips card={card} hasBrief={hasBrief} dense includeProgress>
+            {card.due_date && (
+              <CardChip tone="neutral" dense icon="calendar_today" title="Due date">
+                {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </CardChip>
+            )}
+            {staleDays > 0 && (
+              <CardChip tone="stuck" dense icon="hourglass_top" title={'No column move in ' + staleDays + ' days'}>
+                Stuck {staleDays}d
+              </CardChip>
+            )}
+          </CardChips>
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
@@ -2559,6 +2564,11 @@ function BTBoard() {
       });
   }
 
+  function clearFilters() {
+    setFilterDepartment('');
+    setFilterAssignee('');
+  }
+
   function handleMoveCard(cardId, newColumnId) {
     supabase
       .from('bt_content_cards')
@@ -2803,6 +2813,40 @@ function BTBoard() {
           >
             Add first card
           </button>
+        </div>
+      ) : visibleCards.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-16 bg-[#13172a]/40 border border-dashed border-white/10 rounded-2xl">
+          <span
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
+            style={{ backgroundColor: filterDepartment ? getDepartment(filterDepartment).accent : 'rgba(255,255,255,0.05)' }}
+          >
+            <Icon
+              name={filterDepartment ? getDepartment(filterDepartment).icon : 'filter_alt_off'}
+              className="text-3xl"
+              style={{ color: filterDepartment ? getDepartment(filterDepartment).color : 'rgba(255,255,255,0.35)' }}
+            />
+          </span>
+          <p className="text-white/60 text-sm font-semibold mb-1">
+            {filterDepartment ? 'Nothing in ' + getDepartment(filterDepartment).label + ' yet' : 'No cards match this filter'}
+          </p>
+          <p className="text-white/30 text-xs mb-5">
+            {filterAssignee ? 'Nothing assigned to ' + filterAssignee + ' here. ' : ''}
+            Clear the filter or add a card to this lane.
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 text-sm font-semibold transition-colors"
+            >
+              Clear filters
+            </button>
+            <button
+              onClick={function() { handleAddCard('ideas'); }}
+              className="px-4 py-2 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] text-white text-sm font-semibold transition-colors"
+            >
+              Add card
+            </button>
+          </div>
         </div>
       ) : view === 'kanban' ? (
         <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2">

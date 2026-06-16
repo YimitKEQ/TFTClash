@@ -20,13 +20,30 @@ function titleOf(card) {
 
 function listOrNone(cards, withStale) {
   if (!cards || cards.length === 0) return '_none_';
-  return cards.slice(0, 15).map(function(c) {
+  var lines = cards.map(function(c) {
     if (withStale) {
       var sd = staleDays(c);
       return '- ' + titleOf(c) + (sd > 0 ? ' (' + sd + 'd)' : '');
     }
     return '- ' + titleOf(c);
-  }).join('\n');
+  });
+  // Keep whole lines under Discord's 1024-char field cap.
+  var kept = [];
+  var used = 0;
+  var overflow = 0;
+  for (var i = 0; i < lines.length; i++) {
+    var addLen = lines[i].length + (kept.length ? 1 : 0);
+    var remaining = lines.length - i;
+    var reserve = remaining > 1 ? 20 : 0;
+    if (used + addLen > 1024 - reserve) {
+      overflow = remaining;
+      break;
+    }
+    kept.push(lines[i]);
+    used += addLen;
+  }
+  if (overflow) kept.push('...and ' + overflow + ' more');
+  return kept.join('\n') || '_none_';
 }
 
 export async function execute(interaction) {

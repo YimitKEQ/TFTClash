@@ -19,6 +19,7 @@ import {
 import { BT_DEPARTMENTS } from '../config/crew.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
+import { resolveChannel } from '../lib/channels.js';
 
 var DEPT_CHOICES = BT_DEPARTMENTS.map(function(d) { return { name: d.label, value: d.id }; });
 var DEPT_LABEL = {};
@@ -83,7 +84,8 @@ export async function handleModal(interaction) {
   try {
     created = await createCardsFromTasks(tasks, { meetingTitle: title });
   } catch (e) {
-    await interaction.editReply('Could not create cards: ' + ((e && e.message) || e));
+    console.error('[meeting] createCardsFromTasks failed: ' + ((e && e.message) || e));
+    await interaction.editReply('Could not create cards from that meeting right now. The notes were not saved. Try again shortly.');
     return;
   }
 
@@ -120,4 +122,17 @@ export async function handleModal(interaction) {
   embed.setFooter({ text: engineNote + ' - BrosephTech' });
 
   await interaction.editReply({ embeds: [embed] });
+
+  // Also drop the recap in the dedicated meetings channel, unless we are already
+  // in it, so #bt-meetings becomes the running log of captured meetings.
+  try {
+    var guild = interaction.guild;
+    var meetingsName = process.env.BT_MEETINGS_CHANNEL || 'bt-meetings';
+    var channel = guild ? resolveChannel(guild, meetingsName) : null;
+    if (channel && channel.id !== interaction.channelId) {
+      await channel.send({ embeds: [embed] });
+    }
+  } catch (e) {
+    console.warn('[meeting] could not post recap to meetings channel: ' + ((e && e.message) || e));
+  }
 }
