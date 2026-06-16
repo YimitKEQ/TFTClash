@@ -153,3 +153,72 @@ export function buildAccountability(cards, now) {
 
   return { members: members, totals: totals, departments: departments };
 }
+
+// A sensible default work-type per department (mirrors the board's first option
+// for each department). content_type is free text, so this only needs to be a
+// reasonable label, not an enum.
+var DEFAULT_TYPE = {
+  content: 'short',
+  engineering: 'feature',
+  design: 'ui',
+  marketing: 'campaign',
+  ops: 'admin',
+};
+
+function knownDept(value) {
+  for (var i = 0; i < BT_DEPARTMENTS.length; i++) {
+    if (BT_DEPARTMENTS[i].id === value) return value;
+  }
+  return 'content';
+}
+
+// Insert board cards from extracted meeting tasks. Every card lands in the
+// Ideas/Backlog column. Returns the inserted rows (id, title, department).
+export async function createCardsFromTasks(tasks, meta) {
+  var list = Array.isArray(tasks) ? tasks : [];
+  if (list.length === 0) return [];
+  var m = meta || {};
+  var note = m.meetingTitle ? ('Captured from meeting: ' + m.meetingTitle) : 'Captured from a meeting';
+  var rows = list.map(function(t) {
+    var dept = knownDept(t.department);
+    var owner = t.assignee ? String(t.assignee) : '';
+    return {
+      title: String(t.title || '').slice(0, 140),
+      description: note,
+      column_id: 'ideas',
+      department: dept,
+      content_type: DEFAULT_TYPE[dept] || 'short',
+      platform: 'both',
+      assignee: owner,
+      assignees: owner ? [owner] : [],
+      subtasks: [],
+      priority: (t.priority === 'high' || t.priority === 'low') ? t.priority : 'medium',
+      links: [],
+      blocked: false,
+    };
+  }).filter(function(r) { return r.title; });
+  if (rows.length === 0) return [];
+  var res = await supabase.from('bt_content_cards').insert(rows).select('id, title, department');
+  if (res.error) throw new Error('Failed to create cards: ' + res.error.message);
+  return res.data || [];
+}
+
+// Persist a meeting record (summary + raw notes) for the context log.
+// Best-effort: if the bt_meetings table is missing, this returns null rather
+// than failing the whole capture (the cards are the important part).
+export async function recordMeeting(meeting) {
+  var m = meeting || {};
+  var row = {
+    title: String(m.title || 'Untitled meeting').slice(0, 200),
+    summary: String(m.summary || ''),
+    raw_notes: String(m.raw_notes || ''),
+    created_by: String(m.created_by || ''),
+    tasks_created: m.tasks_created || 0,
+  };
+  var res = await supabase.from('bt_meetings').insert(row).select('id').single();
+  if (res.error) {
+    console.warn('[meeting] could not record meeting (continuing): ' + res.error.message);
+    return null;
+  }
+  return res.data || null;
+}

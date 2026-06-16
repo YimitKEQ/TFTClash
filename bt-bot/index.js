@@ -48,8 +48,29 @@ client.once(Events.ClientReady, function(c) {
   startScheduler(client);
 });
 
-// ---- Slash command handler ---------------------------------------------------
+// ---- Interaction handler -----------------------------------------------------
 client.on(Events.InteractionCreate, async function(interaction) {
+  // Modal submissions (e.g. the /meeting capture modal).
+  if (interaction.isModalSubmit()) {
+    if (interaction.customId.indexOf('meeting:') === 0) {
+      var meetingCmd = client.commands.get('meeting');
+      if (meetingCmd && meetingCmd.handleModal) {
+        try {
+          await meetingCmd.handleModal(interaction);
+        } catch (err) {
+          console.error('[error] meeting modal:', err);
+          var failMsg = { content: 'Something went wrong capturing that meeting.', ephemeral: true };
+          if (interaction.deferred || interaction.replied) {
+            await interaction.editReply(failMsg).catch(function() {});
+          } else {
+            await interaction.reply(failMsg).catch(function() {});
+          }
+        }
+      }
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
   var cmd = client.commands.get(interaction.commandName);
   if (!cmd) return;

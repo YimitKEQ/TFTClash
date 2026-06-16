@@ -120,6 +120,28 @@ export function crewNameForDiscordId(discordId) {
   return null;
 }
 
+// Match a free-text name or a <@id> mention to a known crew name.
+// Returns the canonical crew name, or null if nothing matches.
+export function matchCrewName(text) {
+  if (!text) return null;
+  var raw = String(text).trim();
+  var mentionMatch = raw.match(/^<@!?(\d+)>$/);
+  if (mentionMatch) {
+    var byId = crewNameForDiscordId(mentionMatch[1]);
+    if (byId) return byId;
+  }
+  var lower = raw.toLowerCase().replace(/^@/, '');
+  if (!lower) return null;
+  var i;
+  for (i = 0; i < BT_CREW.length; i++) {
+    if (BT_CREW[i].name.toLowerCase() === lower) return BT_CREW[i].name;
+  }
+  for (i = 0; i < BT_CREW.length; i++) {
+    if (lower.indexOf(BT_CREW[i].name.toLowerCase()) !== -1) return BT_CREW[i].name;
+  }
+  return null;
+}
+
 // Test-only / hot-reload helper: clears the cached parse of BT_CREW_DISCORD.
 export function _resetCrewDiscordCache() {
   crewDiscordCache = {};

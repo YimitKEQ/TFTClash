@@ -1,16 +1,27 @@
 /**
  * deploy-commands.js - register the slash commands for the BrosephTech bot.
  * Run once, and again whenever commands change: node deploy-commands.js
+ *
+ * Loads every command in commands/ dynamically so new commands register
+ * automatically.
  */
 
 import { REST, Routes } from 'discord.js';
+import { readdirSync } from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
+import path from 'path';
 import 'dotenv/config';
 
-import { data as standup }  from './commands/standup.js';
-import { data as board }    from './commands/board.js';
-import { data as mytasks }  from './commands/mytasks.js';
+var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-var commands = [standup, board, mytasks].map(function(c) { return c.toJSON(); });
+var commands = [];
+var files = readdirSync(path.join(__dirname, 'commands')).filter(function(f) { return f.endsWith('.js'); });
+for (var i = 0; i < files.length; i++) {
+  var mod = await import(pathToFileURL(path.join(__dirname, 'commands', files[i])).href);
+  if (mod.data && typeof mod.data.toJSON === 'function') {
+    commands.push(mod.data.toJSON());
+  }
+}
 
 if (!process.env.BT_DISCORD_TOKEN || !process.env.BT_CLIENT_ID || !process.env.BT_GUILD_ID) {
   console.error('BT_DISCORD_TOKEN, BT_CLIENT_ID and BT_GUILD_ID must all be set in .env');
