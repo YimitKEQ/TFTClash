@@ -2,12 +2,12 @@ import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
 import { MECHANIC_TERMS, PATCHES } from '../../lib/btset17';
-import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus } from '../../lib/btcrew';
+import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus, BT_DEPARTMENTS, BT_DEPARTMENT_IDS, resolveDepartment, getDepartment } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 var BOARD_TABLES = ['bt_content_cards', 'bt_card_templates'];
 
-var TEMPLATE_FIELDS = ['title', 'description', 'column_id', 'content_type', 'platform', 'assignees', 'subtasks', 'priority', 'patch_id', 'brief'];
+var TEMPLATE_FIELDS = ['title', 'description', 'column_id', 'department', 'content_type', 'platform', 'assignees', 'subtasks', 'priority', 'patch_id', 'brief'];
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -60,6 +60,7 @@ var EMPTY_FORM = {
   title: '',
   description: '',
   column_id: 'ideas',
+  department: 'content',
   content_type: 'short',
   platform: 'both',
   assignee: '',
@@ -412,6 +413,45 @@ function CrewFilterStrip(props) {
           >
             <TeamAvatar name={m.name} size={22} />
             <span className="hidden md:inline">{m.name}</span>
+            <span className="px-1.5 rounded-full bg-white/10 text-[10px] tabular-nums">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DepartmentFilterStrip(props) {
+  var current = props.value || '';
+  return (
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+      <button
+        type="button"
+        onClick={function() { props.onChange(''); }}
+        className={'shrink-0 inline-flex items-center gap-1.5 px-3.5 h-10 rounded-full border text-[12px] font-bold transition-all ' + (!current ? 'border-white/30 bg-white/[0.12] text-white' : 'border-white/10 bg-white/[0.04] text-white/65 hover:text-white hover:border-white/25')}
+      >
+        <span className="material-symbols-outlined text-[17px]">dashboard</span>
+        All
+      </button>
+      {BT_DEPARTMENTS.map(function(d) {
+        var count = props.counts ? (props.counts[d.id] || 0) : 0;
+        var active = current === d.id;
+        return (
+          <button
+            key={d.id}
+            type="button"
+            onClick={function() { props.onChange(active ? '' : d.id); }}
+            className={'shrink-0 inline-flex items-center gap-1.5 px-3.5 h-10 rounded-full border text-[12px] font-bold transition-all ' + (active ? '' : 'border-white/10 bg-white/[0.04] text-white/70 hover:text-white hover:border-white/25')}
+            style={active ? {
+              borderColor: d.color + '99',
+              background: d.accent,
+              color: '#fff',
+              boxShadow: '0 4px 16px -6px ' + d.halo,
+            } : {}}
+            title={d.label + ' (' + count + ' active)'}
+          >
+            <span className="material-symbols-outlined text-[17px]" style={{ color: d.color }}>{d.icon}</span>
+            <span>{d.label}</span>
             <span className="px-1.5 rounded-full bg-white/10 text-[10px] tabular-nums">{count}</span>
           </button>
         );
@@ -1135,6 +1175,8 @@ function SubtaskList(props) {
 function CardFields(props) {
   var form = props.form;
   var set = props.set;
+  var activeDept = resolveDepartment(form.department);
+  var isContent = activeDept === 'content';
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -1145,6 +1187,35 @@ function CardFields(props) {
           placeholder="e.g. Set 14 1-cost carries tier list"
           autoFocus={!props.isEdit}
         />
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Department</label>
+        <div className="flex flex-wrap gap-1.5">
+          {BT_DEPARTMENTS.map(function(d) {
+            var active = activeDept === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={function() { set('department', d.id); }}
+                className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-semibold transition-all ' + (active ? '' : 'border-white/8 text-white/55 hover:text-white/90 hover:border-white/20')}
+                style={active ? {
+                  borderColor: d.color + '99',
+                  background: d.accent,
+                  color: '#fff',
+                  boxShadow: '0 4px 16px -6px ' + d.halo,
+                } : {}}
+                title={d.label}
+              >
+                <span className="material-symbols-outlined text-[15px]" style={{ color: d.color }}>{d.icon}</span>
+                <span>{d.label}</span>
+                {active && <span className="material-symbols-outlined text-[12px] opacity-80">check</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-white/30 mt-1.5">Which side of BrosephTech this card belongs to.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -1166,24 +1237,26 @@ function CardFields(props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
-          <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
-            {CONTENT_TYPES.map(function(t) {
-              return <option key={t.id} value={t.id}>{t.label}</option>;
-            })}
-          </Sel>
+      {isContent && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
+            <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
+              {CONTENT_TYPES.map(function(t) {
+                return <option key={t.id} value={t.id}>{t.label}</option>;
+              })}
+            </Sel>
+          </div>
+          <div>
+            <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Platform</label>
+            <Sel value={form.platform} onChange={function(e) { set('platform', e.target.value); }}>
+              {PLATFORMS.map(function(p) {
+                return <option key={p.id} value={p.id}>{p.label}</option>;
+              })}
+            </Sel>
+          </div>
         </div>
-        <div>
-          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Platform</label>
-          <Sel value={form.platform} onChange={function(e) { set('platform', e.target.value); }}>
-            {PLATFORMS.map(function(p) {
-              return <option key={p.id} value={p.id}>{p.label}</option>;
-            })}
-          </Sel>
-        </div>
-      </div>
+      )}
 
       <div>
         <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
@@ -1208,15 +1281,17 @@ function CardFields(props) {
         />
       </div>
 
-      <div>
-        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Patch tag</label>
-        <Inp
-          value={form.patch_id || ''}
-          onChange={function(e) { set('patch_id', e.target.value); }}
-          placeholder="e.g. 17.2 or set-17"
-        />
-        <p className="text-[10px] text-white/30 mt-1.5">Tag a patch so timeline can group cards</p>
-      </div>
+      {isContent && (
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Patch tag</label>
+          <Inp
+            value={form.patch_id || ''}
+            onChange={function(e) { set('patch_id', e.target.value); }}
+            placeholder="e.g. 17.2 or set-17"
+          />
+          <p className="text-[10px] text-white/30 mt-1.5">Tag a patch so timeline can group cards</p>
+        </div>
+      )}
 
       <div>
         <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Notes</label>
@@ -1289,6 +1364,14 @@ function CardModal(props) {
     (form.brief.titleOptions && form.brief.titleOptions.length)
   ));
 
+  var isContent = resolveDepartment(form.department) === 'content';
+
+  // The Brief & Title tab is content-only. If a non-content department is
+  // selected while sitting on that tab, fall back to the Card tab.
+  React.useEffect(function() {
+    if (!isContent && tab === 'brief') setTab('card');
+  }, [isContent, tab]);
+
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-stretch sm:items-center justify-center z-50 sm:p-4 animate-in fade-in" onClick={props.onClose}>
       <div
@@ -1317,17 +1400,19 @@ function CardModal(props) {
             <Icon name="dashboard_customize" className="text-base" />
             Card
           </button>
-          <button
-            type="button"
-            onClick={function() { setTab('brief'); ensureBrief(); }}
-            className={'shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'brief' ? 'border-[#E8A020] text-[#E8A020]' : 'border-transparent text-white/40 hover:text-white/80')}
-          >
-            <Icon name="auto_stories" className="text-base" />
-            Brief & Title
-            {briefHasContent && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020]" title="Brief has content" />
-            )}
-          </button>
+          {isContent && (
+            <button
+              type="button"
+              onClick={function() { setTab('brief'); ensureBrief(); }}
+              className={'shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'brief' ? 'border-[#E8A020] text-[#E8A020]' : 'border-transparent text-white/40 hover:text-white/80')}
+            >
+              <Icon name="auto_stories" className="text-base" />
+              Brief & Title
+              {briefHasContent && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020]" title="Brief has content" />
+              )}
+            </button>
+          )}
           {props.isEdit && (
             <button
               type="button"
@@ -1343,7 +1428,7 @@ function CardModal(props) {
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto px-6 py-5">
             {tab === 'card' && <CardFields form={form} set={set} isEdit={props.isEdit} />}
-            {tab === 'brief' && (
+            {tab === 'brief' && isContent && (
               <BriefForm
                 brief={form.brief || EMPTY_BRIEF}
                 cardTitle={form.title}
@@ -1432,6 +1517,8 @@ function KanbanCard(props) {
   var assignedNames = cardAssignees(card);
   var progress = subtaskProgress(card);
   var staleDays = cardStaleDays(card);
+  var dept = getDepartment(card.department);
+  var isContent = dept.id === 'content';
 
   return (
     <div
@@ -1451,20 +1538,27 @@ function KanbanCard(props) {
       </div>
 
       <div className="flex flex-wrap gap-1.5 items-center">
-        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#5BA3DB]/10 text-[#5BA3DB] font-semibold uppercase tracking-wide">
-          {typeLabel}
-        </span>
         <span
-          className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide"
-          style={{
-            backgroundColor: platform.color + '18',
-            color: platform.color,
-          }}
+          className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide flex items-center gap-0.5"
+          style={{ backgroundColor: dept.accent, color: dept.color }}
+          title={dept.label + ' department'}
         >
-          {platform.label}
+          <span className="material-symbols-outlined text-[12px]">{dept.icon}</span>
+          {dept.label}
         </span>
+        {isContent && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
+            {typeLabel}
+          </span>
+        )}
+        {isContent && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/65 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: platform.color }} />
+            {platform.label}
+          </span>
+        )}
         {card.patch_id && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/5 text-white/50">
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55">
             {card.patch_id}
           </span>
         )}
@@ -1640,6 +1734,8 @@ function ListCardRow(props) {
   var assignedNames = cardAssignees(card);
   var progress = subtaskProgress(card);
   var staleDays = cardStaleDays(card);
+  var dept = getDepartment(card.department);
+  var isContent = dept.id === 'content';
 
   function move(dir, e) {
     e.stopPropagation();
@@ -1662,17 +1758,27 @@ function ListCardRow(props) {
           {assignedNames.length > 0 && <AvatarStack names={assignedNames} size={18} />}
         </div>
         <div className="flex flex-wrap gap-1 mt-1.5 items-center">
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#5BA3DB]/10 text-[#5BA3DB] font-semibold uppercase tracking-wide">
-            {typeLabel}
-          </span>
           <span
-            className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide"
-            style={{ backgroundColor: platform.color + '18', color: platform.color }}
+            className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide flex items-center gap-0.5"
+            style={{ backgroundColor: dept.accent, color: dept.color }}
+            title={dept.label + ' department'}
           >
-            {platform.label}
+            <span className="material-symbols-outlined text-[11px]">{dept.icon}</span>
+            {dept.label}
           </span>
+          {isContent && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/65 font-semibold uppercase tracking-wide">
+              {typeLabel}
+            </span>
+          )}
+          {isContent && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/65 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: platform.color }} />
+              {platform.label}
+            </span>
+          )}
           {card.patch_id && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/5 text-white/50">
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/[0.04] border border-white/10 text-white/55">
               {card.patch_id}
             </span>
           )}
@@ -2244,6 +2350,7 @@ function BTBoard() {
   var [loading, setLoading] = React.useState(true);
   var [modal, setModal] = React.useState(null);
   var [filterAssignee, setFilterAssignee] = React.useState('');
+  var [filterDepartment, setFilterDepartment] = React.useState('');
   var [view, setView] = React.useState(function() {
     if (typeof window === 'undefined') return 'kanban';
     return window.innerWidth < 640 ? 'list' : 'kanban';
@@ -2304,6 +2411,7 @@ function BTBoard() {
       title: form.title,
       description: form.description,
       column_id: form.column_id,
+      department: resolveDepartment(form.department),
       content_type: form.content_type,
       platform: form.platform,
       assignee: assignees[0] || '',
@@ -2378,11 +2486,13 @@ function BTBoard() {
     var insertPayload = Object.assign({}, EMPTY_FORM, {
       title: payload.title,
       column_id: 'ideas',
+      department: resolveDepartment(payload.department),
       assignee: assignees[0] || '',
       assignees: assignees,
       brief: null,
     });
     delete insertPayload.id;
+    insertPayload.due_date = insertPayload.due_date || null;
     supabase
       .from('bt_content_cards')
       .insert(insertPayload)
@@ -2400,6 +2510,8 @@ function BTBoard() {
   function handlePatchTemplateCreate(template) {
     var insertPayload = Object.assign({}, EMPTY_FORM, template);
     delete insertPayload.id;
+    insertPayload.department = resolveDepartment(insertPayload.department);
+    insertPayload.due_date = insertPayload.due_date || null;
     supabase
       .from('bt_content_cards')
       .insert(insertPayload)
@@ -2483,9 +2595,11 @@ function BTBoard() {
     );
   }
 
-  var visibleCards = filterAssignee
-    ? cards.filter(function(c) { return cardAssignees(c).indexOf(filterAssignee) !== -1; })
-    : cards;
+  var visibleCards = cards.filter(function(c) {
+    if (filterAssignee && cardAssignees(c).indexOf(filterAssignee) === -1) return false;
+    if (filterDepartment && resolveDepartment(c.department) !== filterDepartment) return false;
+    return true;
+  });
 
   var crewCounts = {};
   BT_CREW_NAMES.forEach(function(n) { crewCounts[n] = 0; });
@@ -2497,15 +2611,31 @@ function BTBoard() {
     });
   });
 
+  var deptCounts = {};
+  BT_DEPARTMENT_IDS.forEach(function(id) { deptCounts[id] = 0; });
+  cards.forEach(function(c) {
+    if (ACTIVE_COLUMN_IDS.indexOf(c.column_id) === -1) return;
+    var id = resolveDepartment(c.department);
+    deptCounts[id] += 1;
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Content Board</h2>
-          <p className="text-sm text-white/40 mt-0.5">
-            {cards.length} cards total
-            {filterAssignee && ' - filtered: ' + filterAssignee}
-            <span className="hidden sm:inline ml-3 text-[11px] text-white/25">Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-white/40">N</kbd> for new card</span>
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">BrosephTech Board</h2>
+          <p className="text-sm text-white/45 mt-1">Content pipeline and the Barontactics app, all in one place.</p>
+          <p className="text-[11px] text-white/30 mt-1.5 flex items-center gap-2 flex-wrap">
+            <span className="tabular-nums">{cards.length} card{cards.length === 1 ? '' : 's'} total</span>
+            {filterDepartment && (
+              <span className="text-white/45">in {getDepartment(filterDepartment).label}</span>
+            )}
+            {filterAssignee && (
+              <span className="text-white/45">for {filterAssignee}</span>
+            )}
+            <span className="hidden sm:inline-flex items-center gap-1.5">
+              Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-white/40">N</kbd> for new card
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -2553,8 +2683,15 @@ function BTBoard() {
 
       <CrewWorkload cards={cards} onSelect={function(name) { setFilterAssignee(name === filterAssignee ? '' : name); }} />
 
-      <div className="mb-5">
-        <CrewFilterStrip value={filterAssignee} counts={crewCounts} onChange={setFilterAssignee} />
+      <div className="bg-[#13172a]/50 border border-white/5 rounded-2xl p-3.5 mb-5 space-y-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold mb-2 px-0.5">Department</p>
+          <DepartmentFilterStrip value={filterDepartment} counts={deptCounts} onChange={setFilterDepartment} />
+        </div>
+        <div className="border-t border-white/5 pt-3">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2 px-0.5">Crew</p>
+          <CrewFilterStrip value={filterAssignee} counts={crewCounts} onChange={setFilterAssignee} />
+        </div>
       </div>
 
       {cards.length === 0 ? (

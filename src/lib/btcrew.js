@@ -75,6 +75,30 @@ var BT_CREW = [
     halo: 'rgba(61,143,160,0.55)',
     blurb: 'Owns the look: thumbnails, lower thirds, motion graphics.',
   },
+  {
+    id: 'fridley',
+    name: 'Fridley',
+    title: 'Developer',
+    short: 'Barontactics dev',
+    role: 'dev',
+    initial: 'F',
+    color: '#818CF8',
+    accent: 'rgba(129,140,248,0.18)',
+    halo: 'rgba(129,140,248,0.55)',
+    blurb: 'Builds the Barontactics app: features, fixes, releases.',
+  },
+  {
+    id: 'tactic',
+    name: 'Tactic',
+    title: 'Design & Product',
+    short: 'Design + product',
+    role: 'design',
+    initial: 'T',
+    color: '#F472B6',
+    accent: 'rgba(244,114,182,0.18)',
+    halo: 'rgba(244,114,182,0.55)',
+    blurb: 'Owns Barontactics product design, UX, and the visual system.',
+  },
 ];
 
 var BT_CREW_NAMES = BT_CREW.map(function(m) { return m.name; });
@@ -170,6 +194,72 @@ function workloadStatus(activeCount) {
   return                  { id: 'swamped',  label: 'Swamped',  color: '#EF4444' };
 }
 
+// Departments group crew work into top-level lanes for the BT command center.
+// Colors mirror the glassmorphism palette; accents/halos are tuned for orbs.
+var BT_DEPARTMENTS = [
+  {
+    id: 'content',
+    label: 'Content',
+    icon: 'play_circle',
+    color: '#5BA3DB',
+    accent: 'rgba(91,163,219,0.15)',
+    halo: 'rgba(91,163,219,0.55)',
+  },
+  {
+    id: 'engineering',
+    label: 'Engineering',
+    icon: 'code',
+    color: '#818CF8',
+    accent: 'rgba(129,140,248,0.15)',
+    halo: 'rgba(129,140,248,0.55)',
+  },
+  {
+    id: 'design',
+    label: 'Design',
+    icon: 'brush',
+    color: '#F472B6',
+    accent: 'rgba(244,114,182,0.15)',
+    halo: 'rgba(244,114,182,0.55)',
+  },
+  {
+    id: 'marketing',
+    label: 'Marketing',
+    icon: 'campaign',
+    color: '#E8A020',
+    accent: 'rgba(232,160,32,0.15)',
+    halo: 'rgba(232,160,32,0.55)',
+  },
+  {
+    id: 'ops',
+    label: 'Ops',
+    icon: 'insights',
+    color: '#34D399',
+    accent: 'rgba(52,211,153,0.15)',
+    halo: 'rgba(52,211,153,0.55)',
+  },
+];
+
+var BT_DEPARTMENT_IDS = BT_DEPARTMENTS.map(function(d) { return d.id; });
+
+var BT_DEPARTMENTS_BY_ID = (function() {
+  var idx = {};
+  BT_DEPARTMENTS.forEach(function(d) { idx[d.id] = d; });
+  return idx;
+})();
+
+// Resolve any value to a known department id. Falsy or unknown values fall
+// back to 'content' so callers never have to branch on missing data.
+function resolveDepartment(value) {
+  if (!value) return 'content';
+  if (BT_DEPARTMENTS_BY_ID[value]) return value;
+  return 'content';
+}
+
+// Return the department object for a value, never null (defaults to content).
+function getDepartment(value) {
+  return BT_DEPARTMENTS_BY_ID[resolveDepartment(value)] || BT_DEPARTMENTS_BY_ID.content;
+}
+
 export {
   BT_CREW,
   BT_CREW_NAMES,
@@ -181,4 +271,9 @@ export {
   getCrewByRole,
   getCrewForStepRole,
   workloadStatus,
+  BT_DEPARTMENTS,
+  BT_DEPARTMENT_IDS,
+  BT_DEPARTMENTS_BY_ID,
+  resolveDepartment,
+  getDepartment,
 };

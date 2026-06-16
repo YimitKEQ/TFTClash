@@ -1,0 +1,19 @@
+{
+  "name": "brosephtech-bot",
+  "version": "1.0.0",
+  "description": "Standalone accountability Discord bot for the BrosephTech crew. Reads the shared bt_content_cards board and holds owners accountable for overdue, stuck, and due-soon work. Completely independent of the TFT Clash bot.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "discord.js": "^14",
+    "dotenv": "^16",
+    "node-cron": "^3"
+  }
+}
