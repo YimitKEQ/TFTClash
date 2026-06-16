@@ -1793,8 +1793,116 @@ function KanbanColumn(props) {
   );
 }
 
+// Release / version lens. When a single non-content department is filtered we
+// roll its cards up by the department tag (patch_id -> Version for engineering,
+// Campaign for marketing, Ref for ops...) so releases and sprints are visible
+// at a glance without leaving the board. Uses only existing fields.
+function ReleaseLens(props) {
+  var dept = props.department || '';
+  var cards = props.cards || [];
+  if (!dept || dept === 'content') return null;
+
+  var deptMeta = getDepartment(dept);
+  var tagLabel = departmentTagLabel(dept);
+
+  // Group by the trimmed tag. Cards without a tag collect under "Untagged" so
+  // the operator can see how much work is not yet assigned to a release.
+  var order = [];
+  var groups = {};
+  cards.forEach(function(c) {
+    if (c.column_id === 'archive') return;
+    var key = (c.patch_id && c.patch_id.trim()) ? c.patch_id.trim() : '';
+    var bucket = key || '__untagged__';
+    if (!groups[bucket]) {
+      groups[bucket] = { key: key, total: 0, shipped: 0, active: 0, blocked: 0 };
+      order.push(bucket);
+    }
+    var g = groups[bucket];
+    g.total += 1;
+    if (c.column_id === 'published') g.shipped += 1;
+    else g.active += 1;
+    if (c.blocked) g.blocked += 1;
+  });
+
+  // Nothing tagged and nothing active -> no value in rendering the lens.
+  var tagged = order.filter(function(k) { return k !== '__untagged__'; });
+  if (tagged.length === 0) return null;
+
+  // Tagged releases first, most-loaded first; untagged always trails.
+  var rows = order
+    .map(function(k) { return groups[k]; })
+    .sort(function(a, b) {
+      if (!a.key && b.key) return 1;
+      if (a.key && !b.key) return -1;
+      return b.total - a.total;
+    });
+
+  return (
+    <div className="bg-[#13172a]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mb-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border"
+            style={{ backgroundColor: deptMeta.accent, color: deptMeta.color, borderColor: deptMeta.color + '40' }}
+          >
+            <span className="material-symbols-outlined text-lg">deployed_code</span>
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-white text-sm font-bold flex items-center gap-2">
+              {deptMeta.label} by {tagLabel.toLowerCase()}
+            </h3>
+            <p className="text-[11px] text-white/40 mt-0.5">{tagged.length} {tagLabel.toLowerCase()}{tagged.length === 1 ? '' : 's'} in flight. Shipped vs in-progress per {tagLabel.toLowerCase()}.</p>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        {rows.map(function(g) {
+          var untagged = !g.key;
+          var pct = g.total === 0 ? 0 : Math.round((g.shipped / g.total) * 100);
+          return (
+            <div
+              key={g.key || '__untagged__'}
+              className="bg-[#0b0e1a]/60 border border-white/5 rounded-xl px-3 py-2.5 transition-all hover:border-white/15 hover:-translate-y-0.5"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-[11px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded font-mono truncate"
+                  style={untagged
+                    ? { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.45)' }
+                    : { background: deptMeta.accent, color: deptMeta.color }}
+                  title={untagged ? ('No ' + tagLabel.toLowerCase() + ' tag') : (tagLabel + ' ' + g.key)}
+                >
+                  {untagged ? 'Untagged' : g.key}
+                </span>
+                {g.blocked > 0 && (
+                  <CardChip tone="blocked" dense icon="block" title={g.blocked + ' blocked'}>{g.blocked}</CardChip>
+                )}
+                <span className="ml-auto text-[10px] text-white/40 tabular-nums shrink-0">{g.shipped}/{g.total}</span>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: pct + '%', background: 'linear-gradient(90deg, ' + deptMeta.color + 'cc, ' + deptMeta.color + '66)' }}
+                />
+              </div>
+              <p className="text-[10px] text-white/35 mt-1.5">
+                {g.active} active{g.shipped > 0 ? ' / ' + g.shipped + ' shipped' : ''}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BoardStats(props) {
-  var cards = props.cards;
+  // When a department filter is active the stats reflect only that department,
+  // so the header numbers track whatever lane the operator is looking at.
+  var dept = props.department || '';
+  var cards = (props.cards || []).filter(function(c) {
+    return dept ? resolveDepartment(c.department) === dept : true;
+  });
   var activeCards = cards.filter(function(c) { return c.column_id !== 'archive'; }).length;
   var overdueCards = cards.filter(function(c) {
     if (!c.due_date || ['published','archive'].includes(c.column_id)) return false;
@@ -1807,7 +1915,7 @@ function BoardStats(props) {
   var blockedCards = cards.filter(function(c) {
     return c.blocked && !['published','archive'].includes(c.column_id);
   }).length;
-  var publishedThisMonth = cards.filter(function(c) {
+  var shippedThisMonth = cards.filter(function(c) {
     if (c.column_id !== 'published') return false;
     var updated = new Date(c.updated_at || c.created_at);
     var now = new Date();
@@ -1821,7 +1929,7 @@ function BoardStats(props) {
     { label: 'In Review', value: inReview, color: '#EC4899', icon: 'visibility' },
     { label: 'Blocked', value: blockedCards, color: '#EF4444', icon: 'block', alert: true },
     { label: 'Overdue', value: overdueCards, color: '#EF4444', icon: 'warning', alert: true },
-    { label: 'Shipped this month', value: publishedThisMonth, color: '#10B981', icon: 'check_circle' },
+    { label: 'Shipped this month', value: shippedThisMonth, color: '#10B981', icon: 'check_circle' },
   ];
 
   return (
@@ -2727,12 +2835,19 @@ function BTBoard() {
     return Object.assign({}, c, { label: columnLabel(filterDepartment, c.id) });
   });
 
+  // The patch war room is a content-only feature (TFT patches). Show it on the
+  // All view and on the Content view; hide it for engineering/design/marketing/
+  // ops so those lanes are not dominated by content patch templates. The
+  // release/version lens (grouping by the department tag) is its inverse and
+  // renders only on the non-content single-department views.
+  var contentInView = !filterDepartment || filterDepartment === 'content';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="min-w-0">
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">BrosephTech Board</h2>
-          <p className="text-sm text-white/45 mt-1">Content pipeline and the Barontactics app, all in one place.</p>
+          <p className="text-sm text-white/45 mt-1">Every team in one command center: the channel, the Barontactics app, design, marketing, and ops.</p>
           <p className="text-[11px] text-white/30 mt-1.5 flex items-center gap-2 flex-wrap">
             <span className="tabular-nums">{cards.length} card{cards.length === 1 ? '' : 's'} total</span>
             {filterDepartment && (
@@ -2783,9 +2898,15 @@ function BTBoard() {
 
       <BTPatchBanner cards={cards} />
 
-      <PatchWarRoom cards={cards} onCreate={handlePatchTemplateCreate} />
+      {contentInView && (
+        <PatchWarRoom cards={cards} onCreate={handlePatchTemplateCreate} />
+      )}
 
-      <BoardStats cards={cards} />
+      <BoardStats cards={cards} department={filterDepartment} />
+
+      {!contentInView && (
+        <ReleaseLens cards={visibleCards} department={filterDepartment} />
+      )}
 
       <BottleneckHeatmap cards={cards} />
 
@@ -2806,7 +2927,7 @@ function BTBoard() {
         <div className="flex flex-col items-center justify-center text-center py-16 bg-[#13172a]/40 border border-dashed border-white/10 rounded-2xl">
           <Icon name="dashboard_customize" className="text-5xl text-white/20 mb-3" />
           <p className="text-white/60 text-sm font-semibold mb-1">No cards yet</p>
-          <p className="text-white/30 text-xs mb-5">Add your first card, content or Barontactics, to get going.</p>
+          <p className="text-white/30 text-xs mb-5">Add your first card from any team, a video, a feature, a design, a campaign, or an ops task, to get going.</p>
           <button
             onClick={function() { handleAddCard('ideas'); }}
             className="px-5 py-2 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] text-white text-sm font-semibold transition-colors"

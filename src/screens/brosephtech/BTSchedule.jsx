@@ -1,7 +1,16 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { PATCHES } from '../../lib/btset17';
-import { BT_CREW, getCrewMember, resolveCrewName, cardAssignees } from '../../lib/btcrew';
+import {
+  BT_CREW,
+  getCrewMember,
+  cardAssignees,
+  BT_DEPARTMENTS,
+  resolveDepartment,
+  getDepartment,
+  departmentTypeLabel,
+  columnLabel,
+} from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 function ScheduleCrewAvatar(props) {
@@ -25,8 +34,49 @@ function ScheduleCrewAvatar(props) {
   );
 }
 
+// A small department badge - icon + label tinted in the department color.
+// Mirrors the board's department chip so the two surfaces read identically.
+function DeptChip(props) {
+  var dept = getDepartment(props.department);
+  var dense = !!props.dense;
+  var size = dense
+    ? 'text-[9px] px-1.5 py-0.5 rounded gap-0.5'
+    : 'text-[10px] px-1.5 py-0.5 rounded-md gap-1';
+  var iconSize = dense ? 'text-[10px]' : 'text-[11px]';
+  return (
+    <span
+      className={'inline-flex items-center font-semibold uppercase tracking-wide whitespace-nowrap ' + size}
+      style={{ backgroundColor: dept.accent, color: dept.color }}
+      title={dept.label + ' department'}
+    >
+      <span className={'material-symbols-outlined ' + iconSize}>{dept.icon}</span>
+      {props.hideLabel ? null : dept.label}
+    </span>
+  );
+}
+
+// The unmistakable blocked status chip, identical hue to the board.
+function BlockedChip(props) {
+  var dense = !!props.dense;
+  var size = dense
+    ? 'text-[9px] px-1.5 py-0.5 rounded gap-0.5'
+    : 'text-[10px] px-1.5 py-0.5 rounded-md gap-1';
+  var iconSize = dense ? 'text-[10px]' : 'text-[11px]';
+  return (
+    <span
+      className={'inline-flex items-center font-bold uppercase tracking-wide whitespace-nowrap bg-red-500/15 text-red-300 ' + size}
+      title="Blocked - this card is stuck on a dependency"
+    >
+      <span className={'material-symbols-outlined ' + iconSize}>block</span>
+      Blocked
+    </span>
+  );
+}
+
 var SCHEDULE_TABLES = ['bt_content_cards'];
 
+// Stage stripe colors keyed by column_id (department-neutral). The human-facing
+// stage label always comes from columnLabel() so it speaks each team's language.
 var COLUMN_COLORS = {
   ideas: '#A78BFA',
   writing: '#5BA3DB',
@@ -36,16 +86,11 @@ var COLUMN_COLORS = {
   archive: '#6B7280',
 };
 
-var COLUMN_LABELS = {
-  ideas: 'Ideas',
-  writing: 'Writing',
-  production: 'Production',
-  review: 'Review',
-  published: 'Published',
-  archive: 'Archive',
-};
-
 var COLUMN_ORDER = ['ideas', 'writing', 'production', 'review', 'published', 'archive'];
+
+// Columns that count as "done" for any department (Published / Shipped /
+// Delivered / Live / Done all share the published id) plus archive.
+var DONE_COLUMNS = ['published', 'archive'];
 
 var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -55,6 +100,19 @@ function Icon(props) {
       {props.name}
     </span>
   );
+}
+
+function normalizeLinks(value) {
+  if (!Array.isArray(value)) return [];
+  var seen = {};
+  var out = [];
+  value.forEach(function(v) {
+    var s = typeof v === 'string' ? v.trim() : '';
+    if (!s || seen[s]) return;
+    seen[s] = true;
+    out.push(s);
+  });
+  return out;
 }
 
 function isoDay(date) {
@@ -81,6 +139,67 @@ function daysBetween(later, earlier) {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
+function isDone(card) {
+  return DONE_COLUMNS.indexOf(card.column_id) !== -1;
+}
+
+// Count active cards per department for the filter strip badges.
+function departmentCounts(cards) {
+  var counts = {};
+  cards.forEach(function(c) {
+    if (isDone(c)) return;
+    var id = resolveDepartment(c.department);
+    counts[id] = (counts[id] || 0) + 1;
+  });
+  return counts;
+}
+
+function filterByDepartment(cards, deptId) {
+  if (!deptId) return cards;
+  return cards.filter(function(c) {
+    return resolveDepartment(c.department) === deptId;
+  });
+}
+
+function DepartmentFilterStrip(props) {
+  var current = props.value || '';
+  return (
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 mb-4">
+      <button
+        type="button"
+        onClick={function() { props.onChange(''); }}
+        className={'shrink-0 inline-flex items-center gap-1.5 px-3.5 h-10 rounded-full border text-[12px] font-bold transition-all ' + (!current ? 'border-white/30 bg-white/[0.12] text-white' : 'border-white/10 bg-white/[0.04] text-white/65 hover:text-white hover:border-white/25')}
+      >
+        <span className="material-symbols-outlined text-[17px]">dashboard</span>
+        All
+      </button>
+      {BT_DEPARTMENTS.map(function(d) {
+        var count = props.counts ? (props.counts[d.id] || 0) : 0;
+        var active = current === d.id;
+        return (
+          <button
+            key={d.id}
+            type="button"
+            onClick={function() { props.onChange(active ? '' : d.id); }}
+            className={'shrink-0 inline-flex items-center gap-1.5 px-3.5 h-10 rounded-full border text-[12px] font-bold transition-all ' + (active ? '' : 'border-white/10 bg-white/[0.04] text-white/70 hover:text-white hover:border-white/25')}
+            style={active ? {
+              borderColor: d.color + '99',
+              background: d.accent,
+              color: '#fff',
+              boxShadow: '0 4px 16px -6px ' + d.halo,
+            } : {}}
+            title={d.label + ' (' + count + ' active)'}
+          >
+            <span className="material-symbols-outlined text-[17px]" style={{ color: d.color }}>{d.icon}</span>
+            <span>{d.label}</span>
+            <span className="px-1.5 rounded-full bg-white/10 text-[10px] tabular-nums">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function FocusPanel(props) {
   var cards = props.cards || [];
   var today = new Date();
@@ -91,51 +210,52 @@ function FocusPanel(props) {
   var weekEndIso = isoDay(weekEnd);
 
   var dueToday = cards.filter(function(c) {
-    return c.due_date === todayIso && c.column_id !== 'published' && c.column_id !== 'archive';
+    return c.due_date === todayIso && !isDone(c);
   });
   var overdue = cards.filter(function(c) {
     if (!c.due_date) return false;
-    if (c.column_id === 'published' || c.column_id === 'archive') return false;
+    if (isDone(c)) return false;
     return c.due_date < todayIso;
   });
   var dueThisWeek = cards.filter(function(c) {
     if (!c.due_date) return false;
-    if (c.column_id === 'published' || c.column_id === 'archive') return false;
+    if (isDone(c)) return false;
     return c.due_date > todayIso && c.due_date <= weekEndIso;
   });
 
-  var stuck = cards.filter(function(c) {
-    if (c.column_id !== 'production' && c.column_id !== 'review') return false;
-    var ref = new Date(c.updated_at || c.created_at);
-    if (isNaN(ref.getTime())) return false;
-    return daysBetween(today, ref) >= 5;
+  var blocked = cards.filter(function(c) {
+    return c.blocked && !isDone(c);
   });
 
-  var publishedRecent = cards
+  var shippedRecent = cards
     .filter(function(c) { return c.column_id === 'published'; })
     .sort(function(a, b) {
       return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
     });
-  var lastPub = publishedRecent[0];
+  var lastShip = shippedRecent[0];
   var droughtDays = null;
-  if (lastPub) {
-    var ref2 = new Date(lastPub.updated_at || lastPub.created_at);
+  if (lastShip) {
+    var ref2 = new Date(lastShip.updated_at || lastShip.created_at);
     droughtDays = daysBetween(today, ref2);
     if (droughtDays < 0) droughtDays = 0;
   }
 
   var bullets = [
-    { label: 'Due today', count: dueToday.length, icon: 'today', color: '#5BA3DB', cards: dueToday },
-    { label: 'Overdue', count: overdue.length, icon: 'priority_high', color: overdue.length > 0 ? '#EF4444' : '#6B7280', cards: overdue },
-    { label: 'Due this week', count: dueThisWeek.length, icon: 'date_range', color: '#E8A020', cards: dueThisWeek },
-    { label: 'Stuck 5+ days', count: stuck.length, icon: 'hourglass_top', color: stuck.length > 0 ? '#EC4899' : '#6B7280', cards: stuck },
+    { label: 'Due today', count: dueToday.length, icon: 'today', color: '#5BA3DB' },
+    { label: 'Overdue', count: overdue.length, icon: 'priority_high', color: overdue.length > 0 ? '#EF4444' : '#6B7280' },
+    { label: 'Due this week', count: dueThisWeek.length, icon: 'date_range', color: '#E8A020' },
+    { label: 'Blocked', count: blocked.length, icon: 'block', color: blocked.length > 0 ? '#EF4444' : '#6B7280' },
   ];
 
   var droughtTone = droughtDays === null
-    ? 'No publishes yet'
+    ? 'Nothing shipped yet'
     : droughtDays === 0
-      ? 'Shipped today - keep the streak'
-      : droughtDays + (droughtDays === 1 ? ' day' : ' days') + ' since last publish';
+      ? 'Shipped today - keep the momentum'
+      : droughtDays + (droughtDays === 1 ? ' day' : ' days') + ' since last ship';
+
+  // Spotlight the cards that need attention first: blocked, then overdue, then
+  // due today. Blocked always wins because it stalls the whole pipeline.
+  var spotlight = blocked.length > 0 ? blocked : (overdue.length > 0 ? overdue : dueToday);
 
   return (
     <div className="bg-gradient-to-br from-[#13172a] via-[#0f1320] to-[#0b0e1a] border border-white/5 rounded-2xl p-5 mb-6">
@@ -171,26 +291,29 @@ function FocusPanel(props) {
         })}
       </div>
 
-      {dueToday.length === 0 && overdue.length === 0 ? (
+      {spotlight.length === 0 ? (
         <div className="bg-[#0b0e1a]/60 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
           <Icon name="check_circle" className="text-emerald-400 text-xl" />
-          <p className="text-sm text-white/80">Inbox zero on the schedule. Pick from the Board or queue something new.</p>
+          <p className="text-sm text-white/80">Nothing blocked or overdue. Pull the next card from the Board or queue something new.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {(overdue.length > 0 ? overdue : dueToday).slice(0, 6).map(function(c) {
+          {spotlight.slice(0, 6).map(function(c) {
             var bg = COLUMN_COLORS[c.column_id] || '#6B7280';
             return (
               <button
                 key={c.id}
                 onClick={function() { props.onCardClick(c); }}
-                className="text-left bg-[#0b0e1a] border border-white/5 hover:border-[#5BA3DB]/40 hover:-translate-y-0.5 transition-all rounded-xl px-4 py-3 flex items-center gap-3"
+                className="text-left bg-[#0b0e1a] border border-white/5 hover:border-[#5BA3DB]/40 hover:-translate-y-0.5 transition-transform rounded-xl px-4 py-3 flex items-center gap-3"
+                style={c.blocked ? { borderColor: 'rgba(239,68,68,0.3)' } : null}
               >
                 <span className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: bg }} />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-white truncate">{c.title}</p>
-                  <p className="text-[11px] text-white/40 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    <span>{COLUMN_LABELS[c.column_id]}</span>
+                  <p className="text-[11px] text-white/40 mt-1 flex items-center gap-1.5 flex-wrap">
+                    <DeptChip department={c.department} dense />
+                    {c.blocked && <BlockedChip dense />}
+                    <span className="text-white/45">{columnLabel(c.department, c.column_id)}</span>
                     {cardAssignees(c).map(function(name) {
                       return (
                         <span key={name} className="inline-flex items-center gap-1 text-white/60">
@@ -213,6 +336,7 @@ function FocusPanel(props) {
 
 function CardChip(props) {
   var c = props.card;
+  var dept = getDepartment(c.department);
   var color = COLUMN_COLORS[c.column_id] || '#6B7280';
 
   function handleDragStart(e) {
@@ -222,15 +346,21 @@ function CardChip(props) {
     e.stopPropagation();
   }
 
+  var border = c.blocked ? 'border border-red-500/40' : 'border border-white/5';
+
   return (
     <div
       draggable
       onDragStart={handleDragStart}
       onClick={function(e) { e.stopPropagation(); props.onClick(c); }}
-      className="text-left bg-[#0b0e1a] hover:bg-[#13172a] border-l-2 px-1.5 py-1 rounded text-[10px] truncate cursor-pointer transition-colors"
-      style={{ borderColor: color, color: '#E2E8F0' }}
-      title={c.title + ' (' + COLUMN_LABELS[c.column_id] + ')'}
+      className={'text-left bg-[#0b0e1a] hover:bg-[#13172a] px-1.5 py-1 rounded text-[10px] truncate cursor-pointer transition-colors flex items-center gap-1 ' + border}
+      style={{ color: '#E2E8F0' }}
+      title={c.title + ' (' + dept.label + ' - ' + columnLabel(c.department, c.column_id) + ')'}
     >
+      {c.blocked
+        ? <span className="material-symbols-outlined text-[11px] text-red-400 shrink-0">block</span>
+        : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
+      <span className="material-symbols-outlined text-[11px] shrink-0" style={{ color: dept.color }}>{dept.icon}</span>
       <span className="truncate block">{c.title}</span>
     </div>
   );
@@ -321,7 +451,8 @@ function MonthCalendar(props) {
                   {day.getDate()}
                 </span>
                 {patch && (
-                  <span className="text-[9px] px-1 rounded bg-[#E8A020]/20 text-[#E8A020] font-bold uppercase tracking-wider" title={'Patch ' + patch.label + (patch.notes ? ' - ' + patch.notes : '')}>
+                  <span className="text-[9px] px-1 rounded bg-[#E8A020]/20 text-[#E8A020] font-bold uppercase tracking-wider flex items-center gap-0.5" title={'Content patch ' + patch.label + (patch.notes ? ' - ' + patch.notes : '') + ' (TFT game patch, drives content)'}>
+                    <span className="material-symbols-outlined text-[10px]">play_circle</span>
                     {patch.label}
                   </span>
                 )}
@@ -354,7 +485,11 @@ function CardDetailDrawer(props) {
   }, []);
 
   if (!c) return null;
+  var dept = getDepartment(c.department);
+  var isContent = dept.id === 'content';
   var color = COLUMN_COLORS[c.column_id] || '#6B7280';
+  var links = normalizeLinks(c.links);
+  var crewNames = cardAssignees(c);
   var hasBrief = !!(c.brief && (
     (c.brief.hookLine && c.brief.hookLine.trim()) ||
     (c.brief.talkingPoints && c.brief.talkingPoints.length) ||
@@ -375,9 +510,13 @@ function CardDetailDrawer(props) {
       >
         <div className="p-5 border-b border-white/5 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-              <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: color }}>{COLUMN_LABELS[c.column_id]}</span>
+            <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+              <DeptChip department={c.department} />
+              <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold" style={{ color: color }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                {columnLabel(c.department, c.column_id)}
+              </span>
+              {c.blocked && <BlockedChip />}
               {c.patch_id && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/50 font-semibold">{c.patch_id}</span>
               )}
@@ -390,39 +529,76 @@ function CardDetailDrawer(props) {
         </div>
 
         <div className="p-5 flex flex-col gap-4">
+          {c.blocked && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2.5 flex items-center gap-2">
+              <Icon name="block" className="text-red-400 text-lg" />
+              <p className="text-sm text-red-200 font-semibold">Blocked - stuck on a dependency. Unblock before this can move.</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 text-[12px]">
+            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Department</p>
+              <p className="mt-0.5 font-semibold" style={{ color: dept.color }}>{dept.label}</p>
+            </div>
             <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
               <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Due</p>
               <p className="text-white mt-0.5">{c.due_date || 'Unscheduled'}</p>
             </div>
             <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
               <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Crew</p>
-              {(function() {
-                var names = cardAssignees(c);
-                if (names.length === 0) return <p className="text-white/50 mt-0.5">Unassigned</p>;
-                return (
-                  <div className="mt-0.5 flex flex-wrap gap-1.5">
-                    {names.map(function(name) {
-                      return (
-                        <span key={name} className="inline-flex items-center gap-1 text-white text-[12px]">
-                          <ScheduleCrewAvatar name={name} size={18} />
-                          <span className="truncate">{name}</span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+              {crewNames.length === 0 ? (
+                <p className="text-white/50 mt-0.5">Unassigned</p>
+              ) : (
+                <div className="mt-0.5 flex flex-wrap gap-1.5">
+                  {crewNames.map(function(name) {
+                    return (
+                      <span key={name} className="inline-flex items-center gap-1 text-white text-[12px]">
+                        <ScheduleCrewAvatar name={name} size={18} />
+                        <span className="truncate">{name}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
               <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Type</p>
-              <p className="text-white mt-0.5 capitalize">{c.content_type}</p>
+              <p className="text-white mt-0.5">{departmentTypeLabel(c.department, c.content_type) || '-'}</p>
             </div>
-            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Platform</p>
-              <p className="text-white mt-0.5 uppercase">{c.platform}</p>
-            </div>
+            {isContent && (
+              <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+                <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Platform</p>
+                <p className="text-white mt-0.5 uppercase">{c.platform}</p>
+              </div>
+            )}
           </div>
+
+          {links.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1.5 flex items-center gap-1">
+                <Icon name="link" className="text-sm" />
+                Links
+              </p>
+              <ul className="flex flex-col gap-1">
+                {links.map(function(href, i) {
+                  return (
+                    <li key={i}>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-[#5BA3DB] hover:text-[#7CC0EE] truncate block bg-[#0b0e1a] rounded-lg px-3 py-2 transition-colors"
+                        title={href}
+                      >
+                        {href}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           {c.description && (
             <div>
@@ -477,7 +653,7 @@ function CardDetailDrawer(props) {
                 className="w-full py-2.5 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <Icon name="arrow_forward" className="text-base" />
-                Advance to {COLUMN_LABELS[nextColumn]}
+                Advance to {columnLabel(c.department, nextColumn)}
               </button>
             )}
             <button
@@ -541,9 +717,9 @@ function AgendaView(props) {
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-white leading-tight">{isToday ? 'Today' : label}</p>
                   {day.patch ? (
-                    <p className="text-[10px] text-[#E8A020] font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
-                      <Icon name="rocket_launch" className="text-[11px]" />
-                      {day.patch.label} {day.patch.notes ? '- ' + day.patch.notes : ''}
+                    <p className="text-[10px] text-[#E8A020] font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1" title="TFT game patch - drives content coverage">
+                      <Icon name="play_circle" className="text-[11px]" />
+                      Content patch {day.patch.label} {day.patch.notes ? '- ' + day.patch.notes : ''}
                     </p>
                   ) : null}
                 </div>
@@ -564,13 +740,17 @@ function AgendaView(props) {
                     <button
                       key={card.id}
                       onClick={function() { props.onCardClick(card); }}
-                      className="w-full text-left bg-[#0b0e1a] border border-white/5 rounded-lg px-3 py-2 active:bg-[#0e1222] flex items-center gap-2"
+                      className={'w-full text-left bg-[#0b0e1a] border rounded-lg px-3 py-2 active:bg-[#0e1222] flex items-center gap-2 ' + (card.blocked ? 'border-red-500/30' : 'border-white/5')}
                     >
-                      <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: card.blocked ? '#EF4444' : color }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white font-medium truncate">{card.title || 'Untitled'}</p>
-                        <p className="text-[10px] uppercase tracking-wider font-bold mt-0.5" style={{ color: color }}>
-                          {COLUMN_LABELS[card.column_id]}
+                        <p className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          <DeptChip department={card.department} dense />
+                          {card.blocked && <BlockedChip dense />}
+                          <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: color }}>
+                            {columnLabel(card.department, card.column_id)}
+                          </span>
                         </p>
                       </div>
                       <Icon name="chevron_right" className="text-white/30 text-base shrink-0" />
@@ -582,6 +762,45 @@ function AgendaView(props) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function StandupBucket(bucketProps) {
+  if (!bucketProps.cards || bucketProps.cards.length === 0) return null;
+  return (
+    <div className="mt-1.5">
+      <p
+        className="text-[10px] uppercase tracking-wider font-bold mb-1 flex items-center gap-1"
+        style={{ color: bucketProps.color }}
+      >
+        <Icon name={bucketProps.icon} className="text-[12px]" />
+        {bucketProps.label}
+        <span className="text-white/35 font-semibold tabular-nums">{bucketProps.cards.length}</span>
+      </p>
+      <div className="flex flex-col gap-1">
+        {bucketProps.cards.map(function(c) {
+          var colColor = COLUMN_COLORS[c.column_id] || '#6B7280';
+          return (
+            <button
+              type="button"
+              key={c.id}
+              onClick={function() { bucketProps.onCardClick(c); }}
+              className={'w-full text-left bg-[#0b0e1a] hover:bg-[#13172a] border rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors ' + (c.blocked ? 'border-red-500/30' : 'border-white/5')}
+            >
+              <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: c.blocked ? '#EF4444' : colColor }} />
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-[12px] font-semibold truncate leading-tight">{c.title || 'Untitled'}</p>
+                <p className="text-[10px] text-white/40 truncate flex items-center gap-1.5 mt-0.5">
+                  <DeptChip department={c.department} dense hideLabel />
+                  <span>{columnLabel(c.department, c.column_id)}</span>
+                  {c.due_date && <span>{'- ' + new Date(c.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -598,12 +817,13 @@ function StandupView(props) {
   var overdueCutoff = todayIso;
 
   function isActive(c) {
-    return c.column_id !== 'published' && c.column_id !== 'archive';
+    return !isDone(c);
   }
 
   var overdue = cards.filter(function(c) { return isActive(c) && c.due_date && c.due_date < overdueCutoff; });
   var dueToday = cards.filter(function(c) { return isActive(c) && c.due_date === todayIso; });
   var dueTomorrow = cards.filter(function(c) { return isActive(c) && c.due_date === tomorrowIso; });
+  var blockedCards = cards.filter(function(c) { return isActive(c) && c.blocked; });
   var inReview = cards.filter(function(c) { return c.column_id === 'review'; });
   var unscheduled = cards.filter(function(c) { return isActive(c) && !c.due_date && c.column_id !== 'ideas'; });
 
@@ -611,66 +831,26 @@ function StandupView(props) {
     function mine(list) {
       return list.filter(function(c) { return cardAssignees(c).indexOf(member.name) !== -1; });
     }
-    var mineOverdue = mine(overdue);
-    var mineToday = mine(dueToday);
-    var mineTomorrow = mine(dueTomorrow);
-    var mineReview = mine(inReview);
     var mineActive = cards.filter(function(c) {
       return isActive(c) && cardAssignees(c).indexOf(member.name) !== -1;
     });
     return {
       member: member,
-      overdue: mineOverdue,
-      today: mineToday,
-      tomorrow: mineTomorrow,
-      review: mineReview,
+      blocked: mine(blockedCards),
+      overdue: mine(overdue),
+      today: mine(dueToday),
+      tomorrow: mine(dueTomorrow),
+      review: mine(inReview),
       activeCount: mineActive.length,
     };
   });
 
-  function Bucket(bucketProps) {
-    if (!bucketProps.cards || bucketProps.cards.length === 0) return null;
-    return (
-      <div className="mt-1.5">
-        <p
-          className="text-[10px] uppercase tracking-wider font-bold mb-1 flex items-center gap-1"
-          style={{ color: bucketProps.color }}
-        >
-          <Icon name={bucketProps.icon} className="text-[12px]" />
-          {bucketProps.label}
-          <span className="text-white/35 font-semibold tabular-nums">{bucketProps.cards.length}</span>
-        </p>
-        <div className="flex flex-col gap-1">
-          {bucketProps.cards.map(function(c) {
-            var colColor = COLUMN_COLORS[c.column_id] || '#6B7280';
-            return (
-              <button
-                type="button"
-                key={c.id}
-                onClick={function() { props.onCardClick(c); }}
-                className="w-full text-left bg-[#0b0e1a] hover:bg-[#13172a] border border-white/5 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors"
-              >
-                <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: colColor }} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-white text-[12px] font-semibold truncate leading-tight">{c.title || 'Untitled'}</p>
-                  <p className="text-[10px] text-white/40 truncate">
-                    {COLUMN_LABELS[c.column_id]}
-                    {c.due_date && ' - ' + new Date(c.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
+  var unassignedBlocked = blockedCards.filter(function(c) { return cardAssignees(c).length === 0; });
   var unassignedOverdue = overdue.filter(function(c) { return cardAssignees(c).length === 0; });
   var unassignedToday = dueToday.filter(function(c) { return cardAssignees(c).length === 0; });
   var unassignedTomorrow = dueTomorrow.filter(function(c) { return cardAssignees(c).length === 0; });
   var unassignedReview = inReview.filter(function(c) { return cardAssignees(c).length === 0; });
-  var hasUnassigned = unassignedOverdue.length + unassignedToday.length + unassignedTomorrow.length + unassignedReview.length > 0;
+  var hasUnassigned = unassignedBlocked.length + unassignedOverdue.length + unassignedToday.length + unassignedTomorrow.length + unassignedReview.length > 0;
 
   var dateHeader = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -681,9 +861,12 @@ function StandupView(props) {
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-[#5BA3DB] font-bold">Daily standup</p>
             <p className="text-white text-base font-bold leading-tight mt-0.5">{dateHeader}</p>
-            <p className="text-[11px] text-white/55 mt-0.5">What's due, what's overdue, and what's with whom. Click any card to open it.</p>
+            <p className="text-[11px] text-white/55 mt-0.5">What's blocked, due, and with whom across every department. Click any card to open it.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-red-500/15 text-red-300" title="Blocked across crew">
+              <span className="tabular-nums">{blockedCards.length}</span> blocked
+            </span>
             <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-red-500/15 text-red-300" title="Overdue across crew">
               <span className="tabular-nums">{overdue.length}</span> overdue
             </span>
@@ -702,7 +885,7 @@ function StandupView(props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {rows.map(function(row) {
-          var empty = row.overdue.length + row.today.length + row.tomorrow.length + row.review.length === 0;
+          var empty = row.blocked.length + row.overdue.length + row.today.length + row.tomorrow.length + row.review.length === 0;
           return (
             <div
               key={row.member.id}
@@ -719,12 +902,13 @@ function StandupView(props) {
                   <span className="text-[10px] text-white/30">Clear today</span>
                 )}
               </div>
-              <Bucket label="Overdue" icon="warning" color="#FCA5A5" cards={row.overdue} />
-              <Bucket label="Due today" icon="today" color="#FFD487" cards={row.today} />
-              <Bucket label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={row.tomorrow} />
-              <Bucket label="In review" icon="visibility" color="#F472B6" cards={row.review} />
+              <StandupBucket onCardClick={props.onCardClick} label="Blocked" icon="block" color="#FCA5A5" cards={row.blocked} />
+              <StandupBucket onCardClick={props.onCardClick} label="Overdue" icon="warning" color="#FCA5A5" cards={row.overdue} />
+              <StandupBucket onCardClick={props.onCardClick} label="Due today" icon="today" color="#FFD487" cards={row.today} />
+              <StandupBucket onCardClick={props.onCardClick} label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={row.tomorrow} />
+              <StandupBucket onCardClick={props.onCardClick} label="In review" icon="visibility" color="#F472B6" cards={row.review} />
               {empty && (
-                <p className="text-[11px] text-white/30 mt-2">No overdue, due, or review items - good runway.</p>
+                <p className="text-[11px] text-white/30 mt-2">No blocked, due, or review items - good runway.</p>
               )}
             </div>
           );
@@ -738,10 +922,11 @@ function StandupView(props) {
             <p className="text-white text-sm font-bold">Unassigned</p>
             <p className="text-[10px] text-white/30 ml-auto">Needs an owner</p>
           </div>
-          <Bucket label="Overdue" icon="warning" color="#FCA5A5" cards={unassignedOverdue} />
-          <Bucket label="Due today" icon="today" color="#FFD487" cards={unassignedToday} />
-          <Bucket label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={unassignedTomorrow} />
-          <Bucket label="In review" icon="visibility" color="#F472B6" cards={unassignedReview} />
+          <StandupBucket onCardClick={props.onCardClick} label="Blocked" icon="block" color="#FCA5A5" cards={unassignedBlocked} />
+          <StandupBucket onCardClick={props.onCardClick} label="Overdue" icon="warning" color="#FCA5A5" cards={unassignedOverdue} />
+          <StandupBucket onCardClick={props.onCardClick} label="Due today" icon="today" color="#FFD487" cards={unassignedToday} />
+          <StandupBucket onCardClick={props.onCardClick} label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={unassignedTomorrow} />
+          <StandupBucket onCardClick={props.onCardClick} label="In review" icon="visibility" color="#F472B6" cards={unassignedReview} />
         </div>
       )}
 
@@ -761,10 +946,12 @@ function StandupView(props) {
                   type="button"
                   key={c.id}
                   onClick={function() { props.onCardClick(c); }}
-                  className="flex items-center gap-1.5 bg-[#13172a] hover:bg-[#1a1f36] border border-white/8 rounded-full pl-1 pr-2.5 py-0.5 text-[11px] text-white/80 transition-colors"
+                  className={'flex items-center gap-1.5 bg-[#13172a] hover:bg-[#1a1f36] border rounded-full pl-1 pr-2.5 py-0.5 text-[11px] text-white/80 transition-colors ' + (c.blocked ? 'border-red-500/30' : 'border-white/8')}
                   title={c.title}
                 >
-                  {names.length > 0 ? <ScheduleCrewAvatar name={names[0]} size={18} /> : <span className="w-4 h-4 rounded-full bg-white/5" />}
+                  {c.blocked
+                    ? <span className="material-symbols-outlined text-[14px] text-red-400">block</span>
+                    : <span className="material-symbols-outlined text-[14px]" style={{ color: getDepartment(c.department).color }}>{getDepartment(c.department).icon}</span>}
                   <span className="truncate max-w-[160px]">{c.title}</span>
                 </button>
               );
@@ -782,6 +969,7 @@ function StandupView(props) {
 function BTSchedule() {
   var [cards, setCards] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
+  var [deptFilter, setDeptFilter] = React.useState('');
   var [monthAnchor, setMonthAnchor] = React.useState(function() {
     var d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -861,10 +1049,15 @@ function BTSchedule() {
   function createOnDate(iso) {
     var title = window.prompt('Quick card title for ' + iso + ':', '');
     if (!title || !title.trim()) return;
+    // Honor the active department filter so a quick card lands in the lane the
+    // user is looking at; default to content when viewing All.
+    var dept = deptFilter || 'content';
+    var firstType = getDepartment(dept).types[0];
     var payload = {
       title: title.trim(),
       column_id: 'ideas',
-      content_type: 'short',
+      department: dept,
+      content_type: firstType ? firstType.id : 'short',
       platform: 'both',
       assignee: '',
       priority: 'medium',
@@ -903,13 +1096,15 @@ function BTSchedule() {
   }
 
   var monthLabel = monthAnchor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  var deptCounts = departmentCounts(cards);
+  var visibleCards = filterByDepartment(cards, deptFilter);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Schedule</h2>
-          <p className="text-sm text-white/40 mt-0.5 hidden sm:block">Drag cards across days to reschedule. Patch days are highlighted gold.</p>
+          <p className="text-sm text-white/40 mt-0.5 hidden sm:block">Every department's deliverables on one timeline. Drag cards across days to reschedule.</p>
           <p className="text-xs text-white/40 mt-0.5 sm:hidden">Tap any day to add a card.</p>
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -965,14 +1160,16 @@ function BTSchedule() {
         </div>
       </div>
 
+      <DepartmentFilterStrip value={deptFilter} counts={deptCounts} onChange={setDeptFilter} />
+
       {view !== 'standup' && (
-        <FocusPanel cards={cards} onCardClick={setSelectedCard} />
+        <FocusPanel cards={visibleCards} onCardClick={setSelectedCard} />
       )}
 
       {view === 'calendar' && (
         <MonthCalendar
           monthAnchor={monthAnchor}
-          cards={cards}
+          cards={visibleCards}
           onCardClick={setSelectedCard}
           onMoveCard={moveCardToDate}
           onDayClick={createOnDate}
@@ -980,14 +1177,14 @@ function BTSchedule() {
       )}
       {view === 'agenda' && (
         <AgendaView
-          cards={cards}
+          cards={visibleCards}
           onCardClick={setSelectedCard}
           onDayClick={createOnDate}
         />
       )}
       {view === 'standup' && (
         <StandupView
-          cards={cards}
+          cards={visibleCards}
           onCardClick={setSelectedCard}
         />
       )}

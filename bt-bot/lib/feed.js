@@ -18,10 +18,14 @@
 
 import { EmbedBuilder } from 'discord.js';
 import { supabase } from './supabase.js';
-import { fetchCards, assigneesOf } from './board.js';
+import { fetchCards, assigneesOf, isOverdue, staleDays } from './board.js';
 import { resolveChannel } from './channels.js';
 import { departmentChannel, DEPT_COLOR, resolveDeptId, deptLabel, stageLabel, priorityLabel } from './hq.js';
 import { mention } from '../config/crew.js';
+
+// Pipeline columns in board order, used to render a card's column position in
+// the footer (e.g. "BrosephTech board - column 3 of 5").
+var PIPELINE_COLUMNS = ['ideas', 'writing', 'production', 'review', 'published'];
 
 // Fixed shared channels (everything else is per-department).
 var BOARD_CHANNEL = 'bt-board';
@@ -70,27 +74,52 @@ function ownerMention(card) {
   return owners.map(function(name) { return mention(name); }).join(', ');
 }
 
+// Footer text placing the card in the pipeline, e.g. "column 3 of 5". Cards in
+// archive or an unknown column fall back to just the board name.
+function boardFooter(card) {
+  var col = columnOf(card);
+  var idx = PIPELINE_COLUMNS.indexOf(col);
+  if (idx === -1) return 'BrosephTech board';
+  return 'BrosephTech board - column ' + (idx + 1) + ' of ' + PIPELINE_COLUMNS.length;
+}
+
+// A short status marker for a card: blocked beats overdue. Returns '' when the
+// card is healthy so callers can omit the field.
+function statusMarker(card) {
+  if (card && card.blocked) return 'Blocked';
+  if (isOverdue(card, new Date())) return 'Overdue';
+  var sd = staleDays(card, new Date());
+  if (sd > 0) return 'Stuck ' + sd + 'd';
+  return '';
+}
+
+// The standard four-up card fields, in board-card order. Department / Stage /
+// Priority / Owner are inline; a status marker is appended when relevant.
+function cardFields(card) {
+  var fields = [
+    { name: 'Department', value: deptLabel(card && card.department), inline: true },
+    { name: 'Stage', value: stageLabel(card && card.department, columnOf(card)), inline: true },
+    { name: 'Priority', value: priorityLabel(card && card.priority), inline: true },
+  ];
+  var owner = ownerMention(card);
+  fields.push({ name: 'Owner', value: (owner || 'Unassigned').slice(0, 1024), inline: true });
+  var marker = statusMarker(card);
+  if (marker) fields.push({ name: 'Status', value: marker, inline: true });
+  if (card && card.due_date) {
+    fields.push({ name: 'Due', value: String(card.due_date), inline: true });
+  }
+  return fields;
+}
+
 // ---- embed builders (local to this module) -----------------------------------
 
 function newCardEmbed(card) {
   var embed = new EmbedBuilder()
     .setColor(colorForDepartment(card && card.department))
-    .setTitle('New card: ' + titleOf(card))
+    .setTitle(('New card: ' + titleOf(card)).slice(0, 250))
+    .addFields(cardFields(card))
+    .setFooter({ text: boardFooter(card) })
     .setTimestamp(new Date());
-
-  var fields = [
-    { name: 'Department', value: deptLabel(card && card.department), inline: true },
-    { name: 'Stage', value: stageLabel(card && card.department, columnOf(card)), inline: true },
-  ];
-  if (card && card.priority) {
-    fields.push({ name: 'Priority', value: priorityLabel(card.priority), inline: true });
-  }
-  var owner = ownerMention(card);
-  fields.push({ name: 'Owner', value: owner || 'Unassigned', inline: false });
-  if (card && card.due_date) {
-    fields.push({ name: 'Due', value: String(card.due_date), inline: true });
-  }
-  embed.addFields(fields);
 
   if (card && card.description) {
     embed.setDescription(String(card.description).slice(0, 300));
@@ -99,33 +128,23 @@ function newCardEmbed(card) {
 }
 
 function shippedEmbed(card) {
-  var embed = new EmbedBuilder()
+  return new EmbedBuilder()
     .setColor(colorForDepartment(card && card.department))
-    .setTitle('Shipped: ' + titleOf(card))
+    .setTitle(('Shipped: ' + titleOf(card)).slice(0, 250))
     .setDescription('Moved to published. Nice work.')
+    .addFields(cardFields(card))
+    .setFooter({ text: boardFooter(card) })
     .setTimestamp(new Date());
-
-  var owner = ownerMention(card);
-  embed.addFields(
-    { name: 'Department', value: deptLabel(card && card.department), inline: true },
-    { name: 'Owner', value: owner || 'Unassigned', inline: true }
-  );
-  return embed;
 }
 
 function blockedEmbed(card) {
-  var embed = new EmbedBuilder()
+  return new EmbedBuilder()
     .setColor(BLOCKED_COLOR)
-    .setTitle('Blocked: ' + titleOf(card))
+    .setTitle(('Blocked: ' + titleOf(card)).slice(0, 250))
     .setDescription('This card is blocked. Owner, please unblock it or drop a note on the card.')
+    .addFields(cardFields(card))
+    .setFooter({ text: boardFooter(card) })
     .setTimestamp(new Date());
-
-  var owner = ownerMention(card);
-  embed.addFields(
-    { name: 'Department', value: deptLabel(card && card.department), inline: true },
-    { name: 'Owner', value: owner || 'Unassigned', inline: true }
-  );
-  return embed;
 }
 
 // ---- posting -----------------------------------------------------------------
@@ -268,16 +287,21 @@ export async function startFeed(client) {
 
   // Subscribe to every change on the board table. We do not read the payload
   // (old-row data is not guaranteed); a change just triggers a debounced diff.
-  var channel = supabase
-    .channel('bt-feed')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'bt_content_cards' },
-      function() { onChange(); }
-    )
-    .subscribe(function(status) {
-      console.log('[feed] realtime subscription status: ' + status);
-    });
-
-  return channel;
+  // Wrapped so a synchronous realtime-client failure can never escape startFeed.
+  try {
+    var channel = supabase
+      .channel('bt-feed')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bt_content_cards' },
+        function() { onChange(); }
+      )
+      .subscribe(function(status) {
+        console.log('[feed] realtime subscription status: ' + status);
+      });
+    return channel;
+  } catch (e) {
+    console.error('[feed] could not subscribe to realtime: ' + ((e && e.message) || e));
+    return null;
+  }
 }
