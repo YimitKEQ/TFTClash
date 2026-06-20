@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../_base.css"><style>
+.ad{width:1080px;height:1080px;background:#05040f}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 50% 30%,rgba(255,0,170,.36) 0%,transparent 52%),
+  radial-gradient(ellipse at 50% 80%,rgba(0,240,255,.26) 0%,transparent 55%),
+  linear-gradient(160deg,#05040f 0%,#0f0618 55%,#1a0425 100%)}
+.grid{position:absolute;inset:0;background-image:
+  linear-gradient(rgba(0,240,255,.08) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,240,255,.08) 1px,transparent 1px);
+  background-size:60px 60px;mask-image:radial-gradient(ellipse at 50% 48%,#000 35%,transparent 82%)}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 4px)}
+
+.layer{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:70px 76px}
+
+.kicker{font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:.36em;color:#00f0ff;text-transform:uppercase;
+  padding:10px 22px;border:1px solid rgba(0,240,255,.5);background:rgba(0,240,255,.05);text-shadow:0 0 18px rgba(0,240,255,.7)}
+.kicker b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.8)}
+
+.mid{display:flex;flex-direction:column;align-items:center;gap:0}
+.eyebrow{display:inline-flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:25px;letter-spacing:.4em;color:#fff;text-transform:uppercase;margin-bottom:22px;
+  padding:10px 24px;border:1px solid rgba(255,0,170,.55);background:rgba(255,0,170,.07);text-shadow:0 0 16px rgba(255,0,170,.6)}
+.dot{width:16px;height:16px;border-radius:50%;background:#ff2266;box-shadow:0 0 18px rgba(255,34,102,.9),0 0 36px rgba(255,34,102,.6)}
+
+.h{font-family:'Orbitron',sans-serif;font-weight:900;font-size:138px;line-height:.82;letter-spacing:-.02em;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 40px rgba(0,240,255,.7),0 0 80px rgba(255,0,170,.5)}
+.h span{color:transparent;-webkit-text-stroke:3px #ff00aa;text-shadow:0 0 30px rgba(255,0,170,.8)}
+
+.when{display:inline-flex;align-items:center;gap:12px;margin-top:38px;font-family:'JetBrains Mono',monospace;font-size:27px;letter-spacing:.16em;color:#fff;text-transform:uppercase;
+  padding:15px 30px;border:1px solid rgba(0,240,255,.5);background:rgba(0,240,255,.05);text-shadow:0 0 16px rgba(255,255,255,.4)}
+.when b{color:#f0c46d;text-shadow:0 0 14px rgba(240,196,109,.7)}
+
+.stats{display:flex;align-items:stretch;gap:20px;margin-top:42px}
+.tile{position:relative;width:236px;padding:26px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px solid rgba(0,240,255,.5);background:rgba(0,240,255,.04);
+  box-shadow:0 0 34px rgba(0,240,255,.2),inset 0 0 44px rgba(255,0,170,.07)}
+.tile .num{font-family:'Orbitron',sans-serif;font-weight:900;font-size:84px;line-height:.82;letter-spacing:-.02em;color:#fff;
+  text-shadow:0 0 28px rgba(0,240,255,.7),0 0 60px rgba(255,0,170,.5)}
+.tile .lab{font-family:'JetBrains Mono',monospace;font-size:20px;letter-spacing:.2em;color:#00f0ff;text-transform:uppercase;margin-top:14px;text-shadow:0 0 14px rgba(0,240,255,.6)}
+
+.pitch{margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:23px;letter-spacing:.14em;color:rgba(255,255,255,.8);text-transform:uppercase;line-height:1.7;max-width:840px}
+.pitch b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.7)}
+
+.bot{display:flex;flex-direction:column;align-items:center;gap:22px}
+.cta{font-family:'JetBrains Mono',monospace;font-size:25px;letter-spacing:.3em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 18px rgba(0,240,255,.8)}
+.cta b{color:#ff00aa;text-shadow:0 0 18px rgba(255,0,170,.8)}
+.lock{display:flex;align-items:center;gap:18px}
+.tftc img{height:54px;width:54px}
+.tftc .tw .l1,.tftc .tw .l2{font-size:30px}
+</style></head><body>
+<div class="ad"><div class="bg"></div><div class="grid"></div><div class="scan"></div>
+  <div class="layer">
+    <div class="kicker">// TFT_CLASH <b>×</b> SEASON 1</div>
+
+    <div class="mid">
+      <div class="eyebrow"><span class="dot"></span> Live Tonight</div>
+      <div class="h">Clash<br><span>Night</span></div>
+      <div class="when">▸ TODAY <b>·</b> 19:00 CEST <b>·</b> EU SERVER</div>
+      <div class="stats">
+        <div class="tile"><div class="num">4</div><div class="lab">Games</div></div>
+        <div class="tile"><div class="num">8</div><div class="lab">Per Lobby</div></div>
+        <div class="tile"><div class="num">#1</div><div class="lab">Or Nothing</div></div>
+      </div>
+      <div class="pitch">Check in by <b>18:50</b> · stack your <b>points</b> · climb the live leaderboard</div>
+    </div>
+
+    <div class="bot">
+      <div class="cta">▸ <b>tftclash.com</b> · discord.gg/8nyHY66rBP</div>
+      <div class="lock"><div class="tftc"><img src="../../public/icon.png"><div class="tw"><div class="l1">TFT</div><div class="l2">CLASH</div></div></div></div>
+    </div>
+  </div>
+</div></body></html>
