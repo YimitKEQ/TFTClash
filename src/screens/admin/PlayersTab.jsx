@@ -86,6 +86,49 @@ export default function PlayersTab() {
   var softBanIds = _softBans[0]
   var setSoftBanIds = _softBans[1]
 
+  // Staff (live-scoring) access: auth_user_ids currently holding the 'mod' role.
+  var _staffIds = useState([])
+  var staffIds = _staffIds[0]
+  var setStaffIds = _staffIds[1]
+
+  var _staffTarget = useState('')
+  var staffTarget = _staffTarget[0]
+  var setStaffTarget = _staffTarget[1]
+
+  function loadStaff() {
+    if (!supabase || !supabase.rpc) return
+    supabase.rpc('list_staff').then(function(res) {
+      if (res.error) { console.error('[PlayersTab] staff load failed:', res.error); return }
+      setStaffIds((res.data || []).map(function(r) { return String(r.user_id) }))
+    }).catch(function(e) { console.error('[PlayersTab] staff load failed:', e) })
+  }
+  useEffect(loadStaff, [])
+
+  function grantStaff() {
+    var name = (staffTarget || '').trim()
+    if (!name) { toast('Pick a player', 'error'); return }
+    var match = (players || []).find(function(p) { return (p.name || '').toLowerCase() === name.toLowerCase() })
+    if (!match) { toast('Player "' + name + '" not found', 'error'); return }
+    if (!match.authUserId) { toast(match.name + ' has no linked account (they must sign in once first)', 'error'); return }
+    supabase.rpc('set_staff_role', { p_user_id: match.authUserId, p_enable: true }).then(function(res) {
+      if (res.error) { toast('Grant failed: ' + res.error.message, 'error'); return }
+      addAudit('ACTION', 'Staff role granted: ' + match.name)
+      toast(match.name + ' is now Staff (live scoring)', 'success')
+      setStaffTarget('')
+      loadStaff()
+    }).catch(function(e) { toast('Grant failed: ' + (e.message || 'unknown'), 'error') })
+  }
+
+  function revokeStaff(userId, displayName) {
+    if (!window.confirm('Remove Staff access for ' + displayName + '?')) return
+    supabase.rpc('set_staff_role', { p_user_id: userId, p_enable: false }).then(function(res) {
+      if (res.error) { toast('Revoke failed: ' + res.error.message, 'error'); return }
+      addAudit('ACTION', 'Staff role removed: ' + displayName)
+      toast('Removed ' + displayName + ' from Staff', 'success')
+      loadStaff()
+    }).catch(function(e) { toast('Revoke failed: ' + (e.message || 'unknown'), 'error') })
+  }
+
   function loadSoftBans() {
     if (!supabase || !supabase.from) return
     supabase.from('soft_bans').select('player_id').eq('active', true).then(function(res) {
@@ -597,6 +640,45 @@ export default function PlayersTab() {
                 <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded">
                   <span className="text-sm font-semibold text-primary">{u}</span>
                   <button onClick={function() { removeScrimHostUser(u) }} className="bg-transparent border-0 text-error cursor-pointer text-base leading-none px-1">x</button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </Panel>
+
+      <Panel>
+        <div className="flex items-center gap-2 mb-3">
+          <Icon name="shield_person" size={16} className="text-tertiary" />
+          <span className="font-bold text-sm text-on-surface">Staff / Live Scoring Access</span>
+        </div>
+        <div className="text-xs text-on-surface/40 mb-3">
+          Staff can enter placements, lock/unlock lobbies and set lobby codes in the live bracket. They cannot advance rounds, finalize, manage lobbies, ban, edit points, or touch settings. Player must have signed in at least once.
+        </div>
+        <div className="flex flex-col md:flex-row gap-2 mb-3">
+          <div className="flex-1">
+            <Inp list="staff-player-list" value={staffTarget} onChange={function(e) { setStaffTarget(typeof e === 'string' ? e : e.target.value) }} placeholder="Username" onKeyDown={function(e) { if (e.key === 'Enter') grantStaff() }} />
+            <datalist id="staff-player-list">
+              {(players || []).filter(function(p) { return p.authUserId }).map(function(p) {
+                return <option key={p.id} value={p.name} />
+              })}
+            </datalist>
+          </div>
+          <Btn variant="primary" size="sm" onClick={grantStaff}>Make Staff</Btn>
+        </div>
+        {staffIds.length === 0 ? (
+          <div className="text-center py-4 text-on-surface/40 text-sm">No staff yet. Add a trusted helper above.</div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {staffIds.map(function(uid) {
+              var nm = playerNameForUserId(uid)
+              return (
+                <div key={uid} className="flex items-center justify-between px-3 py-2 bg-tertiary/5 border border-tertiary/20 rounded">
+                  <span className="text-sm font-semibold text-tertiary flex items-center gap-2">
+                    <Icon name="shield_person" size={14} />
+                    {nm}
+                  </span>
+                  <Btn variant="ghost" size="sm" onClick={function() { revokeStaff(uid, nm) }}>Remove</Btn>
                 </div>
               )
             })}

@@ -56,6 +56,13 @@ export function AppProvider(props) {
   var isAdmin = _isAdmin[0];
   var setIsAdmin = _isAdmin[1];
 
+  // Staff (mod) role: trusted helpers who can run live clash scoring (enter
+  // placements, lock lobbies) but have no other admin powers. isStaff = admin OR mod.
+  var _isMod = useState(false);
+  var isMod = _isMod[0];
+  var setIsMod = _isMod[1];
+  var isStaff = isAdmin || isMod;
+
   var _scrimAccess = useState([]);
   var scrimAccess = _scrimAccess[0];
   var setScrimAccess = _scrimAccess[1];
@@ -590,6 +597,21 @@ export function AppProvider(props) {
     }
   }, [currentUser]);
 
+  // ── useEffect: detect the Staff (mod) role for the current user ──
+  // user_roles RLS lets a user read their own role rows. Admins are already
+  // full-access so we skip the lookup for them.
+  useEffect(function(){
+    if(!(currentUser && currentUser.auth_user_id) || !supabase.from){ setIsMod(false); return; }
+    if(currentUser.is_admin === true){ setIsMod(false); return; }
+    var cancelled = false;
+    supabase.from('user_roles').select('role').eq('user_id', currentUser.auth_user_id).then(function(res){
+      if(cancelled) return;
+      var rows = (res && res.data) || [];
+      setIsMod(rows.some(function(r){ return r.role === 'mod'; }));
+    });
+    return function(){ cancelled = true; };
+  }, [currentUser]);
+
   // ── Admin multi-tab guard ──
   // Tournament automation (auto phase advance, no-show marking) and the
   // tournament_state blob persistence both run in the admin's browser. Two
@@ -915,8 +937,9 @@ export function AppProvider(props) {
   useEffect(function(){
     if(isSimulation())return; // Never sync simulation state to DB
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
-    if(supabase.from&&isAdmin){
+    if(supabase.from&&isStaff){
       // Route NA-server states to the NA slot so EU and NA can run concurrently.
+      // Staff (mods) may persist these live-clash keys too (RLS-scoped in mig 122).
       var key=(tournamentState&&tournamentState.server==='NA')?'tournament_state_na':'tournament_state';
       supabase.from('site_settings').upsert({key:key,value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
         .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
@@ -926,7 +949,7 @@ export function AppProvider(props) {
   useEffect(function(){
     if(isSimulation())return;
     if(rtRef.current.tournament_state_na){rtRef.current.tournament_state_na=false;return;}
-    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state_na',value:JSON.stringify(tournamentStateNa),updated_at:new Date().toISOString()})
+    if(supabase.from&&isStaff)supabase.from('site_settings').upsert({key:'tournament_state_na',value:JSON.stringify(tournamentStateNa),updated_at:new Date().toISOString()})
       .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tournamentStateNa]);
 
@@ -1337,6 +1360,8 @@ export function AppProvider(props) {
       players: players, setPlayers: setPlayers,
       isLoadingData: isLoadingData,
       isAdmin: isAdmin,
+      isMod: isMod,
+      isStaff: isStaff,
       scrimAccess: scrimAccess, setScrimAccess: setScrimAccess,
       scrimHostAccess: scrimHostAccess, setScrimHostAccess: setScrimHostAccess,
       tickerOverrides: tickerOverrides, setTickerOverrides: setTickerOverrides,
@@ -1392,7 +1417,7 @@ export function AppProvider(props) {
     };
   }, [
     screen, subRoute,
-    players, isLoadingData, isAdmin,
+    players, isLoadingData, isAdmin, isMod,
     scrimAccess, scrimHostAccess, tickerOverrides, scrimSessions,
     notifications, toasts, disputes,
     announcement, profilePlayer, comparePlayer,

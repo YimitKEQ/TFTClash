@@ -265,6 +265,9 @@ function BracketScreen(){
   var setPlayers=ctx.setPlayers;
   var toast=ctx.toast;
   var isAdmin=ctx.isAdmin;
+  // Staff (mods) can run per-lobby live scoring -- enter placements, lock/unlock,
+  // set lobby codes -- but NOT advance rounds, finalize, or manage lobbies (admin only).
+  var isStaff=ctx.isStaff;
   var liveResults=ctx.liveResults||{};
   var currentUser=ctx.currentUser;
   var setProfilePlayer=ctx.setProfilePlayer;
@@ -1654,7 +1657,7 @@ function BracketScreen(){
                             </button>
                           )}
                           <span className={"font-mono text-xs " + (lobby.length!==8?"text-amber-400":"text-on-surface-variant/40")} title={lobby.length!==8?"Lobby is not 8 players":undefined}>{lobby.length + " players"}</span>
-                          {locked&&isAdmin&&(
+                          {locked&&isStaff&&(
                             <button
                               onClick={function(){unlockLobby(li);}}
                               className="text-[10px] text-error font-bold font-label cursor-pointer bg-error/8 border border-error/25 rounded px-2 py-0.5 hover:bg-error/15 transition-colors">
@@ -1729,8 +1732,8 @@ function BracketScreen(){
                         })}
                       </div>
 
-                      {/* Admin lobby_code entry */}
-                      {isAdmin&&!locked&&(
+                      {/* Staff lobby_code entry */}
+                      {isStaff&&!locked&&(
                         <div className="border-t border-outline-variant/10 p-3 bg-surface-container-low/40 flex gap-2 items-center">
                           <Icon name="vpn_key" size={14} className="text-on-surface-variant/50 flex-shrink-0" aria-hidden="true" />
                           <input
@@ -1760,8 +1763,8 @@ function BracketScreen(){
                         </div>
                       )}
 
-                      {/* Admin placement entry */}
-                      {isAdmin&&!locked&&(
+                      {/* Staff placement entry */}
+                      {isStaff&&!locked&&(
                         <div className="border-t border-outline-variant/10">
                           {!hasPlacements?(
                             <div className="p-4 bg-surface-container-low">
