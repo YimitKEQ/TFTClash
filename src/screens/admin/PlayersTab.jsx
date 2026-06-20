@@ -104,29 +104,43 @@ export default function PlayersTab() {
   }
   useEffect(loadStaff, [])
 
+  function isStaffPlayer(p) {
+    return !!(p && p.authUserId && staffIds.indexOf(String(p.authUserId)) >= 0)
+  }
+
+  function applyStaff(authUserId, name, enable) {
+    supabase.rpc('set_staff_role', { p_user_id: authUserId, p_enable: enable }).then(function(res) {
+      if (res.error) { toast((enable ? 'Grant' : 'Revoke') + ' failed: ' + res.error.message, 'error'); return }
+      addAudit('ACTION', 'Staff role ' + (enable ? 'granted' : 'removed') + ': ' + name)
+      toast(name + (enable ? ' is now Staff (live scoring)' : ' removed from Staff'), 'success')
+      loadStaff()
+    }).catch(function(e) { toast((enable ? 'Grant' : 'Revoke') + ' failed: ' + (e.message || 'unknown'), 'error') })
+  }
+
+  // One-click toggle from the roster row -- no typing needed.
+  function toggleStaffPlayer(p) {
+    if (!p.authUserId) { toast(p.name + ' has no linked account (they must sign in once first)', 'error'); return }
+    if (isStaffPlayer(p)) {
+      if (!window.confirm('Remove Staff access for ' + p.name + '?')) return
+      applyStaff(p.authUserId, p.name, false)
+    } else {
+      applyStaff(p.authUserId, p.name, true)
+    }
+  }
+
   function grantStaff() {
     var name = (staffTarget || '').trim()
     if (!name) { toast('Pick a player', 'error'); return }
     var match = (players || []).find(function(p) { return (p.name || '').toLowerCase() === name.toLowerCase() })
     if (!match) { toast('Player "' + name + '" not found', 'error'); return }
     if (!match.authUserId) { toast(match.name + ' has no linked account (they must sign in once first)', 'error'); return }
-    supabase.rpc('set_staff_role', { p_user_id: match.authUserId, p_enable: true }).then(function(res) {
-      if (res.error) { toast('Grant failed: ' + res.error.message, 'error'); return }
-      addAudit('ACTION', 'Staff role granted: ' + match.name)
-      toast(match.name + ' is now Staff (live scoring)', 'success')
-      setStaffTarget('')
-      loadStaff()
-    }).catch(function(e) { toast('Grant failed: ' + (e.message || 'unknown'), 'error') })
+    setStaffTarget('')
+    applyStaff(match.authUserId, match.name, true)
   }
 
   function revokeStaff(userId, displayName) {
     if (!window.confirm('Remove Staff access for ' + displayName + '?')) return
-    supabase.rpc('set_staff_role', { p_user_id: userId, p_enable: false }).then(function(res) {
-      if (res.error) { toast('Revoke failed: ' + res.error.message, 'error'); return }
-      addAudit('ACTION', 'Staff role removed: ' + displayName)
-      toast('Removed ' + displayName + ' from Staff', 'success')
-      loadStaff()
-    }).catch(function(e) { toast('Revoke failed: ' + (e.message || 'unknown'), 'error') })
+    applyStaff(userId, displayName, false)
   }
 
   function loadSoftBans() {
@@ -558,7 +572,10 @@ export default function PlayersTab() {
                     <td className="px-2 py-2 text-on-surface/60">{p.region || '-'}</td>
                     <td className="px-2 py-2 text-on-surface/70">{p.rank}</td>
                     <td className="px-2 py-2 font-bold text-primary">{p.pts || 0}</td>
-                    <td className="px-2 py-2 text-on-surface/60 capitalize">{p.role || 'player'}</td>
+                    <td className="px-2 py-2 text-on-surface/60 capitalize">
+                      {p.role || 'player'}
+                      {isStaffPlayer(p) && <span className="ml-1.5 text-[9px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded align-middle">STAFF</span>}
+                    </td>
                     <td className="px-2 py-2">
                       {p.banned
                         ? <span className="text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded">BANNED</span>
@@ -583,6 +600,10 @@ export default function PlayersTab() {
                         )}
                         {!p.banned && (p.dnpCount || 0) > 0 && (
                           <Btn variant="ghost" size="sm" onClick={function() { clearStrikes(p.id, p.name) }}>Clear Strikes</Btn>
+                        )}
+                        {!p.banned && (isStaffPlayer(p)
+                          ? <Btn variant="ghost" size="sm" onClick={function() { toggleStaffPlayer(p) }}>Unstaff</Btn>
+                          : <Btn variant="ghost" size="sm" onClick={function() { toggleStaffPlayer(p) }}>Staff</Btn>
                         )}
                         <Btn variant="ghost" size="sm" onClick={function() { remove(p.id, p.name) }}>Del</Btn>
                       </div>
@@ -653,7 +674,7 @@ export default function PlayersTab() {
           <span className="font-bold text-sm text-on-surface">Staff / Live Scoring Access</span>
         </div>
         <div className="text-xs text-on-surface/40 mb-3">
-          Staff can enter placements, lock/unlock lobbies and set lobby codes in the live bracket. They cannot advance rounds, finalize, manage lobbies, ban, edit points, or touch settings. Player must have signed in at least once.
+          Tip: just hit the <span className="text-tertiary font-semibold">Staff</span> button on any player row above to toggle them. Staff can enter placements, lock/unlock lobbies and set lobby codes in the live bracket -- they cannot advance rounds, finalize, manage lobbies, ban, edit points, or touch settings. Player must have signed in at least once.
         </div>
         <div className="flex flex-col md:flex-row gap-2 mb-3">
           <div className="flex-1">
