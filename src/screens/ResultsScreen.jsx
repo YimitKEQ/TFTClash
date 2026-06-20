@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useClashStandings } from '../hooks/useClashStandings'
+import DayPodium from './results/DayPodium'
+import ClashSelector from './results/ClashSelector'
 import PageLayout from '../components/layout/PageLayout'
 import Panel from '../components/ui/Panel'
 import Btn from '../components/ui/Btn'
@@ -124,12 +127,39 @@ export default function ResultsScreen() {
 
   var pastClashes = ctx.pastClashes || []
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
-  // The hero celebrates the most recent COMPLETED clash's champion (from
-  // tournament_results via pastClashes), not the season leader. The Full Standings
-  // table below remains the season board. Fall back to the season leader only before
-  // any clash has finished.
-  var focusClash = pastClashes.length > 0 ? pastClashes[0] : null
-  var champ = (focusClash && players.find(function(p) { return p.name === focusClash.champion })) || sorted[0]
+
+  // Which finished clash are we viewing? Default = most recent; syncable via ?clash=.
+  var _searchParams = useSearchParams()
+  var searchParams = _searchParams[0]
+  var setSearchParams = _searchParams[1]
+
+  var clashParam = searchParams.get('clash')
+  var selectedClash = null
+  if (pastClashes.length > 0) {
+    selectedClash = clashParam
+      ? (pastClashes.find(function(c) { return String(c.id) === String(clashParam) }) || pastClashes[0])
+      : pastClashes[0]
+  }
+  var selectedClashId = selectedClash ? selectedClash.id : null
+
+  var dayData = useClashStandings(selectedClashId)
+  var dayStandings = dayData.standings || []
+
+  function selectClash(id) {
+    setSearchParams(function(prev) {
+      var next = new URLSearchParams(prev)
+      next.set('clash', String(id))
+      return next
+    })
+  }
+
+  // The hero celebrates the SELECTED clash's day winner (from tournament_results via
+  // the day standings / pastClashes), not the season leader. The Season Standings
+  // table below remains the cumulative board. Fall back to the season leader only
+  // before any clash has finished.
+  var focusClash = selectedClash || (pastClashes.length > 0 ? pastClashes[0] : null)
+  var dayChampName = dayData.champion ? dayData.champion.name : (focusClash ? focusClash.champion : null)
+  var champ = (dayChampName && players.find(function(p) { return p.name === dayChampName })) || sorted[0]
 
   var _tab = useState('results')
   var tab = _tab[0]
@@ -309,6 +339,11 @@ export default function ResultsScreen() {
             <div className="text-xs text-on-surface/40 mt-1 font-mono">
               {clashDate + (clashDate ? ' - ' : '') + clashPlayerCount + ' players - ' + Math.ceil(clashPlayerCount / 8) + ' lobbies'}
             </div>
+            {pastClashes.length > 1 && (
+              <div className="mt-3">
+                <ClashSelector clashes={pastClashes} value={selectedClashId ? String(selectedClashId) : ''} onChange={selectClash} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -373,12 +408,29 @@ export default function ResultsScreen() {
           {/* Left column: Podium + Tab content */}
           <div className="lg:col-span-8 space-y-6">
 
-            {/* Podium Section */}
+            {/* Won the Day podium (selected clash, by day points) */}
+            {dayStandings.length >= 3 && (
+              <DayPodium
+                standings={dayStandings}
+                label={'Won the Day - ' + clashName}
+                onPick={function(p) {
+                  var match = players.find(function(pl) { return String(pl.id) === String(p.id) })
+                  if (match) openProfile(match)
+                }}
+              />
+            )}
+
+            {/* Podium Section (season) */}
             {sorted.length >= 3 && (
               <div
                 className="relative overflow-hidden rounded-xl p-6 md:p-8 border border-outline-variant/10 bg-surface-container-low"
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon name="leaderboard" size={16} className="text-on-surface/40" />
+                  <h3 className="font-display text-base tracking-wide uppercase text-on-surface/70">Season Top 3</h3>
+                </div>
 
                 <div className="grid grid-cols-3 items-end gap-3 md:gap-5">
                   {top3.map(function(p, idx) {
@@ -452,6 +504,44 @@ export default function ResultsScreen() {
             )}
 
             <RecentChampionsStrip pastClashes={pastClashes} roster={players} navigate={navigate} />
+
+            {/* This Clash standings (selected clash, by day points) */}
+            {dayStandings.length > 0 && (
+              <div className="rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-low">
+                <div className="px-6 py-4 flex justify-between items-center border-b border-outline-variant/10">
+                  <h3 className="font-label text-on-surface-variant tracking-[0.1em] uppercase text-sm">
+                    {'This Clash - ' + clashName}
+                  </h3>
+                  <span className="font-mono text-xs text-primary/50">{dayStandings.length + ' players'}</span>
+                </div>
+                <div className="grid px-6 py-2.5 bg-surface-container-lowest/50 border-b border-outline-variant/5 [grid-template-columns:52px_1fr_80px_70px_60px]">
+                  {['Rank', 'Player', 'Day Pts', 'Avg', 'Wins'].map(function(h) {
+                    return <span key={h} className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/40">{h}</span>
+                  })}
+                </div>
+                <div className="divide-y divide-outline-variant/5">
+                  {dayStandings.map(function(p, i) {
+                    var col = PlacementColor(i)
+                    return (
+                      <div
+                        key={p.id || p.name}
+                        onClick={function() {
+                          var match = players.find(function(pl) { return String(pl.id) === String(p.id) })
+                          if (match) openProfile(match)
+                        }}
+                        className="grid px-6 py-3 items-center cursor-pointer transition-colors hover:bg-white/[0.03] [grid-template-columns:52px_1fr_80px_70px_60px]"
+                      >
+                        <span className="font-mono text-sm font-bold" style={{ color: col }}>{'#' + String(i + 1).padStart(2, '0')}</span>
+                        <span className="text-sm truncate text-on-surface">{p.name}</span>
+                        <span className="font-mono text-sm font-bold" style={{ color: i < 3 ? col : '#C8BFB0' }}>{p.dayPts + ' pts'}</span>
+                        <span className="font-mono text-sm" style={{ color: avgCol(p.avgPlacement != null ? p.avgPlacement : 0) }}>{p.avgPlacement != null ? p.avgPlacement : '-'}</span>
+                        <span className="font-mono text-sm text-emerald-400">{p.wins}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Tab nav */}
             <PillTabGroup align="start">
