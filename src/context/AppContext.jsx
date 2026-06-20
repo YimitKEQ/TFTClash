@@ -106,6 +106,11 @@ export function AppProvider(props) {
   var _tournamentState = useState({phase:"idle",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});
   var tournamentState = _tournamentState[0];
   var setTournamentState = _tournamentState[1];
+  // Always-current mirror of tournamentState so async callbacks (e.g. player
+  // reloads triggered by realtime) can read the live checkedInIds without being
+  // captured by a stale closure. Updated in render below.
+  var tournamentStateRef = useRef(null);
+  tournamentStateRef.current = tournamentState;
 
   // NA region runs concurrently with EU; stored in `site_settings.tournament_state_na`.
   // Most consumers read `tournamentState` as before. NA-region screens / users can
@@ -294,6 +299,16 @@ export function AppProvider(props) {
         playerRetryCount.current=0;
         if(!res.data||!res.data.length){return;}
         var mapped=res.data.map(mapPlayerRow);
+        // CRITICAL: re-stamp checkedIn from the live blob's checkedInIds here.
+        // mapPlayerRow seeds checkedIn from players.checked_in (the DB column,
+        // which check-in never writes - only the blob does). Without this stamp,
+        // every realtime refetch during a live clash (frequent: every game_results
+        // change) resets the whole roster to checkedIn=false, emptying the bracket
+        // ("Waiting for Players") until checkedInIds next changes. See stamp effect.
+        var ciSet=new Set((((tournamentStateRef.current&&tournamentStateRef.current.checkedInIds)||[]).map(String)));
+        if(ciSet.size){
+          mapped=mapped.map(function(p){return Object.assign({},p,{checkedIn:ciSet.has(String(p.id))});});
+        }
         // Set players immediately so the UI is never empty while enrichment loads
         setPlayers(mapped);
         // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
