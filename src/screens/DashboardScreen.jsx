@@ -1154,31 +1154,61 @@ function ClashCard() {
   }
 
   function handleCheckIn() {
-    if (!linkedPlayer) return
+    // Never silently no-op: tell the user what's wrong so they don't tap forever.
+    if (!linkedPlayer) {
+      toast('We could not find your linked player profile. Refresh the page and try again.', 'error')
+      return
+    }
+    if (!(supabase.from && tournamentState.dbTournamentId)) {
+      toast('Check-in is not open right now. Try again in a moment.', 'error')
+      return
+    }
     var sid = String(linkedPlayer.id)
-    if (setPlayers) {
-      setPlayers(function(ps) {
-        return ps.map(function(p) {
-          return p.id === linkedPlayer.id ? Object.assign({}, p, { checkedIn: true }) : p
+    var tid = tournamentState.dbTournamentId
+
+    function markCheckedInLocally() {
+      if (setPlayers) {
+        setPlayers(function(ps) {
+          return ps.map(function(p) { return p.id === linkedPlayer.id ? Object.assign({}, p, { checkedIn: true }) : p })
         })
-      })
+      }
+      if (setTournamentState) {
+        setTournamentState(function(ts) {
+          var ids = ts.checkedInIds || []
+          return ids.indexOf(sid) > -1 ? ts : Object.assign({}, ts, { checkedInIds: ids.concat([sid]) })
+        })
+      }
     }
-    if (setTournamentState) {
-      setTournamentState(function(ts) {
-        var ids = ts.checkedInIds || []
-        return ids.indexOf(sid) > -1 ? ts : Object.assign({}, ts, { checkedInIds: ids.concat([sid]) })
-      })
-    }
-    if (supabase.from && tournamentState.dbTournamentId) {
-      withRetry(function() {
-        return supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
-          .eq('tournament_id', tournamentState.dbTournamentId)
-          .eq('player_id', linkedPlayer.id)
-      }, 'dash-checkin').then(function(r) {
-        if (r.error) toast('Check-in may not have saved - tap check in again', 'error')
-      })
-    }
-    toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
+
+    // Try to flip an existing registration to checked_in. .select() lets us tell
+    // a real success (1 row) from "no registration row exists" (0 rows) - the
+    // latter looks like success on a bare .update() and is why check-in silently
+    // did nothing for players who missed registration.
+    withRetry(function() {
+      return supabase.from('registrations')
+        .update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+        .eq('tournament_id', tid)
+        .eq('player_id', linkedPlayer.id)
+        .select('id')
+    }, 'dash-checkin').then(function(r) {
+      if (r.error) { toast('Check-in failed: ' + r.error.message, 'error'); return }
+      if (r.data && r.data.length) {
+        markCheckedInLocally()
+        toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
+        return
+      }
+      // No registration yet (missed registration) - create one, already checked in.
+      return supabase.from('registrations')
+        .insert({ tournament_id: tid, player_id: linkedPlayer.id, status: 'checked_in', checked_in_at: new Date().toISOString() })
+        .select('id')
+        .then(function(ins) {
+          if (ins.error) { toast('Could not check you in: ' + ins.error.message, 'error'); return }
+          markCheckedInLocally()
+          toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
+        })
+    }).catch(function(e) {
+      toast('Check-in failed: ' + ((e && e.message) || 'unknown') + ' - try again', 'error')
+    })
   }
 
   var phaseTagMap = {
