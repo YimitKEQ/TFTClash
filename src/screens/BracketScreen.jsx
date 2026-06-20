@@ -277,7 +277,29 @@ function BracketScreen(){
   var seasonConfig=ctx.seasonConfig;
   var pastClashes=ctx.pastClashes||[];
 
-  var checkedIn=useMemo(function(){return players.filter(function(p){return p.checkedIn;});},[players]);
+  // Derive the checked-in roster straight from the blob's checkedInIds (the stable
+  // source of truth) joined to players, NOT from the racy per-player `checkedIn`
+  // flag. That flag is re-stamped on every player refetch and can transiently drop
+  // to false during a live clash, which would empty the roster and flash the
+  // "Waiting for Players" screen. Fall back to the flag only when checkedInIds is
+  // empty (e.g. NA/legacy paths).
+  var checkedInIdsKey=(tournamentState&&tournamentState.checkedInIds)?tournamentState.checkedInIds.join(','):'';
+  var checkedIn=useMemo(function(){
+    var ids=(tournamentState&&tournamentState.checkedInIds)||[];
+    if(ids.length){
+      var byId={};
+      for(var i=0;i<players.length;i++){byId[String(players[i].id)]=players[i];}
+      var out=[];
+      for(var j=0;j<ids.length;j++){var pp=byId[String(ids[j])];if(pp)out.push(pp);}
+      if(out.length)return out;
+    }
+    return players.filter(function(p){return p.checkedIn;});
+  },[players,checkedInIdsKey]);
+
+  // Once lobbies are built (savedLobbies persisted in the blob) the bracket has a
+  // roster regardless of any transient checkedIn count, so never fall back to the
+  // "Waiting for Players" empty state during a live clash.
+  var hasRoster=checkedIn.length>0||!!(tournamentState&&tournamentState.savedLobbies&&tournamentState.savedLobbies.length);
 
   var lobbySize=8;
 
@@ -1297,7 +1319,7 @@ function BracketScreen(){
         )}
 
         {/* Empty state */}
-        {checkedIn.length===0&&(
+        {!hasRoster&&(
           <div className="text-center py-20">
             <div className="flex justify-center mb-4">
               <Icon name={tournamentState&&tournamentState.phase==="complete"?"emoji_events":tournamentState&&isLive?"bolt":"sports_esports"} size={56} className="text-on-surface-variant/30" />
@@ -1321,7 +1343,7 @@ function BracketScreen(){
           </div>
         )}
 
-        {checkedIn.length>0&&(
+        {hasRoster&&(
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
             {/* Left column: Status + controls */}
