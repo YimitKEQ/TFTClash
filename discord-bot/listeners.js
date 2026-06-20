@@ -7,7 +7,7 @@ import { supabase } from './utils/supabase.js';
 import { getTournamentState, getRegistrations, getClashResults } from './utils/data.js';
 import { phaseChangeEmbed, newRegistrationEmbed, newCustomRegistrationEmbed, newTeamRegistrationEmbed, resultsEmbed } from './utils/embeds.js';
 import { syncPlayerRoles } from './utils/roles.js';
-import { createLobbyChannels, destroyLobbyChannels } from './utils/lobbies.js';
+import { createLobbyChannels, announceClashEnd } from './utils/lobbies.js';
 import {
   createTournamentChannels,
   createTournamentLobbyChannels,
@@ -128,14 +128,12 @@ export function startListeners(client) {
               });
             }, 60 * 1000);
           }
-          // Delay role revoke by 30 min so players can chat after the clash.
-          // Channels persist between tournaments; only role membership cycles.
-          setTimeout(function() {
-            destroyLobbyChannels(g).catch(function(e) {
-              console.error('[listener] Lobby role revoke failed:', e.message);
-            });
-          }, 30 * 60 * 1000);
-          console.log('[listener] Clash Live role will be revoked in 30 minutes (channels persist)');
+          // Open-channels model: nothing to hide or revoke. Just post a GG
+          // wrap-up in the hub. Lobby channels stay open for post-clash chat
+          // and get reused (rosters refreshed) on the next clash.
+          announceClashEnd(g, val).catch(function(e) {
+            console.error('[listener] Clash end announce failed:', e.message);
+          });
         }
 
         console.log('[listener] Phase changed to: ' + val.phase);

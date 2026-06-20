@@ -444,15 +444,16 @@ export function startDashboard(client) {
   });
 
   // ─── POST /api/lobbies/destroy ──────────────────────────────────────────────
-  // Now: revoke the Clash Live role from every member. Channels persist —
-  // visibility just disappears for non-host members until next setup.
+  // Graceful teardown: post a GG wrap-up in the hub, then delete the whole
+  // "🔴 LIVE CLASH" category and its channels. (Open-channels model — no roles.)
   app.post('/api/lobbies/destroy', async function(req, res) {
     try {
       var guild = getGuild();
       if (!guild) return res.status(400).json({ error: 'Guild not found' });
 
-      var result = await destroyLobbyChannels(guild);
-      console.log('[dashboard] Clash Live role revoked: ' + (result.removed || 0));
+      var ts = await getTournamentState().catch(function() { return null; });
+      var result = await destroyLobbyChannels(guild, ts);
+      console.log('[dashboard] Lobby category torn down: ' + (result.destroyed || 0) + ' channels');
       res.json({ ok: true, result: result });
     } catch (err) {
       res.status(500).json({ error: err.message });
