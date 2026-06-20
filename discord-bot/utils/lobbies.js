@@ -260,7 +260,8 @@ async function postLobbyRosters(guild, lobbies, ts, category) {
 
     var letter = letterFor(i);
     var playerNames = lobbyPlayerNames(lobbies[i]);
-    var body = '**Lobby ' + letter + '** - Clash #' + ((ts && ts.clashNumber) || '?') + '\n\n';
+    var roundLabel = (ts && ts.round) ? (' · Game ' + ts.round) : '';
+    var body = '**Lobby ' + letter + '** - Clash #' + ((ts && ts.clashNumber) || '?') + roundLabel + '\n\n';
     if (playerNames.length) body += 'Players: ' + playerNames.join(', ') + '\n\n';
     body += 'Drop your end-screen screenshot here when your game finishes - keeps results honest. GL HF.';
 
@@ -284,9 +285,10 @@ async function postHubBoard(guild, ts, lobbies, category) {
 
   var clashNo = (ts && ts.clashNumber) || '?';
   var total = (ts && ts.totalGames) || 4;
+  var round = (ts && ts.round) || 1;
   var lines = [];
   lines.push('# 🔴 Clash #' + clashNo + ' is LIVE');
-  lines.push('**' + lobbies.length + ' lobbies · ' + total + ' games** · everyone can watch and chat below.');
+  lines.push('**Game ' + round + ' of ' + total + ' · ' + lobbies.length + ' lobbies** · everyone can watch and chat below.');
   lines.push('');
   for (var i = 0; i < lobbies.length; i++) {
     var name = lobbyTextName(i);
@@ -327,6 +329,35 @@ export async function setupLobbyRound(guild, ts) {
   var created = cat.created + hub.created + lob.created;
   console.log('[lobbies] round setup ok (' + n + ' lobbies, +' + created + ' channels, -' + pruned + ' pruned)');
   return { ok: true, lobbies: n, created: created, pruned: pruned };
+}
+
+// Lightweight refresh: just re-post the hub board (e.g. round advanced, same
+// lobbies). Falls back to a full setup if the category was wiped.
+export async function refreshLobbyBoard(guild, ts) {
+  if (!guild || !ts) return { ok: false };
+  var lobbies = normalizeLobbies(ts);
+  if (!lobbies.length) return { ok: false, reason: 'no-lobbies' };
+  var category = findCategory(guild);
+  if (!category) return setupLobbyRound(guild, ts);
+  await postHubBoard(guild, ts, lobbies, category);
+  return { ok: true };
+}
+
+// Full roster refresh: lobby composition changed (cut / rebalance / re-roll).
+// Re-ensures channels (count may have shrunk), prunes extras, re-posts rosters.
+export async function refreshLobbyRosters(guild, ts) {
+  if (!guild || !ts) return { ok: false };
+  var lobbies = normalizeLobbies(ts);
+  if (!lobbies.length) return { ok: false, reason: 'no-lobbies' };
+  var category = findCategory(guild);
+  if (!category) return setupLobbyRound(guild, ts);
+  var n = Math.min(lobbies.length, MAX_LOBBIES);
+  await ensureLobbyChannels(guild, n, category);
+  var pruned = await pruneExtraLobbies(guild, n, category);
+  await postLobbyRosters(guild, lobbies, ts, category);
+  await postHubBoard(guild, ts, lobbies, category);
+  console.log('[lobbies] roster refresh ok (' + n + ' lobbies, -' + pruned + ' pruned)');
+  return { ok: true, lobbies: n, pruned: pruned };
 }
 
 export async function announceClashEnd(guild, ts) {

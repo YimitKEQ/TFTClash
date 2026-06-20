@@ -7,7 +7,7 @@ import { supabase } from './utils/supabase.js';
 import { getTournamentState, getRegistrations, getClashResults } from './utils/data.js';
 import { phaseChangeEmbed, newRegistrationEmbed, newCustomRegistrationEmbed, newTeamRegistrationEmbed, resultsEmbed } from './utils/embeds.js';
 import { syncPlayerRoles } from './utils/roles.js';
-import { createLobbyChannels, announceClashEnd } from './utils/lobbies.js';
+import { createLobbyChannels, announceClashEnd, refreshLobbyRosters, refreshLobbyBoard } from './utils/lobbies.js';
 import {
   createTournamentChannels,
   createTournamentLobbyChannels,
@@ -55,6 +55,26 @@ async function autoPostResults(guild, clashNumber) {
 }
 
 let lastPhase = null;
+// Live-lobby refresh trackers. lastLobbySig = composition of all lobbies (player
+// ids), lastRound = current game. Used to refresh Discord lobby info when cuts /
+// round advances happen WITHOUT a phase change -- and to ignore the frequent blob
+// writes from score locks (which touch neither).
+let lastLobbySig = null;
+let lastRound = null;
+
+function lobbyIds(lobby) {
+  if (!lobby) return [];
+  if (Array.isArray(lobby.player_ids)) return lobby.player_ids.slice();
+  if (Array.isArray(lobby.playerIds)) return lobby.playerIds.slice();
+  if (Array.isArray(lobby.players)) return lobby.players.map(function(p) { return p && typeof p === 'object' ? p.id : p; }).filter(function(v) { return v != null; });
+  if (Array.isArray(lobby)) return lobby.map(function(p) { return p && p.id; }).filter(Boolean);
+  return [];
+}
+
+function lobbyCompSig(val) {
+  var lobbies = (val && val.savedLobbies && val.savedLobbies.length) ? val.savedLobbies : ((val && val.lobbies) || []);
+  return lobbies.map(function(lob) { return lobbyIds(lob).map(String).sort().join(','); }).join(';');
+}
 
 /**
  * Starts all realtime listeners. Call once after client is ready.
@@ -73,70 +93,103 @@ export function startListeners(client) {
         const val = raw == null ? null : (typeof raw === 'string' ? JSON.parse(raw) : raw);
         if (!val || !val.phase) return;
 
-        // Only fire on actual phase transitions
-        if (val.phase === lastPhase) return;
-        lastPhase = val.phase;
+        const phaseChanged = (val.phase !== lastPhase);
 
-        const embed = phaseChangeEmbed(val.phase, val);
+        // ─── Phase transition work (runs once per actual phase change) ─────────
+        if (phaseChanged) {
+          lastPhase = val.phase;
 
-        // Post to clash-schedule and announcements
-        const schedCh = ch('clash-schedule');
-        const annCh = ch('announcements');
+          const embed = phaseChangeEmbed(val.phase, val);
 
-        // Opt-in only: ping Clash Notify + the "Fuck it ping me" catch-all on
-        // registration + inprogress. Checkin gets no mention (channel post only) —
-        // registered players already get a DM nudge via checkinNudge.js.
-        var ping = buildNotifyPing(guild(), 'clash');
-        var shouldPing = (val.phase === 'registration' || val.phase === 'inprogress');
-        if (schedCh) {
-          await schedCh.send({ content: (shouldPing && ping.content) ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: shouldPing ? ping.roleIds : [] } });
-        }
-        if (annCh && shouldPing) {
-          await annCh.send({ content: ping.content ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: ping.roleIds } });
-        }
-        if (val.phase === 'complete') {
-          sweepPreGameRole(guild()).catch(function(e) { console.warn('[listener] Pre-Game sweep failed: ' + ((e && e.message) || e)); });
-        }
+          // Post to clash-schedule and announcements
+          const schedCh = ch('clash-schedule');
+          const annCh = ch('announcements');
 
-        // Phase 4: DM blast when check-in opens. Dedupe via site_settings so
-        // a bot restart mid-window doesn't re-blast everyone.
-        if (val.phase === 'checkin' && val.dbTournamentId) {
-          sendCheckinNudge(client, { id: val.dbTournamentId, name: 'Clash #' + (val.clashNumber || '?') }, 'checkin').catch(function(e) {
-            console.warn('[listener] checkin DM nudge failed: ' + ((e && e.message) || e));
-          });
-        }
-        // Reset nudge dedupe when registration re-opens (admin reset).
-        if (val.phase === 'registration' && val.dbTournamentId) {
-          clearCheckinNudge(val.dbTournamentId, 'checkin').catch(function() {});
-          clearCheckinNudge(val.dbTournamentId, 'pregame').catch(function() {});
-        }
-
-        // Auto lobby channels
-        var g = guild();
-        if (g && val.phase === 'inprogress') {
-          createLobbyChannels(g, val).catch(function(e) {
-            console.error('[listener] Lobby channel creation failed:', e.message);
-          });
-        }
-        if (g && val.phase === 'complete') {
-          // Auto-post results once results are ready (give admin a minute to publish)
-          var clashNum = val.clashNumber || null;
-          if (clashNum) {
-            setTimeout(function() {
-              autoPostResults(g, clashNum).catch(function(e) {
-                console.error('[listener] auto-results failed:', e && e.message);
-              });
-            }, 60 * 1000);
+          // Opt-in only: ping Clash Notify + the "Fuck it ping me" catch-all on
+          // registration + inprogress. Checkin gets no mention (channel post only) —
+          // registered players already get a DM nudge via checkinNudge.js.
+          var ping = buildNotifyPing(guild(), 'clash');
+          var shouldPing = (val.phase === 'registration' || val.phase === 'inprogress');
+          if (schedCh) {
+            await schedCh.send({ content: (shouldPing && ping.content) ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: shouldPing ? ping.roleIds : [] } });
           }
-          // Open-channels model: nothing to hide or revoke. Just post a GG
-          // wrap-up in the hub. Lobby channels stay open for post-clash chat
-          // and get reused (rosters refreshed) on the next clash.
-          announceClashEnd(g, val).catch(function(e) {
-            console.error('[listener] Clash end announce failed:', e.message);
-          });
+          if (annCh && shouldPing) {
+            await annCh.send({ content: ping.content ? (ping.content + ' ') : undefined, embeds: [embed], allowedMentions: { roles: ping.roleIds } });
+          }
+          if (val.phase === 'complete') {
+            sweepPreGameRole(guild()).catch(function(e) { console.warn('[listener] Pre-Game sweep failed: ' + ((e && e.message) || e)); });
+          }
+
+          // Phase 4: DM blast when check-in opens. Dedupe via site_settings so
+          // a bot restart mid-window doesn't re-blast everyone.
+          if (val.phase === 'checkin' && val.dbTournamentId) {
+            sendCheckinNudge(client, { id: val.dbTournamentId, name: 'Clash #' + (val.clashNumber || '?') }, 'checkin').catch(function(e) {
+              console.warn('[listener] checkin DM nudge failed: ' + ((e && e.message) || e));
+            });
+          }
+          // Reset nudge dedupe when registration re-opens (admin reset).
+          if (val.phase === 'registration' && val.dbTournamentId) {
+            clearCheckinNudge(val.dbTournamentId, 'checkin').catch(function() {});
+            clearCheckinNudge(val.dbTournamentId, 'pregame').catch(function() {});
+          }
+
+          // Auto lobby channels
+          var g = guild();
+          if (g && val.phase === 'inprogress') {
+            // Seed the refresh trackers, then build the open lobby channels.
+            lastLobbySig = lobbyCompSig(val);
+            lastRound = val.round || 1;
+            createLobbyChannels(g, val).catch(function(e) {
+              console.error('[listener] Lobby channel creation failed:', e.message);
+            });
+          }
+          if (g && val.phase === 'complete') {
+            lastLobbySig = null;
+            lastRound = null;
+            // Auto-post results once results are ready (give admin a minute to publish)
+            var clashNum = val.clashNumber || null;
+            if (clashNum) {
+              setTimeout(function() {
+                autoPostResults(g, clashNum).catch(function(e) {
+                  console.error('[listener] auto-results failed:', e && e.message);
+                });
+              }, 60 * 1000);
+            }
+            // Open-channels model: nothing to hide or revoke. Just post a GG
+            // wrap-up in the hub. Lobby channels stay open for post-clash chat
+            // and get reused (rosters refreshed) on the next clash.
+            announceClashEnd(g, val).catch(function(e) {
+              console.error('[listener] Clash end announce failed:', e.message);
+            });
+          }
+
+          console.log('[listener] Phase changed to: ' + val.phase);
         }
 
-        console.log('[listener] Phase changed to: ' + val.phase);
+        // ─── Live lobby refresh (same-phase updates during a running clash) ────
+        // The blob is rewritten on every score lock; only act when the lobby
+        // composition (a cut/rebalance) or the game number actually changes.
+        if (!phaseChanged && val.phase === 'inprogress') {
+          var gLive = guild();
+          if (gLive) {
+            var sig = lobbyCompSig(val);
+            var roundNow = val.round || 1;
+            if (sig !== lastLobbySig) {
+              lastLobbySig = sig;
+              lastRound = roundNow;
+              refreshLobbyRosters(gLive, val).catch(function(e) {
+                console.error('[listener] Lobby roster refresh failed:', e && e.message);
+              });
+              console.log('[listener] Lobbies changed -> rosters refreshed (game ' + roundNow + ')');
+            } else if (roundNow !== lastRound) {
+              lastRound = roundNow;
+              refreshLobbyBoard(gLive, val).catch(function(e) {
+                console.error('[listener] Lobby board refresh failed:', e && e.message);
+              });
+              console.log('[listener] Game advanced -> hub board refreshed (game ' + roundNow + ')');
+            }
+          }
+        }
       } catch (err) {
         console.error('[listener] site_settings error:', err);
       }
