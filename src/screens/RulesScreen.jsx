@@ -45,31 +45,47 @@ var TIEBREAKER_ITEMS = [
   'Best placement in the most recent game',
 ]
 
+var SEASON_FORMAT_ITEMS = [
+  'Season 1 runs 5 weekly clashes. There is one clash per week.',
+  'Each weekly clash is 4 games. Every game uses standard TFT scoring: 1st = 8 points down to 8th = 1 point. Your points from all 4 games add up to your score for that clash.',
+  'Every week stacks. Your points from all 5 weeks add into your cumulative season total. There are no dropped weeks, so every week counts.',
+  'Missing a week means 0 points for that week, which is hard to make up. Showing up every week is the surest way to climb the season standings.',
+  'After the 5 weeks, the top of the season standings advance to a separate 2-clash finale that crowns the Season 1 champion.',
+  'Track your running season total any time on the Leaderboard. Each individual clash also has its own result on the Results page.',
+]
+
 var ACCORDIONS = [
   {
-    id: 'registration',
+    id: 'season',
     num: '01.',
+    title: 'Season Format',
+    type: 'season',
+    content: '',
+  },
+  {
+    id: 'registration',
+    num: '02.',
     title: 'Registration & Eligibility',
     type: 'text',
     content: 'All participants must be at least 16 years of age and hold a valid account on the respective regional server. Smurf accounts are strictly prohibited; players must register with their highest-ranking primary account.',
   },
   {
     id: 'scoring',
-    num: '02.',
+    num: '03.',
     title: 'Scoring System',
     type: 'scoring',
     content: '',
   },
   {
     id: 'tiebreakers',
-    num: '03.',
+    num: '04.',
     title: 'Tiebreakers',
     type: 'text',
     content: '',
   },
   {
     id: 'disputes',
-    num: '04.',
+    num: '05.',
     title: 'Dispute Process',
     type: 'text',
     content: 'Click Dispute on any result submission to flag it for admin review. An admin will review within 24 hours. Decisions are final. Admins can always override any result.',
@@ -110,7 +126,7 @@ function ScoringTable() {
 }
 
 export default function RulesScreen() {
-  var [expanded, setExpanded] = useState('scoring')
+  var [expanded, setExpanded] = useState('season')
   var [search, setSearch] = useState('')
 
   function toggleSection(id) {
@@ -135,6 +151,12 @@ export default function RulesScreen() {
             return item.toLowerCase().indexOf(q) !== -1
           })
           if (tbMatch) return true
+        }
+        if (a.id === 'season') {
+          var seasonMatch = SEASON_FORMAT_ITEMS.some(function(item) {
+            return item.toLowerCase().indexOf(q) !== -1
+          })
+          if (seasonMatch) return true
         }
         return false
       })
@@ -230,6 +252,19 @@ export default function RulesScreen() {
                     <div className="px-14 pb-6 font-body text-slate-400 leading-relaxed text-sm">
                       {acc.type === 'scoring' ? (
                         <ScoringTable />
+                      ) : acc.id === 'season' ? (
+                        <ul className="space-y-3">
+                          {SEASON_FORMAT_ITEMS.map(function (item) {
+                            return (
+                              <li key={item} className="flex items-start gap-3">
+                                <span className="flex-shrink-0 mt-1 text-primary">
+                                  <Icon name="chevron_right" size={16} />
+                                </span>
+                                <span className="text-sm leading-relaxed">{item}</span>
+                              </li>
+                            )
+                          })}
+                        </ul>
                       ) : acc.id === 'tiebreakers' ? (
                         <ol className="space-y-3">
                           {TIEBREAKER_ITEMS.map(function (item, i) {

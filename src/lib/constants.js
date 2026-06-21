@@ -301,7 +301,9 @@ export var FAQ_DATA = [
   {cat:"Scoring and Rankings",icon:"bar_chart",items:[
     {q:"How does scoring work?",a:"Standard TFT placement scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
     {q:"How are tiebreakers resolved?",a:"Total points first, then most Top 4 finishes, then fewest Bot 3s (6th/7th/8th), then most 1st place finishes, and finally the best placement in the most recent game."},
-    {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
+    {q:"Do points carry over between weeks?",a:"Yes. Each weekly clash is 4 games, and your points stack into a cumulative season total. There are no dropped weeks, so every week counts. Missing a week means 0 points for that week, which is hard to make up, so showing up every week is the surest way to climb the standings."},
+    {q:"How long is the season and what happens at the end?",a:"Season 1 runs 5 weekly clashes, one per week. After the 5 weeks, the top of the season standings advance to a separate 2-clash finale that crowns the Season 1 champion."},
+    {q:"What are seasons?",a:"A season is a set run of weekly clashes (Season 1 is 5 weeks plus a finale). Points accumulate across the whole season, then reset for the next one. Season champions are enshrined in the Hall of Fame."}
   ]},
   {cat:"Pro and Host Tiers",icon:"workspace_premium",items:[
     {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, auto check-in, priority registration, and an exclusive Pro Discord role."},
