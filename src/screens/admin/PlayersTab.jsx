@@ -306,10 +306,18 @@ export default function PlayersTab() {
 
   function saveEdit() {
     if (!editP) return
-    setPlayers(function(ps) { return ps.map(function(p) { return p.id === editP.id ? Object.assign({}, p, editP) : p }) })
-    var updates = { username: editP.name, riot_id: editP.riotId, region: editP.region, rank: editP.rank, role: editP.role, season_pts: editP.pts, banned: editP.banned, dnp_count: editP.dnpCount || 0 }
+    // Season points are owned by game_results; a raw season_pts write would be
+    // reverted by the refresh_player_stats trigger and ignored by the site (which
+    // recomputes from games). So store the manual correction as a delta vs the
+    // game-derived base: points_adjustment = desiredTotal - gameSum. season_pts is
+    // also set now so it reflects immediately (the trigger keeps it = base + adj).
+    var newTotal = editP.pts || 0
+    var gameSum = (editP._gameSum != null) ? editP._gameSum : (newTotal - (editP.pointsAdjustment || 0))
+    var newAdj = newTotal - gameSum
+    setPlayers(function(ps) { return ps.map(function(p) { return p.id === editP.id ? Object.assign({}, p, editP, { pts: newTotal, pointsAdjustment: newAdj }) : p }) })
+    var updates = { username: editP.name, riot_id: editP.riotId, region: editP.region, rank: editP.rank, role: editP.role, season_pts: newTotal, points_adjustment: newAdj, banned: editP.banned, dnp_count: editP.dnpCount || 0 }
     if (supabase.from && editP.id) { supabase.from('players').update(updates).eq('id', editP.id).then(function(r) { if (r.error) toast('Save failed: ' + r.error.message, 'error') }).catch(function() { toast('Save failed', 'error') }) }
-    if (editP._ptsChanged) addAudit('DANGER', 'Season pts override: ' + editP.name + ' -> ' + editP.pts)
+    if (editP._ptsChanged) addAudit('DANGER', 'Season pts adjustment: ' + editP.name + ' -> ' + newTotal + ' (games ' + gameSum + ', adj ' + (newAdj >= 0 ? '+' : '') + newAdj + ')')
     else addAudit('ACTION', 'Player updated: ' + editP.name)
     toast('Saved ' + editP.name, 'success')
     setEditP(null)
@@ -467,6 +475,9 @@ export default function PlayersTab() {
                 Season Pts <span className="text-error font-bold">DANGER</span>
               </label>
               <Inp type="number" value={editP.pts || 0} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setEditP(Object.assign({}, editP, { pts: parseInt(val) || 0, _ptsChanged: true })) }} />
+              <div className="text-[10px] text-on-surface/50 mt-1 font-mono">
+                {'From games: ' + ((editP._gameSum != null ? editP._gameSum : ((editP.pts || 0) - (editP.pointsAdjustment || 0)))) + '  |  Manual adj: ' + (((editP.pts || 0) - (editP._gameSum != null ? editP._gameSum : ((editP.pts || 0) - (editP.pointsAdjustment || 0)))) >= 0 ? '+' : '') + ((editP.pts || 0) - (editP._gameSum != null ? editP._gameSum : ((editP.pts || 0) - (editP.pointsAdjustment || 0))))}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3 pt-2">
@@ -588,7 +599,7 @@ export default function PlayersTab() {
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex gap-1">
-                        <Btn variant="ghost" size="sm" onClick={function() { setEditP(Object.assign({}, p)) }}>Edit</Btn>
+                        <Btn variant="ghost" size="sm" onClick={function() { setEditP(Object.assign({}, p, { _gameSum: (p.pts || 0) - (p.pointsAdjustment || 0) })) }}>Edit</Btn>
                         <Btn variant="ghost" size="sm" onClick={function() { setNoteTarget(p); setNoteText(p.notes || '') }}>Note</Btn>
                         {p.banned
                           ? <Btn variant="ghost" size="sm" onClick={function() { unban(p.id, p.name) }}>Unban</Btn>

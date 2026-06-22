@@ -271,7 +271,7 @@ export function AppProvider(props) {
       twitch:(r.social_links&&r.social_links.twitch)||'',
       twitter:(r.social_links&&r.social_links.twitter)||'',
       youtube:(r.social_links&&r.social_links.youtube)||'',
-      pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
+      pts:r.season_pts||0,pointsAdjustment:r.points_adjustment||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
       avg:r.avg_placement?String(r.avg_placement):"0",
       banned:!!r.banned,dnpCount:r.dnp_count||0,notes:r.notes||'',checkedIn:!!r.checked_in,
       profilePicUrl:r.avatar_url||r.profile_pic_url||'',
@@ -337,7 +337,10 @@ export function AppProvider(props) {
               mapped=freshMapped.map(function(p){
                 var hist=historyMap[p.id];
                 if(!hist||!hist.length)return p;
-                var totalPts=hist.reduce(function(s,g){return s+(g.points||0);},0);
+                // Game-derived base PLUS the persisted manual adjustment (admin
+                // correction/bonus). Mirrors the DB refresh_player_stats trigger so
+                // the client total matches season_pts everywhere.
+                var totalPts=hist.reduce(function(s,g){return s+(g.points||0);},0)+(p.pointsAdjustment||0);
                 var wins=hist.filter(function(g){return g.placement===1;}).length;
                 var top4=hist.filter(function(g){return g.placement<=4;}).length;
                 var avgP=hist.reduce(function(s,g){return s+g.placement;},0)/hist.length;
