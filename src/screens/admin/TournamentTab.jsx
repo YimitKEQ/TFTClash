@@ -474,6 +474,28 @@ export default function TournamentTab() {
     if (!ladderMode && cutLineCheck > 0 && cutAfterGameCheck < 1) { toast('Cut line requires a cut-after game', 'error'); return }
     if (!ladderMode && cutAfterGameCheck > 0 && cutAfterGameCheck >= roundsCheck) { toast('Cut must happen before the final game', 'error'); return }
     setOpening(true)
+    // Guard against duplicate clashes: refuse to create a second live clash in
+    // this region while one is already open/running. Without this an admin who
+    // clicks "Open Registration" twice (or from a second tab) spawns a duplicate
+    // tournament row, splitting registrations across two clashes (players on a
+    // stale tab register against the orphan and silently vanish from the real one).
+    var guardRegion = clashForm.server === 'NA' ? 'NA' : 'EU'
+    supabase.from('tournaments').select('id,name,phase')
+      .eq('type', WEEKLY_CLASH_TYPE).eq('region', guardRegion)
+      .in('phase', ['registration', 'check_in', 'in_progress']).is('archived_at', null)
+      .limit(1).then(function(activeRes) {
+      if (activeRes && !activeRes.error && activeRes.data && activeRes.data.length > 0) {
+        var live = activeRes.data[0]
+        toast('A ' + guardRegion + ' clash is already live (' + (live.name || 'clash') + ', ' + (live.phase || '') + '). Finalize or unschedule it before opening a new one.', 'error')
+        setOpening(false); return
+      }
+      proceedOpenRegistration()
+    }).catch(function() {
+      toast('Could not verify existing clashes; aborting to avoid a duplicate', 'error')
+      setOpening(false)
+    })
+
+    function proceedOpenRegistration() {
     supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', WEEKLY_CLASH_TYPE).then(function(countRes) {
       var existing = (countRes && countRes.count) || 0
       var override = parseInt(clashNumberInput, 10)
@@ -559,6 +581,7 @@ export default function TournamentTab() {
       toast('Failed to count past clashes', 'error')
       setOpening(false)
     })
+    }
   }
 
   function unscheduleClash() {
