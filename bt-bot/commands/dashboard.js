@@ -120,6 +120,16 @@ function buildEmbed(d) {
     });
   }
 
+  // Jira board (when connected).
+  if (d.jira && d.jira.configured && !d.jira.error) {
+    var jl = [];
+    jl.push('`' + d.jira.counts.todo + '` to do   `' + d.jira.counts.inProgress + '` in progress   `' + d.jira.counts.done + '` done');
+    (d.jira.openItems || []).slice(0, 4).forEach(function(it) {
+      jl.push('[' + it.key + '](' + it.url + ') ' + clamp(it.summary, 56) + (it.priority ? ' `' + it.priority + '`' : ''));
+    });
+    embed.addFields({ name: 'Jira (' + d.jira.projectKey + ')', value: clamp(jl.join('\n'), 1024) });
+  }
+
   embed.setFooter({ text: 'BrosephTech command center - updated ' + ago(d.generatedAt) });
   return embed;
 }

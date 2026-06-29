@@ -16,6 +16,7 @@ import {
   assigneesOf,
 } from './board.js';
 import { BT_CREW, BT_DEPARTMENTS } from '../config/crew.js';
+import { jiraOverview } from './jira.js';
 
 var DONE_COLUMNS = ['published', 'archive'];
 var MS_PER_DAY = 86400000;
@@ -166,9 +167,12 @@ export async function buildOverview() {
   var dueSoon = [];
   var blocked = [];
   var shipped = [];
+  var columnTally = {};
 
   cards.forEach(function(card) {
     var done = isDone(card);
+    var col = String((card && card.column_id) || 'unknown').toLowerCase();
+    columnTally[col] = (columnTally[col] || 0) + 1;
     if (card.blocked && !done) blocked.push(slim(card));
 
     if (isOverdue(card, now)) {
@@ -222,6 +226,7 @@ export async function buildOverview() {
   var voice = await recentVoice();
   var ideas = await ideaStats();
   var metrics = await metricsTrend();
+  var jira = await jiraOverview().catch(function() { return { configured: false }; });
 
   return {
     generatedAt: now.toISOString(),
@@ -244,9 +249,27 @@ export async function buildOverview() {
       blocked: blocked.slice(0, 12),
       shipped: shipped.slice(0, 12),
     },
+    columns: orderColumns(columnTally),
     meetings: meetings,
     voice: voice,
     ideas: ideas,
     metrics: metrics,
+    jira: jira,
   };
+}
+
+// Put board columns in a sensible left-to-right pipeline order, unknown columns
+// appended after the known ones.
+var COLUMN_ORDER = ['ideas', 'backlog', 'todo', 'in_progress', 'doing', 'review', 'published', 'archive'];
+var COLUMN_LABEL = { ideas: 'Ideas', backlog: 'Backlog', todo: 'To do', in_progress: 'In progress', doing: 'Doing', review: 'Review', published: 'Published', archive: 'Archive' };
+function orderColumns(tally) {
+  var keys = Object.keys(tally);
+  keys.sort(function(a, b) {
+    var ia = COLUMN_ORDER.indexOf(a); var ib = COLUMN_ORDER.indexOf(b);
+    if (ia === -1) ia = 99; if (ib === -1) ib = 99;
+    return ia - ib;
+  });
+  return keys.map(function(k) {
+    return { id: k, label: COLUMN_LABEL[k] || (k.charAt(0).toUpperCase() + k.slice(1)), count: tally[k], done: k === 'published' || k === 'archive' };
+  });
 }
