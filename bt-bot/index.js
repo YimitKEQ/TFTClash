@@ -9,11 +9,11 @@
 import { Client, GatewayIntentBits, Collection, Events, ActivityType } from 'discord.js';
 import { readdirSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { createRequire } from 'module';
 import path from 'path';
 import 'dotenv/config';
 
 import { generateDependencyReport } from '@discordjs/voice';
-import _sodium from 'libsodium-wrappers';
 
 import { startScheduler } from './scheduler.js';
 import { startFeed } from './lib/feed.js';
@@ -22,9 +22,17 @@ import { startDashboard } from './web/server.js';
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Initialize the voice encryption backend up front so the first /record never
-// races libsodium loading. Also log what the voice stack resolved to, which is
-// the fastest way to diagnose "the bot joined but recorded silence".
-await _sodium.ready;
+// races libsodium loading. libsodium-wrappers ships a broken ESM entry, so load
+// it via CommonJS require (the same path @discordjs/voice uses) instead of a
+// static import. Also log what the voice stack resolved to, which is the fastest
+// way to diagnose "the bot joined but recorded silence".
+var require = createRequire(import.meta.url);
+try {
+  var _sodium = require('libsodium-wrappers');
+  if (_sodium && _sodium.ready) await _sodium.ready;
+} catch (e) {
+  console.warn('[voice] libsodium init skipped: ' + ((e && e.message) || e));
+}
 console.log('[voice] dependency report:\n' + generateDependencyReport());
 
 // Guilds for slash commands/embeds, GuildVoiceStates so the bot can join a
