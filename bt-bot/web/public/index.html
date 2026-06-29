@@ -86,6 +86,7 @@
   .metric .mn{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
   .metric .ml{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:5px}
   .metric .md{font-size:11px;margin-top:4px;font-weight:700}
+  .spark{width:100%;height:30px;display:block;margin-top:8px;overflow:visible}
   .up{color:var(--green)} .down{color:var(--red)}
   .section-title{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--faint);margin:26px 4px 12px}
   .err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.4);color:#fecaca;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
@@ -159,6 +160,29 @@ function kpi(n, label, accent){
   return '<div class="kpi" style="--accent:'+accent+'"><div class="n" style="color:'+accent+'">'+n+'</div><div class="l">'+label+'</div></div>';
 }
 
+function sparkline(vals, color){
+  if(!vals || vals.length < 2) return '';
+  var w=120,h=30, min=Math.min.apply(null,vals), max=Math.max.apply(null,vals), rng=(max-min)||1;
+  var pts=vals.map(function(v,i){ var x=(i/(vals.length-1))*w; var y=h-((v-min)/rng)*(h-6)-3; return x.toFixed(1)+','+y.toFixed(1); });
+  var last=vals[vals.length-1], lx=w, ly=h-((last-min)/rng)*(h-6)-3;
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'
+    + '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+    + '<circle cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="2.5" fill="'+color+'"/></svg>';
+}
+
+var firstLoad=true;
+function animateCounts(){
+  var els=document.querySelectorAll('.kpi .n');
+  els.forEach(function(el){
+    var target=parseInt(el.textContent,10)||0;
+    if(target<=0) return;
+    var t0=performance.now(), dur=650;
+    el.textContent='0';
+    function step(now){ var p=Math.min(1,(now-t0)/dur); el.textContent=Math.round(target*(p*(2-p))); if(p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  });
+}
+
 function listItems(items, kind){
   if(!items || !items.length) return '<div class="empty">All clear</div>';
   return items.map(function(it){
@@ -222,21 +246,23 @@ function render(d){
 
   var mEl=document.getElementById('metrics');
   if(d.metrics){
-    var mt=d.metrics;
-    function met(n,label,delta){
+    var mt=d.metrics; var ser=mt.series||{};
+    function met(n,label,delta,vals,color){
       var dh = (delta==null)?'' : '<div class="md '+(delta>=0?'up':'down')+'">'+(delta>=0?'+':'')+fmtNum(delta)+'</div>';
-      return '<div class="metric"><div class="mn">'+fmtNum(n)+'</div><div class="ml">'+label+'</div>'+dh+'</div>';
+      return '<div class="metric"><div class="mn">'+fmtNum(n)+'</div><div class="ml">'+label+'</div>'+dh+sparkline(vals,color)+'</div>';
     }
-    mEl.innerHTML = met(mt.ytSubs,'YouTube subs',mt.deltas.ytSubs)+
-      met(mt.tiktokFollowers,'TikTok',mt.deltas.tiktokFollowers)+
-      met(mt.patreonSubs,'Patreon',mt.deltas.patreonSubs)+
-      met(mt.avgViews,'Avg views',mt.deltas.avgViews);
+    mEl.innerHTML = met(mt.ytSubs,'YouTube subs',mt.deltas.ytSubs,ser.ytSubs,'#FF5C5C')+
+      met(mt.tiktokFollowers,'TikTok',mt.deltas.tiktokFollowers,ser.tiktokFollowers,getC('--blue'))+
+      met(mt.patreonSubs,'Patreon',mt.deltas.patreonSubs,ser.patreonSubs,getC('--amber'))+
+      met(mt.avgViews,'Avg views',mt.deltas.avgViews,ser.avgViews,getC('--engineering'));
   } else {
-    mEl.innerHTML='<div class="empty">No metrics snapshots yet</div>';
+    mEl.innerHTML='<div class="empty">No metrics snapshots yet - log with /metrics</div>';
   }
 
   document.getElementById('sub').textContent = t.cards+' cards tracked';
   document.getElementById('updated').textContent = 'updated '+ago(d.generatedAt);
+
+  if(firstLoad){ animateCounts(); firstLoad=false; }
 }
 
 function setList(id, items, kind){

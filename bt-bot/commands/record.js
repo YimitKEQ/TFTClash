@@ -27,6 +27,7 @@ import { startRecording, stopRecording, isRecording, getSession } from '../lib/r
 import { transcribeManifest } from '../lib/transcribe.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
+import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
 import { createIssue, jiraConfigured, jiraMissingHint, checkJira } from '../lib/jira.js';
 import { BT_DEPARTMENTS } from '../config/crew.js';
 
@@ -182,6 +183,24 @@ async function stopCmd(interaction) {
   var analysis = await analyzeMeeting(tr.transcript, null);
   var tasks = (analysis.tasks || []).slice(0, 25);
 
+  // Log the recording to bt_voice_sessions so it shows in the dashboard history.
+  var aiEngine = analysis.engine === 'ai' ? (process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5') : 'rule-based';
+  var voiceSessionId = await logVoiceSession({
+    guildId: interaction.guild.id,
+    channelId: manifest.channelId,
+    channelName: manifest.channelName,
+    status: 'transcribed',
+    requestedBy: interaction.user ? interaction.user.tag : '',
+    startedAt: new Date(Date.now() - manifest.durationMs).toISOString(),
+    endedAt: new Date().toISOString(),
+    durationSeconds: Math.round(manifest.durationMs / 1000),
+    transcript: tr.transcript,
+    segments: tr.segments,
+    summary: analysis.summary || '',
+    sttEngine: 'whisper.cpp',
+    aiEngine: aiEngine,
+  });
+
   if (!tasks.length) {
     var noTaskEmbed = new EmbedBuilder()
       .setColor(0x5BA3DB)
@@ -189,7 +208,8 @@ async function stopCmd(interaction) {
       .setDescription(clamp(analysis.summary || 'No summary.', 1500))
       .addFields({ name: 'Transcript (preview)', value: clamp(tr.transcript, 1000) || '-' })
       .setFooter({ text: 'No clear action items found - BrosephTech' });
-    await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0 });
+    var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0 });
+    await updateVoiceSession(voiceSessionId, { status: 'transcribed', tasksCreated: 0, meetingId: mtg0 && mtg0.id });
     await interaction.editReply({ content: '', embeds: [noTaskEmbed] });
     return;
   }
@@ -204,6 +224,7 @@ async function stopCmd(interaction) {
     createdBy: interaction.user ? interaction.user.tag : '',
     selected: null, // null => all selected by default
     engine: analysis.engine,
+    voiceSessionId: voiceSessionId,
   });
 
   var payload = buildSuggestionMessage(token, PENDING.get(token));
@@ -284,6 +305,7 @@ export async function handleComponent(interaction) {
 
   if (action === 'discard') {
     PENDING.delete(token);
+    await updateVoiceSession(p.voiceSessionId, { status: 'discarded' });
     await interaction.update({ content: 'Discarded. No tasks created.', embeds: [], components: [] }).catch(function() {});
     return;
   }
@@ -323,14 +345,21 @@ export async function handleComponent(interaction) {
       }
     }
 
-    // 3) Log the meeting.
-    await recordMeeting({
+    // 3) Log the meeting + finalize the voice session record for the dashboard.
+    var mtg = await recordMeeting({
       title: p.meetingTitle,
       summary: p.summary,
       raw_notes: p.transcript,
       created_by: p.createdBy,
       tasks_created: chosen.length,
-    }).catch(function() {});
+    }).catch(function() { return null; });
+
+    await updateVoiceSession(p.voiceSessionId, {
+      status: 'completed',
+      tasksCreated: chosen.length,
+      cardIds: cards.map(function(c) { return c.id; }),
+      meetingId: mtg && mtg.id,
+    });
 
     PENDING.delete(token);
 

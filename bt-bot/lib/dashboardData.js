@@ -117,16 +117,19 @@ async function metricsTrend() {
   try {
     var res = await supabase
       .from('bt_metrics_snapshots')
-      .select('snapshot_date, yt_subs, tiktok_followers, patreon_subs, avg_views')
+      .select('snapshot_date, yt_subs, tiktok_followers, patreon_subs, avg_views, created_at')
       .order('snapshot_date', { ascending: false })
-      .limit(2);
+      .order('created_at', { ascending: false })
+      .limit(14);
     if (res.error || !res.data || !res.data.length) return null;
-    var latest = res.data[0];
-    var prev = res.data[1] || null;
+    var rows = res.data;            // newest first
+    var latest = rows[0];
+    var prev = rows[1] || null;
     function delta(k) {
       if (!prev || prev[k] == null || latest[k] == null) return null;
       return latest[k] - prev[k];
     }
+    var chrono = rows.slice().reverse(); // oldest -> newest for sparklines
     return {
       date: latest.snapshot_date,
       ytSubs: latest.yt_subs,
@@ -138,6 +141,12 @@ async function metricsTrend() {
         tiktokFollowers: delta('tiktok_followers'),
         patreonSubs: delta('patreon_subs'),
         avgViews: delta('avg_views'),
+      },
+      series: {
+        ytSubs: chrono.map(function(r) { return r.yt_subs || 0; }),
+        tiktokFollowers: chrono.map(function(r) { return r.tiktok_followers || 0; }),
+        patreonSubs: chrono.map(function(r) { return r.patreon_subs || 0; }),
+        avgViews: chrono.map(function(r) { return r.avg_views || 0; }),
       },
     };
   } catch (e) { return null; }

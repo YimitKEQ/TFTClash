@@ -241,6 +241,7 @@ export async function stopRecording(guildId) {
     sessionId: session.id,
     dir: session.dir,
     durationMs: durationMs,
+    channelId: session.channelId,
     channelName: session.channelName,
     speakers: speakers,
   };
