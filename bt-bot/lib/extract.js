@@ -90,7 +90,7 @@ async function llmAnalyze(notes, forcedDept) {
       additionalProperties: false,
       required: ['summary', 'tasks'],
       properties: {
-        summary: { type: 'string', description: 'A concise 2 to 4 sentence summary of the meeting.' },
+        summary: { type: 'string', description: 'A clear recap of the meeting in 3 to 6 sentences, written in plain past tense: what was discussed, the key decisions made, and any notable blockers or next steps. Do not just restate the task list.' },
         tasks: {
           type: 'array',
           items: {
@@ -109,7 +109,7 @@ async function llmAnalyze(notes, forcedDept) {
     },
   };
 
-  var system = 'You convert raw meeting notes for the BrosephTech team into a short summary and a list of concrete, actionable board tasks. Departments: content (YouTube and TikTok videos), engineering (the Barontactics app), design, marketing, ops. Only create tasks for real action items, not general discussion. Give each task a department. Set assignee only when a specific person is clearly responsible, otherwise null. Default priority to medium. Keep titles short and imperative. Do not use em dashes.';
+  var system = 'You convert BrosephTech team meeting notes into a useful recap summary and a list of concrete, actionable board tasks. The input may be a voice-call transcript with lines like "[mm:ss] Name: ..." - use the speaker names to attribute who owns what, and read across the back-and-forth rather than treating each line in isolation. Departments: content (YouTube and TikTok videos), engineering (the Barontactics app), design, marketing, ops. Only create tasks for real action items and decisions, not general chit-chat. Give each task a department. Set assignee only when a specific person clearly owns it (often the speaker who agreed to do it), otherwise null. Default priority to medium. Keep titles short and imperative. Do not use em dashes.';
 
   var body = {
     model: model,
