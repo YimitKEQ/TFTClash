@@ -94,9 +94,16 @@ It is a single Node 18+ process. Run it anywhere Node is available:
   overdue / stuck / due-soon counts).
 - `/mytasks` - an ephemeral view of your own active, overdue, stuck, and
   due-soon cards.
-- `/meeting` - capture a meeting into board cards (a summary plus action
-  items). Uses the Claude API when `ANTHROPIC_API_KEY` is set, otherwise a
-  built-in rule-based parser. Recaps land in the meetings channel.
+- `/meeting` - capture a meeting into board cards from pasted notes (a summary
+  plus action items). Uses the Claude API when `ANTHROPIC_API_KEY` is set,
+  otherwise a built-in rule-based parser. Recaps land in the meetings channel.
+- `/record start` / `/record stop` - record the voice channel you are in, then
+  turn the conversation into suggested tasks. Each speaker is captured on a
+  separate track (so a long call is never cut off after the first pause),
+  transcribed locally with whisper.cpp, summarized + extracted into tasks by
+  Claude, and posted with a pick-list. You select the real tasks and they are
+  created as board cards AND Jira issues. `/record status` shows the live state;
+  `/record jiracheck` verifies the Jira connection. See "Voice recording" below.
 - `/setup` - build the BrosephTech HQ category and its `bt-` channels.
   Idempotent. Needs Manage Channels.
 - `/card add` - create a new board card in the Ideas column. Options: title,
@@ -105,6 +112,75 @@ It is a single Node 18+ process. Run it anywhere Node is available:
 - `/blocked` - show every blocked card that still needs unblocking, with owners.
 - `/scorecard` - show a crew member's accountability scorecard (defaults to you).
 - `/digest` - post the weekly digest to the standup channel right now.
+
+## Voice recording (/record)
+
+`/record` joins your voice channel, records every speaker on a separate audio
+track, transcribes locally with whisper.cpp (audio never leaves the machine),
+extracts action items with Claude, and lets you approve which become tasks. Each
+approved task is created as a board card and pushed to Jira Cloud.
+
+### One-time setup
+
+1. Dependencies are already in `package.json` (`@discordjs/voice`, `prism-media`,
+   `opusscript`, `libsodium-wrappers`, `ffmpeg-static`). Just `npm install`.
+   ffmpeg ships with the bot via `ffmpeg-static` - nothing to install for it.
+
+2. Install whisper.cpp and a model (this is the only manual step):
+   - Get a whisper.cpp build for your OS. On Windows, download a prebuilt
+     release from https://github.com/ggerganov/whisper.cpp/releases (the zip
+     contains `whisper-cli.exe`), or build it yourself.
+   - Download a model, e.g. `ggml-base.en.bin` (good default) from
+     https://huggingface.co/ggerganov/whisper.cpp/tree/main. `small.en` /
+     `medium.en` are more accurate but slower on CPU.
+   - Point the bot at both in `.env`:
+
+     ```
+     WHISPER_CMD=C:\tools\whisper.cpp\whisper-cli.exe
+     WHISPER_MODEL=C:\tools\whisper.cpp\models\ggml-base.en.bin
+     WHISPER_LANG=en
+     ```
+
+   Quick sanity check (should print recognized text):
+   `"%WHISPER_CMD%" -m "%WHISPER_MODEL%" -f some.wav -oj`
+
+3. Jira Cloud: create an API token at
+   https://id.atlassian.com/manage-profile/security/api-tokens and fill `.env`:
+
+   ```
+   JIRA_BASE_URL=https://your-company.atlassian.net
+   JIRA_EMAIL=you@your-company.com
+   JIRA_API_TOKEN=...
+   JIRA_PROJECT_KEY=BT
+   JIRA_ISSUE_TYPE=Task
+   ```
+
+   Then run `/record jiracheck` to confirm the bot can reach the project.
+
+4. The bot needs the **Connect** permission on the voice channel. Re-run
+   `npm run deploy` so the new `/record` command is registered, then restart the
+   bot. On startup it logs a voice dependency report - if "Encryption Libraries"
+   or "Opus Libraries" show none found, recording will produce silence.
+
+### Using it
+
+- Join a voice channel, run `/record start`.
+- Talk. Pauses are fine - each speaker is re-subscribed on every utterance, so
+  the whole conversation is captured, not just the first sentence.
+- Run `/record stop` (optionally `/record stop title:Weekly sync`). The bot
+  transcribes locally (this can take a bit on CPU), then posts the summary,
+  a transcript preview, and a checklist of suggested tasks.
+- Pick the real tasks in the dropdown and hit **Create selected**. Cards land in
+  Ideas/Backlog and matching Jira issues are created with links back.
+
+### Notes / limits
+
+- Transcription is CPU-bound; a long call with a big model can take minutes.
+  Use `ggml-base.en` for speed, bump to `small/medium` for accuracy.
+- Recording requires the bot to hear audio: it joins un-deafened and muted.
+- Audio and intermediate WAV/JSON files are written to the OS temp dir and
+  deleted right after transcription. Only the text transcript is kept (in
+  `bt_meetings`).
 
 ## Live feed
 

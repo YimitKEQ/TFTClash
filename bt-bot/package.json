@@ -11,9 +11,14 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@discordjs/voice": "^0.18.0",
     "@supabase/supabase-js": "^2",
     "discord.js": "^14",
     "dotenv": "^16",
-    "node-cron": "^3"
+    "ffmpeg-static": "^5",
+    "libsodium-wrappers": "^0.7",
+    "node-cron": "^3",
+    "opusscript": "^0.0.8",
+    "prism-media": "^1.3"
   }
 }

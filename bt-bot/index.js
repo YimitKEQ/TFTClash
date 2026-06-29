@@ -12,17 +12,28 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 import 'dotenv/config';
 
+import { generateDependencyReport } from '@discordjs/voice';
+import _sodium from 'libsodium-wrappers';
+
 import { startScheduler } from './scheduler.js';
 import { startFeed } from './lib/feed.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Only the Guilds intent is needed: the bot posts embeds and replies to slash
-// commands. It never reads message content or fetches members (mentions use
-// raw user ids), so no privileged intents are required.
+// Initialize the voice encryption backend up front so the first /record never
+// races libsodium loading. Also log what the voice stack resolved to, which is
+// the fastest way to diagnose "the bot joined but recorded silence".
+await _sodium.ready;
+console.log('[voice] dependency report:\n' + generateDependencyReport());
+
+// Guilds for slash commands/embeds, GuildVoiceStates so the bot can join a
+// voice channel and receive audio for /record. Neither is a privileged intent
+// (GuildVoiceStates does not require the portal toggle); message content and
+// the member list are still never read.
 var client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates,
   ],
 });
 
@@ -68,6 +79,27 @@ client.on(Events.InteractionCreate, async function(interaction) {
             await interaction.editReply(failMsg).catch(function() {});
           } else {
             await interaction.reply(failMsg).catch(function() {});
+          }
+        }
+      }
+    }
+    return;
+  }
+
+  // Buttons / select menus from the /record approval card (customId "rec:...").
+  if (interaction.isButton() || interaction.isStringSelectMenu()) {
+    if (String(interaction.customId || '').indexOf('rec:') === 0) {
+      var recCmd = client.commands.get('record');
+      if (recCmd && recCmd.handleComponent) {
+        try {
+          await recCmd.handleComponent(interaction);
+        } catch (err) {
+          console.error('[error] record component:', err);
+          var cFail = { content: 'Something went wrong handling that action.', ephemeral: true };
+          if (interaction.deferred || interaction.replied) {
+            await interaction.followUp(cFail).catch(function() {});
+          } else {
+            await interaction.reply(cFail).catch(function() {});
           }
         }
       }
