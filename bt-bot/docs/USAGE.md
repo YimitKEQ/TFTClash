@@ -1,4 +1,4 @@
-# BrosephTech Bot — User Guide
+# BrosephTech Bot - User Guide
 
 The BrosephTech bot keeps the crew's work moving. It records voice meetings and
 turns them into tasks, holds owners accountable for the content board, and gives
@@ -34,12 +34,12 @@ tasks for you.
 selected**. Each one becomes a **board card** and (if Jira is connected) a **Jira
 issue** in `KAN`, with a link back. Hit **Discard** to throw the suggestions away.
 
-> Transcription runs **locally** with whisper.cpp on the GPU — audio never leaves
+> Transcription runs **locally** with whisper.cpp on the GPU - audio never leaves
 > the machine. The summary and task extraction use the Claude API.
 
 **Other `/record` commands:**
-- `/record status` — is a recording running, for how long, who has spoken.
-- `/record jiracheck` — verify the Jira connection.
+- `/record status` - is a recording running, for how long, who has spoken.
+- `/record jiracheck` - verify the Jira connection.
 
 ---
 
@@ -48,7 +48,7 @@ issue** in `KAN`, with a link back. Hit **Discard** to throw the suggestions awa
 Two views of the same live snapshot.
 
 ### In Discord: `/dashboard`
-Posts a command-center embed — active / overdue / stuck / due-soon / blocked /
+Posts a command-center embed - active / overdue / stuck / due-soon / blocked /
 shipped counts, department health, who's behind, blocked items, recent meetings
 and recordings, Jira status, and channel metrics. Has a **Refresh** button.
 
@@ -81,10 +81,10 @@ The token is stored in a cookie after the first visit. What's on it:
 
 Track growth so the dashboard's metrics + sparklines fill in over time.
 
-- `/metrics log yt:48200 tiktok:91300 patreon:412 avgviews:21400` — record today's
+- `/metrics log yt:48200 tiktok:91300 patreon:412 avgviews:21400` - record today's
   numbers. Any channel you leave out carries forward from the last entry, so a
   partial update never looks like a drop to zero.
-- `/metrics show` — the latest numbers with deltas vs the previous snapshot.
+- `/metrics show` - the latest numbers with deltas vs the previous snapshot.
 
 ---
 
@@ -92,14 +92,14 @@ Track growth so the dashboard's metrics + sparklines fill in over time.
 
 The bot reads and writes the shared content board (`bt_content_cards`).
 
-- `/board` — board health summary (totals + per-department counts).
-- `/card add` — create a card (title, department, assignee, priority, due date).
-- `/mytasks` — your own active / overdue / stuck / due-soon cards.
-- `/scorecard` — a crew member's accountability scorecard.
-- `/blocked` — every blocked card that still needs unblocking.
-- `/standup` — post the standup snapshot now (Manage Server only).
-- `/digest` — post the weekly digest now.
-- `/meeting` — capture a meeting from **pasted notes** (the text version of
+- `/board` - board health summary (totals + per-department counts).
+- `/card add` - create a card (title, department, assignee, priority, due date).
+- `/mytasks` - your own active / overdue / stuck / due-soon cards.
+- `/scorecard` - a crew member's accountability scorecard.
+- `/blocked` - every blocked card that still needs unblocking.
+- `/standup` - post the standup snapshot now (Manage Server only).
+- `/digest` - post the weekly digest now.
+- `/meeting` - capture a meeting from **pasted notes** (the text version of
   `/record`).
 
 It also runs on a schedule: a daily standup, a weekly digest, blocked-card
@@ -140,7 +140,7 @@ report shows opus/encryption "not found", recording would be silent.
   must be current (`@discordjs/voice` ≥ 0.19). Run `npm install` and restart.
 - **No summary / no tasks suggested.** `ANTHROPIC_API_KEY` isn't set, so it falls
   back to basic extraction. Add the key and restart.
-- **Transcript looks cut off in Discord.** That's just the preview — the full
+- **Transcript looks cut off in Discord.** That's just the preview - the full
   transcript is attached as a `.md` file on the message.
 - **Jira issues not created.** Run `/record jiracheck`. You likely need
   `JIRA_API_TOKEN` set.
