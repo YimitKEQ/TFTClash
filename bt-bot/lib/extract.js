@@ -45,35 +45,89 @@ function resolveDept(value, forcedDept) {
 var ITEM_RE = /^\s*(?:[-*•]|\[\s?\]|\d+[.)])\s+/;
 var KEYWORD_RE = /\b(todo|action item|action|ai|follow[- ]?up|next step)\b\s*[:\-]?\s*/i;
 
+// Strip a "[mm:ss] Name:" transcript prefix. Returns { speaker, text }.
+var LINE_PREFIX_RE = /^\[\d{1,2}:\d{2}(?::\d{2})?\]\s*([^:]{1,40}?):\s*(.*)$/;
+function splitLine(raw) {
+  var m = raw.match(LINE_PREFIX_RE);
+  if (m) return { speaker: m[1].trim(), text: m[2].trim() };
+  return { speaker: null, text: raw };
+}
+
+// Commitment / assignment patterns that signal a real action item in speech.
+// Each returns { phrase, who } where `who` is the speaker for first-person.
+function commitmentsFrom(text, speaker) {
+  var out = [];
+  var firstPerson = /\b(?:i'?ll|i will|i can|i'?m gonna|i am going to|i'?ll go|let me)\s+(.{4,110})/i.exec(text);
+  if (firstPerson) out.push({ phrase: firstPerson[1], who: speaker });
+  var askName = /\b([A-Z][a-z]{2,})[,]?\s+(?:can|could|would)\s+you\s+(.{4,110})/.exec(text);
+  if (askName) out.push({ phrase: askName[2], who: askName[1] });
+  var assign = /\b([A-Z][a-z]{2,})\s+(?:will|should|needs to|is going to|gonna|to)\s+(.{4,110})/.exec(text);
+  if (assign && (!askName || assign.index !== askName.index)) out.push({ phrase: assign[2], who: assign[1] });
+  var weNeed = /\b(?:we need to|we should|we have to|need to|let'?s|make sure to|action item:?|todo:?|next step:?)\s+(.{4,110})/i.exec(text);
+  if (weNeed) out.push({ phrase: weNeed[1], who: null });
+  return out;
+}
+
+// Tidy a captured phrase into a short imperative-ish title.
+function tidyTitle(phrase) {
+  var s = String(phrase || '').trim();
+  s = s.split(/[.!?]|,\s+(?:and|so|but|then)\b/)[0].trim(); // first clause
+  s = s.replace(/\s+/g, ' ').replace(/[\s,;:]+$/, '');
+  if (s) s = s.charAt(0).toUpperCase() + s.slice(1);
+  return clamp(s, 120);
+}
+
 function ruleBasedAnalyze(notes, forcedDept) {
   var lines = String(notes || '').split(/\r?\n/);
   var tasks = [];
+  var seen = {};
+  var speakerSet = {};
+  var contentLines = 0;
+
   lines.forEach(function(line) {
     var raw = line.trim();
     if (!raw) return;
-    if (!ITEM_RE.test(line) && !KEYWORD_RE.test(raw)) return;
-    var title = raw.replace(ITEM_RE, '').replace(KEYWORD_RE, '').trim();
-    if (!title || title.length < 3) return;
+    var parsed = splitLine(raw);
+    if (parsed.speaker) speakerSet[parsed.speaker] = true;
+    var text = parsed.text;
+    if (!text) return;
+    contentLines++;
 
-    var assignee = null;
-    var at = title.match(/@([A-Za-z0-9_]+)/);
-    if (at) assignee = matchCrewName(at[1]);
-    if (!assignee) {
-      var who = title.match(/^([A-Za-z]+)\s+(?:will|to|should|needs to|is going to|gonna)\b/i);
-      if (who) assignee = matchCrewName(who[1]);
+    // Bullet / explicit TODO lines (pasted notes) still work as before.
+    var fromBullet = ITEM_RE.test(line) || KEYWORD_RE.test(text);
+
+    var commits = commitmentsFrom(text, parsed.speaker);
+    if (!commits.length && fromBullet) {
+      commits = [{ phrase: text.replace(ITEM_RE, '').replace(KEYWORD_RE, ''), who: null }];
     }
 
-    var priority = /\b(urgent|asap|critical|high priority|p0|p1|blocker)\b/i.test(title) ? 'high' : 'medium';
-    tasks.push({
-      title: clamp(title, 120),
-      department: resolveDept(inferDepartment(title), forcedDept),
-      assignee: assignee,
-      priority: priority,
+    commits.forEach(function(ci) {
+      var title = tidyTitle(ci.phrase);
+      if (!title || title.length < 4) return;
+      var key = title.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = true;
+      var assignee = ci.who ? matchCrewName(ci.who) : null;
+      var priority = /\b(urgent|asap|critical|high priority|p0|p1|blocker|important)\b/i.test(text) ? 'high' : 'medium';
+      tasks.push({
+        title: title,
+        department: resolveDept(inferDepartment(text), forcedDept),
+        assignee: assignee,
+        priority: priority,
+      });
     });
   });
 
-  var summary = (String(notes || '').split(/\n\s*\n/)[0] || String(notes || '')).replace(/\s+/g, ' ').trim();
-  return { summary: clamp(summary, 600), tasks: tasks.slice(0, 25), engine: 'rules' };
+  var speakers = Object.keys(speakerSet);
+  var summary;
+  if (speakers.length) {
+    summary = 'Conversation between ' + speakers.join(', ') + ' (' + contentLines + ' lines). '
+      + (tasks.length ? tasks.length + ' likely action item(s) detected. ' : 'No clear action items detected. ')
+      + 'Set ANTHROPIC_API_KEY for a proper AI summary and cleaner task extraction.';
+  } else {
+    summary = (String(notes || '').split(/\n\s*\n/)[0] || String(notes || '')).replace(/\s+/g, ' ').trim();
+  }
+  return { summary: clamp(summary, 700), tasks: tasks.slice(0, 25), engine: 'rules' };
 }
 
 // ---- Claude API (forced tool use for clean JSON) ----------------------------

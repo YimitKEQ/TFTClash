@@ -20,6 +20,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   StringSelectMenuBuilder,
+  AttachmentBuilder,
 } from 'discord.js';
 
 import fs from 'fs';
@@ -46,6 +47,16 @@ function clamp(s, n) {
 function rememberPending(token, payload) {
   PENDING.set(token, payload);
   setTimeout(function() { PENDING.delete(token); }, PENDING_TTL_MS);
+}
+
+// Build a downloadable full-transcript file so the Discord preview never loses
+// anything. Returns an AttachmentBuilder.
+function transcriptFile(meetingTitle, summary, transcript) {
+  var body = '# ' + meetingTitle + '\n\n'
+    + (summary ? '## Summary\n' + summary + '\n\n' : '')
+    + '## Full transcript\n' + (transcript || '(empty)') + '\n';
+  var safe = String(meetingTitle || 'meeting').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'meeting';
+  return new AttachmentBuilder(Buffer.from(body, 'utf8'), { name: safe + '-transcript.md' });
 }
 
 export var data = new SlashCommandBuilder()
@@ -201,16 +212,21 @@ async function stopCmd(interaction) {
     aiEngine: aiEngine,
   });
 
+  var file = transcriptFile(meetingTitle, analysis.summary, tr.transcript);
+  var noAiNote = analysis.engine !== 'ai'
+    ? '\n\n*No AI key set - using basic extraction. Set `ANTHROPIC_API_KEY` in the bot .env for proper summaries and cleaner tasks.*'
+    : '';
+
   if (!tasks.length) {
     var noTaskEmbed = new EmbedBuilder()
       .setColor(0x5BA3DB)
       .setTitle('Meeting captured: ' + meetingTitle)
-      .setDescription(clamp(analysis.summary || 'No summary.', 1500))
+      .setDescription(clamp((analysis.summary || 'No summary.') + noAiNote, 2000))
       .addFields({ name: 'Transcript (preview)', value: clamp(tr.transcript, 1000) || '-' })
-      .setFooter({ text: 'No clear action items found - BrosephTech' });
+      .setFooter({ text: 'No clear action items found - full transcript attached' });
     var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0 });
     await updateVoiceSession(voiceSessionId, { status: 'transcribed', tasksCreated: 0, meetingId: mtg0 && mtg0.id });
-    await interaction.editReply({ content: '', embeds: [noTaskEmbed] });
+    await interaction.editReply({ content: '', embeds: [noTaskEmbed], files: [file] });
     return;
   }
 
@@ -228,7 +244,7 @@ async function stopCmd(interaction) {
   });
 
   var payload = buildSuggestionMessage(token, PENDING.get(token));
-  await interaction.editReply(Object.assign({ content: '' }, payload));
+  await interaction.editReply(Object.assign({ content: '' }, payload, { files: [file] }));
 }
 
 // Build the embed + select + buttons for a pending suggestion set.
@@ -241,14 +257,17 @@ function buildSuggestionMessage(token, p) {
     return (on ? '`x` ' : '`  ` ') + clamp(t.title, 90) + '  (' + dept + ', ' + (t.priority || 'medium') + who + ')';
   });
 
+  var aiNote = p.engine !== 'ai'
+    ? '\n\n*Basic extraction (no AI key). Full transcript attached below.*'
+    : '';
   var embed = new EmbedBuilder()
     .setColor(0x5BA3DB)
     .setTitle('Meeting captured: ' + clamp(p.meetingTitle, 200))
-    .setDescription(clamp(p.summary || 'No summary.', 1200));
+    .setDescription(clamp((p.summary || 'No summary.') + aiNote, 1400));
   if (p.byline) embed.addFields({ name: 'Spoke', value: clamp(p.byline, 200) });
-  embed.addFields({ name: 'Transcript (preview)', value: clamp(p.transcript, 900) || '-' });
+  embed.addFields({ name: 'Transcript (preview - full file attached)', value: clamp(p.transcript, 900) || '-' });
   embed.addFields({ name: 'Suggested tasks (' + p.tasks.length + ')', value: clamp(taskLines.join('\n'), 1024) });
-  embed.setFooter({ text: (p.engine === 'ai' ? 'AI suggestions' : 'Auto suggestions') + ' - pick the real ones, then Create' });
+  embed.setFooter({ text: (p.engine === 'ai' ? 'AI suggestions' : 'Basic suggestions (set ANTHROPIC_API_KEY)') + ' - pick the real ones, then Create' });
 
   var options = p.tasks.map(function(t, i) {
     var dept = DEPT_LABEL[t.department] || t.department || 'Content';
