@@ -54,11 +54,18 @@ export function startDashboard() {
 
   app.get('/health', function(req, res) { res.json({ ok: true }); });
 
+  // Public usage docs (no token - documentation + demo screenshots only, no
+  // real board data). Served at /docs.
+  app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
+
   // Page. If ?k= is correct, set the cookie and redirect to a clean URL.
   app.get('/', function(req, res) {
     if (req.query && req.query.k && String(req.query.k) === token) {
       res.setHeader('Set-Cookie', 'bt_dash=' + encodeURIComponent(token) + '; HttpOnly; SameSite=Lax; Max-Age=2592000; Path=/');
-      res.redirect('/');
+      // Preserve any other query params (e.g. ?demo=1) across the token redirect.
+      var rest = Object.keys(req.query).filter(function(k) { return k !== 'k'; })
+        .map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(req.query[k]); }).join('&');
+      res.redirect(rest ? '/?' + rest : '/');
       return;
     }
     if (!authed(req)) {

@@ -352,7 +352,57 @@ function render(d){
 
 function tick(){document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8);}
 setInterval(tick,1000);tick();
+
+// Demo dataset for docs/screenshots: ?demo=1 renders representative data without
+// touching the real board. Timestamps are relative to now so "ago" reads right.
+function demoData(){
+  var now=Date.now(),iso=function(minAgo){return new Date(now-minAgo*60000).toISOString();};
+  var dep=function(id,label,color,a,o,s,ds){return {id:id,label:label,color:color,icon:'x',active:a,overdue:o,stuck:s,dueSoon:ds,total:a+5};};
+  var card=function(title,d,p,who,extra){return Object.assign({title:title,department:d,priority:p,assignees:who?[who]:[],blocked:false},extra||{});};
+  var ji=function(key,sum,cat,st,pr,who){return {key:key,summary:sum,category:cat,status:st,priority:pr,assignee:who,type:'Task',url:'#'};};
+  return {
+    generatedAt:iso(0),
+    totals:{active:14,overdue:3,stuck:2,dueSoon:4,blocked:1,shippedThisWeek:5,cards:31,ideasOpen:7},
+    departments:[dep('content','Content','#5BA3DB',5,1,0,2),dep('engineering','Engineering','#818CF8',4,1,1,1),dep('design','Design','#F472B6',2,0,1,1),dep('marketing','Marketing','#E8A020',2,1,0,0),dep('ops','Ops','#34D399',1,0,0,0)],
+    members:[
+      {name:'Levitate',role:'Founder',active:4,overdue:1,stuck:0,dueSoon:1},
+      {name:'Fridley',role:'Developer',active:3,overdue:1,stuck:1,dueSoon:0},
+      {name:'Axel',role:'Graphics & Thumbnails',active:3,overdue:0,stuck:0,dueSoon:2},
+      {name:'Tactic',role:'Design & Product',active:2,overdue:0,stuck:1,dueSoon:0},
+      {name:'Cathy',role:'Scriptwriter',active:1,overdue:1,stuck:0,dueSoon:1},
+      {name:'Bacrif',role:'Video Editor',active:1,overdue:0,stuck:0,dueSoon:0}
+    ],
+    columns:[{id:'ideas',label:'Ideas',count:7,done:false},{id:'backlog',label:'Backlog',count:6,done:false},{id:'in_progress',label:'In progress',count:5,done:false},{id:'review',label:'Review',count:3,done:false},{id:'published',label:'Published',count:10,done:true}],
+    lists:{
+      overdue:[card('Fix duplicate registration bug','engineering','high','Fridley',{daysOverdue:3}),card('Set 18 launch thumbnail','design','high','Axel',{daysOverdue:2}),card('Patreon promo copy','marketing','medium','Cathy',{daysOverdue:1})],
+      dueSoon:[card('Record Set 18 overview VOD','content','high','Levitate',{daysUntil:1}),card('Edit weekly recap short','content','medium','Bacrif',{daysUntil:2}),card('Discord launch announcement','marketing','medium','Tactic',{daysUntil:0}),card('Coaching lottery draw','ops','low',null,{daysUntil:2})],
+      stuck:[card('Rework channel branding','design','medium','Tactic',{staleDays:8}),card('Refactor lobby builder','engineering','medium','Fridley',{staleDays:6})],
+      blocked:[card('Sponsor deal paperwork','ops','high','Levitate')],
+      shipped:[card('Set 17 finale recap','content','medium','Bacrif',{shippedAt:iso(180)}),card('New intro animation','design','medium','Axel',{shippedAt:iso(600)}),card('Comp tier list video','content','high','Cathy',{shippedAt:iso(1400)}),card('Patreon tier revamp','marketing','medium','Tactic',{shippedAt:iso(2600)}),card('Bug bash sweep','engineering','low','Fridley',{shippedAt:iso(4000)})]
+    },
+    meetings:[
+      {title:'Weekly sync',summary:'Reviewed Clash 3 fixes and the Set 18 launch plan. Fridley owns the registration bug, Axel the thumbnail, Tactic the Patreon promo.',createdBy:'Levitate',tasksCreated:5,createdAt:iso(120)},
+      {title:'Content planning',summary:'Mapped the Set 18 video slate and shorts cadence for launch week.',createdBy:'Cathy',tasksCreated:3,createdAt:iso(1500)},
+      {title:'Growth review',summary:'Looked at last month YouTube + TikTok growth and the Patreon funnel.',createdBy:'Maestosoya',tasksCreated:2,createdAt:iso(4300)}
+    ],
+    voice:[
+      {channelName:'Dev',status:'completed',durationSeconds:1840,tasksCreated:5,summary:'Clash 3 + Set 18 launch sync.',createdAt:iso(120)},
+      {channelName:'General',status:'completed',durationSeconds:920,tasksCreated:3,summary:'Content slate planning.',createdAt:iso(1500)}
+    ],
+    metrics:{ytSubs:48200,tiktokFollowers:91300,patreonSubs:412,avgViews:21400,deltas:{ytSubs:640,tiktokFollowers:2100,patreonSubs:18,avgViews:-300},series:{ytSubs:[44100,45000,45800,46500,47200,47700,48200],tiktokFollowers:[80100,82400,84900,86700,88200,89800,91300],patreonSubs:[360,372,381,390,398,401,412],avgViews:[18900,19600,20800,22100,21700,21100,21400]}},
+    jira:{configured:true,projectKey:'KAN',browseUrl:'#',total:31,open:12,counts:{todo:8,inProgress:4,done:19},openItems:[
+      ji('KAN-31','Fix duplicate registration bug in lobby builder','new','To Do','High','Fridley'),
+      ji('KAN-30','Create Set 18 launch thumbnail','indeterminate','In Progress','High','Axel'),
+      ji('KAN-29','Draft Patreon promo copy + Discord announcement','new','To Do','High','Tactic'),
+      ji('KAN-27','Patreon promo re-push for Set 18 wave','indeterminate','In Progress','Medium','Cathy'),
+      ji('KAN-24','Record Set 18 overview VOD','new','To Do','Medium','Levitate'),
+      ji('KAN-22','Rework channel branding','new','To Do','Low','Tactic')
+    ]}
+  };
+}
+
 async function load(){
+  if(new URLSearchParams(location.search).get('demo')==='1'){ render(demoData()); return; }
   try{var r=await fetch('/api/overview',{credentials:'same-origin'});if(r.status===401){location.href='/';return;}if(!r.ok)throw new Error('HTTP '+r.status);render(await r.json());}
   catch(e){var el=document.getElementById('err');el.style.display='block';el.textContent='Could not load data: '+(e.message||e);}
 }

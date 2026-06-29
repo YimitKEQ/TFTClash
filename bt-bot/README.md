@@ -1,5 +1,8 @@
 # BrosephTech Bot
 
+> **User guide:** [`docs/USAGE.md`](docs/USAGE.md) — how the crew uses the bot
+> (with screenshots). The bot also serves a polished version at `/docs`.
+
 An accountability and live-feed Discord bot for the BrosephTech crew. It reads
 and writes the shared content board (`bt_content_cards`) and keeps the crew
 honest: it broadcasts every new card, ship, and block as it happens, posts a

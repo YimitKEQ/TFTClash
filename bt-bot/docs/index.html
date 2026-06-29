@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BrosephTech Bot — Guide</title>
+<style>
+  :root{--bg:#060912;--panel:#0e1422;--panel2:#121a2b;--line:#1e2840;--text:#eaf0f8;--muted:#8a97ad;--faint:#5a6884;--blue:#5BA3DB;--violet:#818CF8;--green:#34D399;--amber:#E8A020;--pink:#F472B6;--red:#F87171}
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(1100px 560px at 85% -12%,rgba(91,163,219,.12),transparent 58%),radial-gradient(900px 520px at -8% 8%,rgba(129,140,248,.10),transparent 55%),var(--bg);line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 90px}
+  a{color:var(--blue);text-decoration:none}
+  code{background:#0a0f1b;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;color:#cdd9ec}
+  pre{background:#0a0f1b;border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow:auto;font-size:13px;color:#cdd9ec}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:1.6px;color:var(--faint);margin:46px 0 16px;font-weight:700;display:flex;align-items:center;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  h3{margin:22px 0 8px;font-size:16px}
+  p{color:#c7d2e3}
+  .hero{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+  .logo{width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--violet) 60%,var(--pink));display:flex;align-items:center;justify-content:center;font-weight:800;color:#06101d;font-size:22px;box-shadow:0 12px 34px rgba(91,163,219,.4),inset 0 1px 0 rgba(255,255,255,.3)}
+  .hero h1{margin:0;font-size:30px;letter-spacing:-.5px}
+  .hero .tag{color:var(--muted);font-size:14px;margin-top:3px}
+  .lead{font-size:16px;color:#c7d2e3;max-width:760px}
+  .shot{width:100%;border:1px solid var(--line);border-radius:16px;margin:14px 0;box-shadow:0 18px 50px rgba(0,0,0,.4);display:block}
+  .flow{width:100%;border-radius:16px;margin:14px 0;display:block}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card .cmd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;font-size:14px;color:#fff}
+  .card .d{color:var(--muted);font-size:13px;margin-top:5px}
+  .chip{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 9px;border-radius:999px;color:#06101d}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  .steps li{position:relative;padding:12px 0 12px 46px;border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:0}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:30px;height:30px;border-radius:9px;background:rgba(91,163,219,.14);color:var(--blue);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+  th{text-align:left;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.6px;padding:8px;border-bottom:1px solid var(--line)}
+  td{padding:9px 8px;border-bottom:1px solid rgba(30,40,64,.6);color:#c7d2e3}
+  td:first-child{font-weight:600;color:var(--text)}
+  .note{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:12px 16px;font-size:14px;color:#bdf0d8;margin:14px 0}
+  .foot{margin-top:50px;color:var(--faint);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">BT</div>
+    <div><h1>BrosephTech Bot</h1><div class="tag">Voice meetings → tasks · accountability board · live command center</div></div>
+  </div>
+  <p class="lead">Talk in a voice channel and the bot writes your tasks. It records the call, transcribes it locally, summarizes it with AI, and turns the action items into board cards and Jira issues — then shows the whole operation on a live dashboard.</p>
+
+  <a href="/?k=YOUR_TOKEN"><img class="shot" src="images/dashboard-full.png" alt="dashboard"></a>
+
+  <h2>Record a meeting → tasks</h2>
+  <p>The headline feature. <code>/record start</code> in a voice channel, talk, then <code>/record stop</code>.</p>
+  <img class="flow" src="images/record-flow.svg" alt="record flow">
+  <ol class="steps">
+    <li><b>Join a voice channel</b> and run <code>/record start</code>. The bot captures each person on their own track, so long calls never cut off after a pause.</li>
+    <li><b>Talk normally.</b> <code>/record status</code> shows who's been heard.</li>
+    <li><b>Run <code>/record stop</code></b> (optionally <code>title:Weekly sync</code>). It transcribes locally on the GPU, then summarizes with Claude.</li>
+    <li><b>Pick the real tasks</b> from the checklist and hit <b>Create selected</b>. Each becomes a board card + a Jira issue, with the full transcript attached as a file.</li>
+  </ol>
+  <div class="note">Transcription runs locally with whisper.cpp — your audio never leaves the machine. Summaries + task extraction use the Claude API.</div>
+
+  <h2>Slash commands</h2>
+  <div class="grid g2">
+    <div class="card"><div class="cmd">/record start · stop · status</div><div class="d">Record the voice channel and turn it into suggested tasks. <code>jiracheck</code> verifies Jira.</div></div>
+    <div class="card"><div class="cmd">/dashboard</div><div class="d">Live command-center embed with a Refresh button (mirrors the web dashboard).</div></div>
+    <div class="card"><div class="cmd">/metrics log · show</div><div class="d">Log YouTube / TikTok / Patreon / avg-view numbers. Feeds the dashboard trends.</div></div>
+    <div class="card"><div class="cmd">/meeting</div><div class="d">Capture a meeting from pasted notes (the text version of <code>/record</code>).</div></div>
+    <div class="card"><div class="cmd">/board · /mytasks · /scorecard</div><div class="d">Board health, your own cards, and a crew member's accountability scorecard.</div></div>
+    <div class="card"><div class="cmd">/card add · /blocked</div><div class="d">Create a card; list everything blocked that still needs unblocking.</div></div>
+    <div class="card"><div class="cmd">/standup · /digest</div><div class="d">Post the standup snapshot or weekly digest right now.</div></div>
+    <div class="card"><div class="cmd">/setup</div><div class="d">Build the HQ category and its channels. Idempotent.</div></div>
+  </div>
+
+  <h2>The dashboard</h2>
+  <p>Open it at <code>http://&lt;host&gt;:&lt;port&gt;/?k=YOUR_DASHBOARD_TOKEN</code> (the token is saved to a cookie after the first visit). It auto-refreshes every 20 seconds. Add <code>&amp;demo=1</code> to preview with sample data.</p>
+  <div class="grid g2">
+    <img class="shot" src="images/workload.png" alt="workload">
+    <img class="shot" src="images/jira-panel.png" alt="jira panel">
+  </div>
+  <p>KPIs, a department donut, the board pipeline, per-crew load bars, the work that needs attention, a live Jira panel, recent meetings + recordings, and channel-growth sparklines — all in one place.</p>
+
+  <h2>Setup</h2>
+  <p>Config lives in <code>bt-bot/.env</code>. Restart the bot to apply changes.</p>
+  <table>
+    <tr><th>What</th><th>Keys</th><th>Needed for</th></tr>
+    <tr><td>AI summaries + tasks</td><td><code>ANTHROPIC_API_KEY</code></td><td>good /record + /meeting output</td></tr>
+    <tr><td>Local transcription</td><td><code>WHISPER_CMD</code>, <code>WHISPER_MODEL</code></td><td>/record audio → text</td></tr>
+    <tr><td>Jira push</td><td><code>JIRA_BASE_URL/EMAIL/API_TOKEN/PROJECT_KEY</code></td><td>tasks → Jira</td></tr>
+    <tr><td>Web dashboard</td><td><code>DASHBOARD_TOKEN</code></td><td>the browser dashboard</td></tr>
+  </table>
+  <pre>npm run deploy   # register slash commands (once, and after adding commands)
+npm start        # run the bot</pre>
+
+  <div class="foot">BrosephTech HQ · full reference in <code>docs/USAGE.md</code></div>
+</div>
+</body>
+</html>
