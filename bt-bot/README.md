@@ -109,6 +109,9 @@ It is a single Node 18+ process. Run it anywhere Node is available:
 - `/card add` - create a new board card in the Ideas column. Options: title,
   department, assignee, priority, due date. The new card also fires through the
   live feed.
+- `/dashboard` - post a live command-center snapshot (KPIs, department health,
+  who is behind, blocked, recent meetings/recordings) with a Refresh button. See
+  "Dashboard" below for the companion browser view.
 - `/blocked` - show every blocked card that still needs unblocking, with owners.
 - `/scorecard` - show a crew member's accountability scorecard (defaults to you).
 - `/digest` - post the weekly digest to the standup channel right now.
@@ -181,6 +184,34 @@ approved task is created as a board card and pushed to Jira Cloud.
 - Audio and intermediate WAV/JSON files are written to the OS temp dir and
   deleted right after transcription. Only the text transcript is kept (in
   `bt_meetings`).
+
+## Dashboard
+
+Two views of the same board snapshot (shared `lib/dashboardData.js`):
+
+- **Discord:** `/dashboard` posts a live command-center embed - KPIs (active /
+  overdue / stuck / due soon / blocked / shipped this week / open ideas),
+  department health, who needs a nudge, work that needs attention, due-soon,
+  recent meetings + recordings, and channel metrics. It has a **Refresh** button
+  and, when a public URL is configured, an **Open web dashboard** link.
+- **Browser:** a dark, auto-refreshing (20s) web dashboard the bot serves
+  itself. It starts only when `DASHBOARD_TOKEN` is set.
+
+### Web dashboard setup
+
+```
+DASHBOARD_TOKEN=<long random string>   # required to enable it
+DASHBOARD_PORT=8787                     # optional
+DASHBOARD_HOST=127.0.0.1               # 0.0.0.0 to expose for a tunnel
+DASHBOARD_PUBLIC_URL=                  # https URL if you tunnel it (for the Discord link button)
+```
+
+Open `http://127.0.0.1:8787/?k=YOUR_TOKEN`. The token is stored in a cookie, so
+later visits to `/` just work. It is read-only and uses the bot's Supabase
+service role, so never expose the raw port without the token. To share with the
+crew, set `DASHBOARD_HOST=0.0.0.0`, run a tunnel (e.g.
+`cloudflared tunnel --url http://localhost:8787`), and put the public https URL
+in `DASHBOARD_PUBLIC_URL`.
 
 ## Live feed
 

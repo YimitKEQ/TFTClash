@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2",
     "discord.js": "^14",
     "dotenv": "^16",
+    "express": "^4",
     "ffmpeg-static": "^5",
     "libsodium-wrappers": "^0.7",
     "node-cron": "^3",

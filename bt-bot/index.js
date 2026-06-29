@@ -17,6 +17,7 @@ import _sodium from 'libsodium-wrappers';
 
 import { startScheduler } from './scheduler.js';
 import { startFeed } from './lib/feed.js';
+import { startDashboard } from './web/server.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +62,9 @@ client.once(Events.ClientReady, function(c) {
   startFeed(client).catch(function(e) {
     console.error('[feed] startFeed failed: ' + ((e && e.message) || e));
   });
+  try { startDashboard(); } catch (e) {
+    console.error('[dashboard] start failed: ' + ((e && e.message) || e));
+  }
 });
 
 // ---- Interaction handler -----------------------------------------------------
@@ -86,15 +90,17 @@ client.on(Events.InteractionCreate, async function(interaction) {
     return;
   }
 
-  // Buttons / select menus from the /record approval card (customId "rec:...").
+  // Buttons / select menus routed to their owning command by customId prefix.
   if (interaction.isButton() || interaction.isStringSelectMenu()) {
-    if (String(interaction.customId || '').indexOf('rec:') === 0) {
-      var recCmd = client.commands.get('record');
-      if (recCmd && recCmd.handleComponent) {
+    var cid = String(interaction.customId || '');
+    var ownerName = cid.indexOf('rec:') === 0 ? 'record' : (cid.indexOf('dash:') === 0 ? 'dashboard' : null);
+    if (ownerName) {
+      var ownerCmd = client.commands.get(ownerName);
+      if (ownerCmd && ownerCmd.handleComponent) {
         try {
-          await recCmd.handleComponent(interaction);
+          await ownerCmd.handleComponent(interaction);
         } catch (err) {
-          console.error('[error] record component:', err);
+          console.error('[error] ' + ownerName + ' component:', err);
           var cFail = { content: 'Something went wrong handling that action.', ephemeral: true };
           if (interaction.deferred || interaction.replied) {
             await interaction.followUp(cFail).catch(function() {});
