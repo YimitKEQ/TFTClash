@@ -1,148 +1,129 @@
-# BrosephTech Bot - User Guide
+# BrosephTech Bot - Team Guide
 
-The BrosephTech bot keeps the crew's work moving. It records voice meetings and
-turns them into tasks, holds owners accountable for the content board, and gives
-you a live command center for everything in Discord and the browser.
+This bot lives in our Discord. It records voice meetings, writes a clean recap,
+turns the action items into tasks (board + Jira), and shows everything on a live
+dashboard. You mostly use two things: **`/record`** in a voice channel, and the
+**dashboard** in your browser.
 
-There's a prettier version of this guide at `docs/index.html` (open it in a
-browser, or the bot serves it at `http://<host>:<port>/docs`).
+> A prettier version of this guide is served by the bot at
+> `http://<host>:<port>/docs` (open the link Lodie shares). There is also a
+> one-page printable PDF in this folder.
 
-![BrosephTech HQ dashboard](images/dashboard-full.png)
+![The BrosephTech dashboard](images/dashboard-full.png)
 
 ---
 
-## 1. Record a meeting → tasks (`/record`)
+## 1. Record a meeting
 
-This is the headline feature. Talk in a voice channel, and the bot writes the
-tasks for you.
+The headline feature. Hop in a voice channel, run two commands, done.
 
-![record flow](images/record-flow.svg)
+![How /record works](images/record-flow.svg)
 
-**Steps:**
-1. Join a voice channel.
-2. Run **`/record start`**. The bot joins and starts capturing. Each person is
+1. **Join a voice channel** and type **`/record start`**. Everyone who talks is
    recorded on their own track, so a long call is never cut off after a pause.
-3. Talk normally. Run **`/record status`** any time to see who's been heard.
-4. Run **`/record stop`** (optionally `/record stop title:Weekly sync`).
+2. **Have your meeting.** Talk normally. `/record status` shows who it has heard.
+3. **Type `/record stop`** (optionally `/record stop title:Weekly sync`). It
+   transcribes locally on the GPU (audio never leaves the machine), then writes
+   the recap with AI. A long meeting takes a couple of minutes.
+4. **Pick the real tasks** from the checklist and hit **Create selected**. They
+   become board cards and Jira issues, and the full recap posts to `#bt-meetings`.
 
-**What you get back:**
-- A short **AI summary** of the meeting (what was discussed, decisions, owners).
-- A **checklist of suggested tasks**, each with a department, priority, and owner.
-- The **full transcript attached as a file** (the embed only previews it).
-
-**Then:** tick the tasks that are real in the dropdown and hit **Create
-selected**. Each one becomes a **board card** and (if Jira is connected) a **Jira
-issue** in `KAN`, with a link back. Hit **Discard** to throw the suggestions away.
-
-> Transcription runs **locally** with whisper.cpp on the GPU - audio never leaves
-> the machine. The summary and task extraction use the Claude API.
-
-**Other `/record` commands:**
-- `/record status` - is a recording running, for how long, who has spoken.
-- `/record jiracheck` - verify the Jira connection.
+> Transcription is local; only the text recap and transcript are saved. The
+> summary uses Claude.
 
 ---
 
-## 2. The dashboard
+## 2. What you get back
 
-Two views of the same live snapshot.
+A structured recap you can skim, in two places: a card in `#bt-meetings` (the
+permanent record) and the top of the dashboard.
 
-### In Discord: `/dashboard`
-Posts a command-center embed - active / overdue / stuck / due-soon / blocked /
-shipped counts, department health, who's behind, blocked items, recent meetings
-and recordings, and Jira status. Has a **Refresh** button.
+![A meeting recap](images/recap.png)
 
-### In the browser
-A dark, auto-refreshing (every 20s) web dashboard the bot serves itself. Open:
-```
-http://<host>:<port>/?k=YOUR_DASHBOARD_TOKEN
-```
-The token is stored in a cookie after the first visit. What's on it:
+- **TL;DR** - the one line that says what the meeting settled.
+- **Decisions** - the firm calls the team committed to.
+- **Tasks created** - the action items, each with department, owner, priority.
+- **Blockers** - what is stuck or waiting, in red.
+- **Full transcript** - attached to the `#bt-meetings` post as a file.
 
-| Section | Shows |
+---
+
+## 3. The dashboard
+
+A live, read-only view of everything. It auto-refreshes every 20 seconds. Open
+the link Lodie shares (it looks like
+`https://<something>.trycloudflare.com/?k=YOUR_TOKEN`); after the first visit it
+remembers you. Works on your phone too.
+
+| Section | What it shows |
 |---|---|
-| KPI row | active, overdue, stuck, due soon, blocked, shipped this week, open ideas |
-| Do next | one ranked queue of the most urgent work (overdue, blocked, due today/soon) |
-| Active load by department | donut split of active work per department |
-| Board pipeline | card counts across Ideas to Published |
-| Crew | each member's active / overdue / stuck / due-soon load |
-| Needs attention | overdue, due-soon, stuck, and blocked cards |
-| Jira board | a live kanban (To Do / In Progress / Done) of your Jira issues |
-| Momentum | recent meetings, recordings, and recently shipped |
+| **Do next** | one ranked list of what needs action now (overdue, blocked, due today). Start here. |
+| **Latest meeting** | the most recent recap: TL;DR, decisions, tasks, blockers, who was in the call. |
+| **Jira board** | a live kanban of the KAN project (To Do / In Progress / Done), click a card to open it in Jira. |
+| **Meeting history** | expand any past recap. |
+| KPIs | active / overdue / stuck / due soon / blocked / shipped / open ideas |
+| Workload | active load per department (donut) |
+| Board pipeline | card counts from Ideas to Published |
+| Crew | each person's load |
+| Needs attention | overdue / due-soon / stuck / blocked cards |
 
-![workload](images/workload.png)
-![jira panel](images/jira-panel.png)
-
-> Tip: add `&demo=1` to the URL to preview the dashboard with sample data.
+> The dashboard is for **seeing**. To **do** things, use the Discord commands.
 
 ---
 
-## 3. Channel metrics (`/metrics`)
+## 4. Commands
 
-Log channel growth over time (kept in `bt_metrics_snapshots`).
+Type these in any channel.
 
-- `/metrics log yt:48200 tiktok:91300 patreon:412 avgviews:21400` - record today's
-  numbers. Any channel you leave out carries forward from the last entry, so a
-  partial update never looks like a drop to zero.
-- `/metrics show` - the latest numbers with deltas vs the previous snapshot.
-
----
-
-## 4. The board & accountability
-
-The bot reads and writes the shared content board (`bt_content_cards`).
-
-- `/board` - board health summary (totals + per-department counts).
-- `/card add` - create a card (title, department, assignee, priority, due date).
-- `/mytasks` - your own active / overdue / stuck / due-soon cards.
-- `/scorecard` - a crew member's accountability scorecard.
-- `/blocked` - every blocked card that still needs unblocking.
-- `/standup` - post the standup snapshot now (Manage Server only).
-- `/digest` - post the weekly digest now.
-- `/meeting` - capture a meeting from **pasted notes** (the text version of
-  `/record`).
-
-It also runs on a schedule: a daily standup, a weekly digest, blocked-card
-sweeps, and nudges to owners of overdue / stuck / due-soon work. New cards,
-ships, and blocks are announced live in the HQ channels.
+- `/record start | stop | status | jiracheck` - record a meeting into a recap +
+  tasks; `jiracheck` tests the Jira link.
+- `/dashboard` - post a live snapshot to the channel, with a Refresh button.
+- `/meeting` - same as a recording but from pasted notes (async, or a meeting
+  the bot missed).
+- `/card add` - create a board card directly.
+- `/mytasks` / `/scorecard` - your own cards, or a crew member's accountability.
+- `/board` / `/blocked` - board health, and everything still blocked.
+- `/metrics log | show` - log YouTube / TikTok / Patreon numbers.
+- `/standup` / `/digest` - post the standup or weekly digest now.
 
 ---
 
-## 5. Setup (one-time)
+## 5. Where your stuff lands
 
-All config lives in `bt-bot/.env`. The bot must be restarted to pick up changes.
-
-| What | Key(s) | Needed for |
-|---|---|---|
-| Discord | `BT_DISCORD_TOKEN`, `BT_CLIENT_ID`, `BT_GUILD_ID` | the bot to run |
-| Board (Supabase) | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | the board |
-| AI summaries/tasks | `ANTHROPIC_API_KEY` | good `/record` + `/meeting` output |
-| Local transcription | `WHISPER_CMD`, `WHISPER_MODEL` | `/record` audio → text |
-| Jira push | `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY` | tasks → Jira |
-| Web dashboard | `DASHBOARD_TOKEN` | the browser dashboard |
-
-Register the slash commands once (and after adding commands):
-```
-npm run deploy
-```
-Start the bot:
-```
-npm start
-```
-On boot it prints a voice dependency report and the dashboard URL. If the voice
-report shows opus/encryption "not found", recording would be silent.
+| Thing | Where it goes |
+|---|---|
+| Meeting recap | `#bt-meetings` (card + transcript file) and the dashboard's "Latest meeting". |
+| Tasks you approve | the content board (Ideas) and Jira (KAN), with links back. |
+| New cards / ships / blocks | announced live in the HQ channels. |
+| Standup & digest | the standup channel, on a schedule and on demand. |
 
 ---
 
-## 6. Troubleshooting
+## 6. FAQ
 
-- **`/record start` says "Could not connect … timed out".** The voice library
-  must be current (`@discordjs/voice` ≥ 0.19). Run `npm install` and restart.
-- **No summary / no tasks suggested.** `ANTHROPIC_API_KEY` isn't set, so it falls
-  back to basic extraction. Add the key and restart.
-- **Transcript looks cut off in Discord.** That's just the preview - the full
-  transcript is attached as a `.md` file on the message.
-- **Jira issues not created.** Run `/record jiracheck`. You likely need
-  `JIRA_API_TOKEN` set.
-- **Dashboard shows a login box.** Open it with `?k=YOUR_DASHBOARD_TOKEN`.
-- **"records silence".** Check the boot dependency report for opus + encryption.
+**The bot says "Transcribing..." for a while. Stuck?** No - a long meeting takes
+a couple of minutes to transcribe, then a few seconds to summarize. Over 5
+minutes, ping Lodie.
+
+**No tasks from my meeting?** If there were no clear action items it still posts
+the recap with no tasks. If summaries look basic, the AI key may be missing.
+
+**Recap looks cut off in Discord?** The embed shows highlights; the full
+transcript is attached to the `#bt-meetings` post.
+
+**Dashboard asks for a token?** Open the full link Lodie shared (ends in `?k=...`).
+
+**Change or complete a task from the dashboard?** Not yet - it is read-only. Use
+Discord commands or Jira for changes.
+
+**Does it always listen?** No. Only between `/record start` and `/record stop`,
+and the audio is processed locally and deleted right after.
+
+---
+
+## For Lodie (setup)
+
+Config is in `bt-bot/.env`; restart to apply. Keys: `ANTHROPIC_API_KEY` (recaps),
+`WHISPER_CMD`/`WHISPER_MODEL` (local transcription), `JIRA_*` (push to KAN),
+`DASHBOARD_TOKEN` (web dashboard). Share the dashboard with `npm run tunnel`.
+Full setup in [`../README.md`](../README.md).

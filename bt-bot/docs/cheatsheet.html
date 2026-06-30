@@ -46,17 +46,17 @@
       <div class="step"><b>/record start</b><span>join VC</span></div><span class="arr">›</span>
       <div class="step"><b>Talk</b><span>per-speaker</span></div><span class="arr">›</span>
       <div class="step"><b>Transcribe</b><span>local whisper</span></div><span class="arr">›</span>
-      <div class="step"><b>Summarize</b><span>Claude AI</span></div><span class="arr">›</span>
+      <div class="step"><b>Recap + tasks</b><span>Claude AI</span></div><span class="arr">›</span>
       <div class="step"><b>Approve</b><span>pick tasks</span></div><span class="arr">›</span>
-      <div class="step"><b>Board + Jira</b><span>created</span></div>
+      <div class="step"><b>Recap + Board + Jira</b><span>created</span></div>
     </div>
     <ol>
       <li>Join a voice channel, run <span class="cmd">/record start</span>. Each person is recorded on their own track.</li>
       <li>Talk. <span class="cmd">/record status</span> shows who's been heard.</li>
-      <li>Run <span class="cmd">/record stop</span> (optionally <span class="cmd">title:Weekly sync</span>). You get an AI summary, a task checklist, and the full transcript as a file.</li>
-      <li>Tick the real tasks and hit <b>Create selected</b> - each becomes a board card and a Jira issue.</li>
+      <li>Run <span class="cmd">/record stop</span> (optionally <span class="cmd">title:Weekly sync</span>). You get a structured recap (TL;DR, decisions, blockers), a task checklist, and the transcript file.</li>
+      <li>Tick the real tasks and hit <b>Create selected</b>. Each becomes a board card + Jira issue, and the full recap posts to <b>#bt-meetings</b> and the dashboard.</li>
     </ol>
-    <div class="note">Transcription runs locally - audio never leaves the machine. Summaries use the Claude API.</div>
+    <div class="note">Transcription runs locally - audio never leaves the machine. Recaps use the Claude API.</div>
   </div>
 
   <div class="cols">
@@ -82,7 +82,7 @@
         <h2>Dashboard</h2>
         <p style="margin:0 0 6px">Open in a browser:</p>
         <div class="env">http://&lt;host&gt;:&lt;port&gt;/?k=<span class="c">YOUR_TOKEN</span></div>
-        <p style="margin:7px 0 0;color:#4b5560">KPIs, department donut, board pipeline, per-crew load, work needing attention, live Jira board, recent meetings + recordings, and channel-growth sparklines. Auto-refreshes every 20s. Add <code>&amp;demo=1</code> to preview.</p>
+        <p style="margin:7px 0 0;color:#4b5560"><b>Do next</b> (what to act on now), <b>Latest meeting</b> recap, KPIs, department donut, board pipeline, per-crew load, work needing attention, a live <b>Jira kanban</b>, and meeting history. Read-only; auto-refreshes every 20s. Add <code>&amp;demo=1</code> to preview.</p>
       </div>
       <div class="sec">
         <h2>Setup (bt-bot/.env)</h2>
