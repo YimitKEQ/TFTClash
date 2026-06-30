@@ -123,6 +123,11 @@
   .jira-item .js{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .spill{font-size:10px;padding:1px 8px;border-radius:5px;white-space:nowrap;font-weight:500;border:1px solid var(--line);color:var(--muted)}
   .st-new{color:#8ea3c2} .st-ind{color:#cbab63} .st-done{color:#6fb595}
+  .jtype{width:3px;align-self:stretch;border-radius:2px;flex:none;min-height:18px}
+  .jprio{font-size:9px;text-transform:uppercase;letter-spacing:.4px;padding:1px 6px;border-radius:4px;border:1px solid;white-space:nowrap;font-weight:600}
+  .jp-high{color:#d9656b;border-color:#d9656b55}.jp-medium{color:#c89a4a;border-color:#c89a4a44}.jp-low{color:var(--faint);border-color:#3a3f48}.jp-highest{color:#e0484f;border-color:#e0484f66}
+  .java{width:22px;height:22px;border-radius:6px;background:#191c22;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--muted);flex:none;letter-spacing:.2px}
+  .jempty{width:22px;flex:none}
 
   /* feeds + metrics */
   .feed .row{padding:12px 0;border-bottom:1px solid var(--line-soft)}
@@ -196,6 +201,10 @@
 var DEPT_COLOR={content:'#6f9bd8',engineering:'#8b8fd6',design:'#cf7fab',marketing:'#c59a4f',ops:'#5fb58a'};
 function deptColor(id){return DEPT_COLOR[id]||'#7a8aa0';}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+// Decode HTML entities that arrive already-escaped from the API (e.g. "&amp;"),
+// so we don't double-escape and show literal "&amp;".
+var _decEl=document.createElement('textarea');
+function dec(s){_decEl.innerHTML=String(s==null?'':s);return _decEl.value;}
 function fmtNum(n){return n==null?'-':Number(n).toLocaleString();}
 function getC(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function ago(iso){if(!iso)return '';var d=new Date(iso);if(isNaN(d))return '';var s=Math.floor((Date.now()-d.getTime())/1000);if(s<60)return s+'s ago';var m=Math.floor(s/60);if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago';}
@@ -268,33 +277,44 @@ function listItems(items,kind){
     else if(kind==='stuck')badge='<span class="badge" style="color:var(--amber)">'+it.staleDays+'d idle</span>';
     else if(kind==='blocked')badge='<span class="badge" style="color:var(--red)">blocked</span>';
     else if(kind==='shipped')badge='<span class="badge" style="color:var(--green)">'+ago(it.shippedAt)+'</span>';
+    var ttl=dec(it.title);
     return '<div class="item"><span class="pdot" style="background:'+pc+'" title="'+esc((it.priority||'')+' priority')+'"></span>'+tag+
-      '<div class="t"><div class="ttl" title="'+esc(it.title)+'">'+esc(it.title)+'</div><div class="sub">'+esc(who)+'</div></div>'+badge+'</div>';
+      '<div class="t"><div class="ttl" title="'+esc(ttl)+'">'+esc(ttl)+'</div><div class="sub">'+esc(who)+'</div></div>'+badge+'</div>';
   }).join('');
 }
 function setList(id,items,kind){document.getElementById(id).innerHTML=listItems(items,kind);var c=document.getElementById(id+'-c');if(c)c.textContent=(items&&items.length)||0;}
 
+var JTYPE_COLOR={Task:'#6f9bd8',Story:'#5fb58a',Bug:'#d9656b',Epic:'#8b8fd6',Subtask:'#737984'};
+var JPRIO_W={highest:4,high:3,medium:2,low:1};
 function jiraPanel(j){
   var el=document.getElementById('jira'),link=document.getElementById('jira-link');
-  if(!j||!j.configured){el.innerHTML='<div class="empty">Jira not connected - set JIRA_* in .env and run /record jiracheck</div>';link.textContent='';return;}
+  if(!j||!j.configured){el.innerHTML='<div class="empty">Jira not connected - add JIRA_API_TOKEN to .env and restart, then /record jiracheck</div>';link.textContent='';return;}
   if(j.error){el.innerHTML='<div class="empty">Jira error: '+esc(j.error)+'</div>';return;}
-  link.innerHTML='<a href="'+esc(j.browseUrl)+'" target="_blank">open '+esc(j.projectKey)+' &rsaquo;</a>';
+  link.innerHTML='<a href="'+esc(j.browseUrl)+'" target="_blank" rel="noopener">open '+esc(j.projectKey)+' board &rsaquo;</a>';
   var c=j.counts,tot=(c.todo+c.inProgress+c.done)||1;
   var seg='<div class="segbar">'+
-    (c.todo?'<i style="width:'+(c.todo/tot*100)+'%;background:#6f9bd8"></i>':'')+
-    (c.inProgress?'<i style="width:'+(c.inProgress/tot*100)+'%;background:#c89a4a"></i>':'')+
-    (c.done?'<i style="width:'+(c.done/tot*100)+'%;background:#5fb58a"></i>':'')+'</div>'+
-    '<div class="seglabels"><span><b>'+c.todo+'</b> to do</span><span><b>'+c.inProgress+'</b> in progress</span><span><b>'+c.done+'</b> done</span><span style="margin-left:auto"><b>'+j.open+'</b> open of '+j.total+'</span></div>';
-  var items=(j.openItems&&j.openItems.length?j.openItems:j.recent)||[];
+    (c.todo?'<i style="width:'+(c.todo/tot*100)+'%;background:#6f9bd8" title="To do"></i>':'')+
+    (c.inProgress?'<i style="width:'+(c.inProgress/tot*100)+'%;background:#c89a4a" title="In progress"></i>':'')+
+    (c.done?'<i style="width:'+(c.done/tot*100)+'%;background:#5fb58a" title="Done"></i>':'')+'</div>'+
+    '<div class="seglabels"><span><span class="sw" style="background:#6f9bd8"></span><b>'+c.todo+'</b> to do</span><span><span class="sw" style="background:#c89a4a"></span><b>'+c.inProgress+'</b> in progress</span><span><span class="sw" style="background:#5fb58a"></span><b>'+c.done+'</b> done</span><span style="margin-left:auto"><b>'+j.open+'</b> open of '+j.total+'</span></div>';
+  // Most important first: sort open issues by priority.
+  var items=((j.openItems&&j.openItems.length?j.openItems:j.recent)||[]).slice().sort(function(a,b){
+    return (JPRIO_W[String(b.priority||'').toLowerCase()]||0)-(JPRIO_W[String(a.priority||'').toLowerCase()]||0);
+  });
   var rows=items.length?items.map(function(it){
     var cls=it.category==='done'?'st-done':(it.category==='indeterminate'?'st-ind':'st-new');
-    var pc=PRIO_COLOR[String(it.priority||'').toLowerCase()]||null;
-    var pdot=pc?'<span class="pdot" style="background:'+pc+'" title="'+esc(it.priority)+'"></span>':'';
-    return '<a class="jira-item" href="'+esc(it.url)+'" target="_blank" rel="noopener" aria-label="'+esc(it.key+': '+it.summary+' ('+it.status+(it.priority?', '+it.priority:'')+')')+'">'+pdot+'<span class="jkey">'+esc(it.key)+'</span>'+
-      '<span class="js" title="'+esc(it.summary)+'">'+esc(it.summary)+'</span>'+
-      (it.assignee?'<span class="pill">'+esc(it.assignee.split(' ')[0])+'</span>':'')+
+    var pl=String(it.priority||'').toLowerCase();
+    var tcol=JTYPE_COLOR[it.type]||'#737984';
+    var prio=it.priority?'<span class="jprio jp-'+(JPRIO_W[pl]?pl:'low')+'" title="'+esc(it.priority)+' priority">'+esc(it.priority)+'</span>':'';
+    var ava=it.assignee?'<span class="java" title="'+esc(it.assignee)+'">'+esc(initials(it.assignee))+'</span>':'<span class="jempty"></span>';
+    var sum=dec(it.summary);
+    return '<a class="jira-item" href="'+esc(it.url)+'" target="_blank" rel="noopener" aria-label="'+esc(it.key+': '+sum+' ('+it.type+', '+it.status+(it.priority?', '+it.priority:'')+(it.assignee?', '+it.assignee:'')+')')+'">'+
+      '<span class="jtype" style="background:'+tcol+'" title="'+esc(it.type||'')+'"></span>'+
+      '<span class="jkey">'+esc(it.key)+'</span>'+
+      '<span class="js" title="'+esc(sum)+'">'+esc(sum)+'</span>'+
+      prio+ava+
       '<span class="spill '+cls+'">'+esc(it.status)+'</span></a>';
-  }).join(''):'<div class="empty">No open issues</div>';
+  }).join(''):'<div class="empty">No open issues - nice</div>';
   el.innerHTML=seg+rows;
 }
 
