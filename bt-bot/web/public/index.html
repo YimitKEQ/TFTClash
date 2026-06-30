@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0a0b0d; --panel:#101216; --line:#1f2228; --line-soft:#181a1f;
-    --text:#e6e8ec; --muted:#9197a1; --faint:#5f656f;
+    --text:#e8eaee; --muted:#a0a6b0; --faint:#737984;
     --content:#6f9bd8; --engineering:#8b8fd6; --design:#cf7fab; --marketing:#c59a4f; --ops:#5fb58a;
     --red:#d9656b; --amber:#c89a4a; --green:#5fb58a; --blue:#6f9bd8; --violet:#8b8fd6;
     --accent:#6f9bd8;
@@ -34,6 +34,13 @@
   .live{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
   .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2.4s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .btn{background:#15171c;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;padding:5px 11px;border-radius:7px;cursor:pointer}
+  .btn:hover{color:var(--text);border-color:#2b2f37}
+  .btn[aria-busy="true"]{opacity:.6;pointer-events:none}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:5px}
+  .jira-item:focus-visible{outline-offset:-2px}
+  /* Respect users who prefer no motion */
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
   /* layout */
   .section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--faint);margin:34px 2px 14px;font-weight:600}
@@ -43,7 +50,7 @@
   .split{grid-template-columns:1.05fr 1fr}
   @media(max-width:980px){.cols-2,.cols-3,.split{grid-template-columns:1fr}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
-  .panel h2{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--faint);margin:0 0 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600}
+  .panel h2,.panel h3{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--faint);margin:0 0 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600}
   .pill{font-size:11px;color:var(--faint);font-weight:500}
   .link{font-size:11px;color:var(--accent);font-weight:500}
 
@@ -141,44 +148,48 @@
       <div><h1>BrosephTech HQ</h1><div class="sub" id="sub">Command center</div></div>
     </div>
     <div class="meta">
-      <span class="live"><span class="dot"></span>LIVE</span>
-      <span id="clock">--:--:--</span>
-      <span id="updated">updated -</span>
+      <span class="live"><span class="dot" aria-hidden="true"></span>LIVE</span>
+      <span id="clock" aria-hidden="true">--:--:--</span>
+      <span id="updated" aria-live="polite">updated -</span>
+      <button id="refresh" class="btn" type="button" aria-label="Refresh now" title="Refresh now">Refresh</button>
     </div>
   </header>
 
-  <div class="err" id="err"></div>
-  <div class="kpis" id="kpis"></div>
+  <div class="err" id="err" role="alert"></div>
+  <main>
+  <h2 class="section-title" id="kpi-h">Overview</h2>
+  <div class="kpis" id="kpis" role="group" aria-labelledby="kpi-h"></div>
 
-  <div class="section-title">Workload</div>
+  <h2 class="section-title">Workload</h2>
   <div class="grid split">
-    <div class="panel"><h2>Active load by department</h2><div class="donut-wrap"><div class="donut" id="donut"></div><div class="legend" id="legend"></div></div></div>
-    <div class="panel"><h2>Board pipeline</h2><div class="pipe" id="pipe"></div></div>
+    <div class="panel"><h3>Active load by department</h3><div class="donut-wrap"><div class="donut" id="donut" role="img" aria-label="Active work by department"></div><div class="legend" id="legend"></div></div></div>
+    <div class="panel"><h3>Board pipeline</h3><div class="pipe" id="pipe"></div></div>
   </div>
 
-  <div class="section-title">Crew</div>
+  <h2 class="section-title">Crew</h2>
   <div class="crew" id="crew"></div>
 
-  <div class="section-title">Needs attention</div>
+  <h2 class="section-title">Needs attention</h2>
   <div class="grid cols-2">
-    <div class="panel"><h2>Overdue <span class="pill" id="overdue-c"></span></h2><div id="overdue"></div></div>
-    <div class="panel"><h2>Due soon <span class="pill" id="duesoon-c"></span></h2><div id="duesoon"></div></div>
-    <div class="panel"><h2>Stuck <span class="pill" id="stuck-c"></span></h2><div id="stuck"></div></div>
-    <div class="panel"><h2>Blocked <span class="pill" id="blocked-c"></span></h2><div id="blocked"></div></div>
+    <div class="panel"><h3>Overdue <span class="pill" id="overdue-c"></span></h3><div id="overdue"></div></div>
+    <div class="panel"><h3>Due soon <span class="pill" id="duesoon-c"></span></h3><div id="duesoon"></div></div>
+    <div class="panel"><h3>Stuck <span class="pill" id="stuck-c"></span></h3><div id="stuck"></div></div>
+    <div class="panel"><h3>Blocked <span class="pill" id="blocked-c"></span></h3><div id="blocked"></div></div>
   </div>
 
-  <div class="section-title">Jira</div>
-  <div class="panel" id="jira-panel"><h2>Jira board <span class="link" id="jira-link"></span></h2><div id="jira"></div></div>
+  <h2 class="section-title">Jira</h2>
+  <div class="panel" id="jira-panel"><h3>Jira board <span class="link" id="jira-link"></span></h3><div id="jira"></div></div>
 
-  <div class="section-title">Momentum</div>
+  <h2 class="section-title">Momentum</h2>
   <div class="grid cols-3">
-    <div class="panel feed"><h2>Recent meetings</h2><div id="meetings"></div></div>
-    <div class="panel feed"><h2>Recent recordings</h2><div id="voice"></div></div>
-    <div class="panel feed"><h2>Recently shipped</h2><div id="shipped"></div></div>
+    <div class="panel feed"><h3>Recent meetings</h3><div id="meetings"></div></div>
+    <div class="panel feed"><h3>Recent recordings</h3><div id="voice"></div></div>
+    <div class="panel feed"><h3>Recently shipped</h3><div id="shipped"></div></div>
   </div>
 
-  <div class="section-title">Channel metrics</div>
+  <h2 class="section-title">Channel metrics</h2>
   <div class="panel"><div class="metrics" id="metrics"></div></div>
+  </main>
 </div>
 
 <script>
@@ -257,8 +268,8 @@ function listItems(items,kind){
     else if(kind==='stuck')badge='<span class="badge" style="color:var(--amber)">'+it.staleDays+'d idle</span>';
     else if(kind==='blocked')badge='<span class="badge" style="color:var(--red)">blocked</span>';
     else if(kind==='shipped')badge='<span class="badge" style="color:var(--green)">'+ago(it.shippedAt)+'</span>';
-    return '<div class="item"><span class="pdot" style="background:'+pc+'" title="'+esc(it.priority||'')+'"></span>'+tag+
-      '<div class="t"><div class="ttl">'+esc(it.title)+'</div><div class="sub">'+esc(who)+'</div></div>'+badge+'</div>';
+    return '<div class="item"><span class="pdot" style="background:'+pc+'" title="'+esc((it.priority||'')+' priority')+'"></span>'+tag+
+      '<div class="t"><div class="ttl" title="'+esc(it.title)+'">'+esc(it.title)+'</div><div class="sub">'+esc(who)+'</div></div>'+badge+'</div>';
   }).join('');
 }
 function setList(id,items,kind){document.getElementById(id).innerHTML=listItems(items,kind);var c=document.getElementById(id+'-c');if(c)c.textContent=(items&&items.length)||0;}
@@ -279,8 +290,8 @@ function jiraPanel(j){
     var cls=it.category==='done'?'st-done':(it.category==='indeterminate'?'st-ind':'st-new');
     var pc=PRIO_COLOR[String(it.priority||'').toLowerCase()]||null;
     var pdot=pc?'<span class="pdot" style="background:'+pc+'" title="'+esc(it.priority)+'"></span>':'';
-    return '<a class="jira-item" href="'+esc(it.url)+'" target="_blank">'+pdot+'<span class="jkey">'+esc(it.key)+'</span>'+
-      '<span class="js">'+esc(it.summary)+'</span>'+
+    return '<a class="jira-item" href="'+esc(it.url)+'" target="_blank" rel="noopener" aria-label="'+esc(it.key+': '+it.summary+' ('+it.status+(it.priority?', '+it.priority:'')+')')+'">'+pdot+'<span class="jkey">'+esc(it.key)+'</span>'+
+      '<span class="js" title="'+esc(it.summary)+'">'+esc(it.summary)+'</span>'+
       (it.assignee?'<span class="pill">'+esc(it.assignee.split(' ')[0])+'</span>':'')+
       '<span class="spill '+cls+'">'+esc(it.status)+'</span></a>';
   }).join(''):'<div class="empty">No open issues</div>';
@@ -296,7 +307,8 @@ function sparkline(vals,color){
 }
 
 var firstLoad=true;
-function animateCounts(){document.querySelectorAll('.kpi .n, .donut .center b').forEach(function(el){var target=parseInt(el.textContent,10)||0;if(target<=0)return;var t0=performance.now();el.textContent='0';function step(now){var p=Math.min(1,(now-t0)/650);el.textContent=Math.round(target*(p*(2-p)));if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);});}
+var REDUCE=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function animateCounts(){if(REDUCE)return;document.querySelectorAll('.kpi .n, .donut .center b').forEach(function(el){var target=parseInt(el.textContent,10)||0;if(target<=0)return;var t0=performance.now();el.textContent='0';function step(now){var p=Math.min(1,(now-t0)/650);el.textContent=Math.round(target*(p*(2-p)));if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);});}
 
 function render(d){
   document.getElementById('err').style.display='none';
@@ -394,12 +406,23 @@ function demoData(){
   };
 }
 
+var refreshBtn=document.getElementById('refresh');
 async function load(){
   if(new URLSearchParams(location.search).get('demo')==='1'){ render(demoData()); return; }
+  if(refreshBtn) refreshBtn.setAttribute('aria-busy','true');
   try{var r=await fetch('/api/overview',{credentials:'same-origin'});if(r.status===401){location.href='/';return;}if(!r.ok)throw new Error('HTTP '+r.status);render(await r.json());}
   catch(e){var el=document.getElementById('err');el.style.display='block';el.textContent='Could not load data: '+(e.message||e);}
+  finally{ if(refreshBtn) refreshBtn.removeAttribute('aria-busy'); }
 }
-load();setInterval(load,20000);
+
+// Poll every 20s, but pause while the tab is hidden (saves the bot work) and
+// refresh immediately when it comes back. Manual Refresh button too.
+var pollTimer=null;
+function startPolling(){ stopPolling(); pollTimer=setInterval(load,20000); }
+function stopPolling(){ if(pollTimer){clearInterval(pollTimer);pollTimer=null;} }
+document.addEventListener('visibilitychange',function(){ if(document.hidden){stopPolling();} else {load();startPolling();} });
+if(refreshBtn) refreshBtn.addEventListener('click',load);
+load(); startPolling();
 </script>
 </body>
 </html>

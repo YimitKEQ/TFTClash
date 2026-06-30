@@ -211,10 +211,24 @@ DASHBOARD_PUBLIC_URL=                  # https URL if you tunnel it (for the Dis
 
 Open `http://127.0.0.1:8787/?k=YOUR_TOKEN`. The token is stored in a cookie, so
 later visits to `/` just work. It is read-only and uses the bot's Supabase
-service role, so never expose the raw port without the token. To share with the
-crew, set `DASHBOARD_HOST=0.0.0.0`, run a tunnel (e.g.
-`cloudflared tunnel --url http://localhost:8787`), and put the public https URL
-in `DASHBOARD_PUBLIC_URL`.
+service role, so never expose the raw port without the token.
+
+### Letting the crew use it
+
+The dashboard is view-only, so the whole crew can safely share one link. With
+`DASHBOARD_HOST=0.0.0.0` set (it is by default now):
+
+- **Same network (LAN):** they open `http://<your-LAN-ip>:8787/?k=YOUR_TOKEN`.
+- **Anywhere (tunnel):** run `npm run tunnel` in `bt-bot/`. It prints a public
+  `https://<random>.trycloudflare.com` URL (no account, no install beyond the
+  one-time npx download). Share that URL plus `?k=YOUR_TOKEN`. Put it in
+  `DASHBOARD_PUBLIC_URL` so the Discord `/dashboard` command shows an
+  **Open web dashboard** button.
+
+The quick-tunnel URL changes each run. For a permanent address, create a named
+Cloudflare tunnel (free, needs a domain) or host the bot on a small VPS, then set
+`DASHBOARD_PUBLIC_URL` to that stable URL. Actions (creating tasks, scoring,
+etc.) stay in Discord; the web dashboard is the shared read-only view.
 
 ## Live feed
 
