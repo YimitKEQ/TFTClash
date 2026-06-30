@@ -225,7 +225,6 @@ export async function buildOverview() {
   var meetings = await recentMeetings();
   var voice = await recentVoice();
   var ideas = await ideaStats();
-  var metrics = await metricsTrend();
   var jira = await jiraOverview().catch(function() { return { configured: false }; });
 
   return {
@@ -253,7 +252,6 @@ export async function buildOverview() {
     meetings: meetings,
     voice: voice,
     ideas: ideas,
-    metrics: metrics,
     jira: jira,
   };
 }

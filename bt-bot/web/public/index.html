@@ -128,6 +128,33 @@
   .jp-high{color:#d9656b;border-color:#d9656b55}.jp-medium{color:#c89a4a;border-color:#c89a4a44}.jp-low{color:var(--faint);border-color:#3a3f48}.jp-highest{color:#e0484f;border-color:#e0484f66}
   .java{width:22px;height:22px;border-radius:6px;background:#191c22;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--muted);flex:none;letter-spacing:.2px}
   .jempty{width:22px;flex:none}
+  /* kanban board */
+  .jsummary{display:flex;gap:18px;font-size:12px;color:var(--muted);margin-bottom:2px;flex-wrap:wrap}
+  .jsummary span{display:flex;align-items:center;gap:6px}
+  .jsummary b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+  .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  @media(max-width:820px){.kanban{grid-template-columns:1fr}}
+  .kcol{background:#0c0e12;border:1px solid var(--line-soft);border-radius:10px;padding:11px}
+  .kcol-h{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--faint);margin-bottom:11px;font-weight:600}
+  .kcol-h .kdot{width:7px;height:7px;border-radius:50%;flex:none}
+  .kcol-h .kn{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+  .kcards{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto}
+  .kcard{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;border-left:3px solid var(--tc,#737984)}
+  .kcard:hover{border-color:#2b2f37}
+  .kcard .ktop{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .kcard .kk{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--faint);font-weight:600}
+  .kcard .ksum{font-size:12.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .kcard .kf{display:flex;align-items:center;gap:7px;margin-top:9px}
+  .kcard .kf .java{width:20px;height:20px;font-size:8px}
+  .kempty{color:var(--faint);font-size:12px;padding:14px 4px;text-align:center}
+  /* do-next focus queue */
+  .focus-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .focus-row:last-child{border-bottom:0}
+  .fbadge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:5px;white-space:nowrap;min-width:64px;text-align:center}
+  .fb-late{background:rgba(217,101,107,.16);color:#e08a8e}.fb-blocked{background:rgba(217,101,107,.16);color:#e08a8e}.fb-today{background:rgba(200,154,74,.16);color:#d8b86a}.fb-soon{background:rgba(111,155,216,.14);color:#9bb8df}
+  .focus-row .ft{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .focus-row .fo{font-size:11px;color:var(--faint);white-space:nowrap}
+  .focus-clear{color:var(--green);font-size:13px;padding:16px 0;text-align:center}
 
   /* feeds + metrics */
   .feed .row{padding:12px 0;border-bottom:1px solid var(--line-soft)}
@@ -165,6 +192,9 @@
   <h2 class="section-title" id="kpi-h">Overview</h2>
   <div class="kpis" id="kpis" role="group" aria-labelledby="kpi-h"></div>
 
+  <h2 class="section-title">Do next</h2>
+  <div class="panel"><div id="focus"></div></div>
+
   <h2 class="section-title">Workload</h2>
   <div class="grid split">
     <div class="panel"><h3>Active load by department</h3><div class="donut-wrap"><div class="donut" id="donut" role="img" aria-label="Active work by department"></div><div class="legend" id="legend"></div></div></div>
@@ -192,8 +222,6 @@
     <div class="panel feed"><h3>Recently shipped</h3><div id="shipped"></div></div>
   </div>
 
-  <h2 class="section-title">Channel metrics</h2>
-  <div class="panel"><div class="metrics" id="metrics"></div></div>
   </main>
 </div>
 
@@ -286,36 +314,56 @@ function setList(id,items,kind){document.getElementById(id).innerHTML=listItems(
 
 var JTYPE_COLOR={Task:'#6f9bd8',Story:'#5fb58a',Bug:'#d9656b',Epic:'#8b8fd6',Subtask:'#737984'};
 var JPRIO_W={highest:4,high:3,medium:2,low:1};
+function jiraCard(it){
+  var tcol=JTYPE_COLOR[it.type]||'#737984';
+  var pl=String(it.priority||'').toLowerCase();
+  var sum=dec(it.summary);
+  var prio=it.priority?'<span class="jprio jp-'+(JPRIO_W[pl]?pl:'low')+'">'+esc(it.priority)+'</span>':'';
+  var ava=it.assignee?'<span class="java" title="'+esc(it.assignee)+'">'+esc(initials(it.assignee))+'</span>':'';
+  return '<a class="kcard" style="--tc:'+tcol+'" href="'+esc(it.url)+'" target="_blank" rel="noopener" aria-label="'+esc(it.key+': '+sum+' ('+(it.type||'issue')+', '+it.status+(it.priority?', '+it.priority:'')+(it.assignee?', '+it.assignee:'')+')')+'">'+
+    '<div class="ktop"><span class="kk">'+esc(it.key)+'</span><span class="pill" style="margin-left:auto">'+esc(it.type||'')+'</span></div>'+
+    '<div class="ksum" title="'+esc(sum)+'">'+esc(sum)+'</div>'+
+    '<div class="kf">'+prio+ava+'</div></a>';
+}
+function jiraColumn(title,dot,items){
+  var cards=items.length?items.map(jiraCard).join(''):'<div class="kempty">Nothing here</div>';
+  return '<div class="kcol"><div class="kcol-h"><span class="kdot" style="background:'+dot+'"></span>'+title+'<span class="kn">'+items.length+'</span></div><div class="kcards">'+cards+'</div></div>';
+}
 function jiraPanel(j){
   var el=document.getElementById('jira'),link=document.getElementById('jira-link');
   if(!j||!j.configured){el.innerHTML='<div class="empty">Jira not connected - add JIRA_API_TOKEN to .env and restart, then /record jiracheck</div>';link.textContent='';return;}
   if(j.error){el.innerHTML='<div class="empty">Jira error: '+esc(j.error)+'</div>';return;}
   link.innerHTML='<a href="'+esc(j.browseUrl)+'" target="_blank" rel="noopener">open '+esc(j.projectKey)+' board &rsaquo;</a>';
-  var c=j.counts,tot=(c.todo+c.inProgress+c.done)||1;
-  var seg='<div class="segbar">'+
-    (c.todo?'<i style="width:'+(c.todo/tot*100)+'%;background:#6f9bd8" title="To do"></i>':'')+
-    (c.inProgress?'<i style="width:'+(c.inProgress/tot*100)+'%;background:#c89a4a" title="In progress"></i>':'')+
-    (c.done?'<i style="width:'+(c.done/tot*100)+'%;background:#5fb58a" title="Done"></i>':'')+'</div>'+
-    '<div class="seglabels"><span><span class="sw" style="background:#6f9bd8"></span><b>'+c.todo+'</b> to do</span><span><span class="sw" style="background:#c89a4a"></span><b>'+c.inProgress+'</b> in progress</span><span><span class="sw" style="background:#5fb58a"></span><b>'+c.done+'</b> done</span><span style="margin-left:auto"><b>'+j.open+'</b> open of '+j.total+'</span></div>';
-  // Most important first: sort open issues by priority.
-  var items=((j.openItems&&j.openItems.length?j.openItems:j.recent)||[]).slice().sort(function(a,b){
-    return (JPRIO_W[String(b.priority||'').toLowerCase()]||0)-(JPRIO_W[String(a.priority||'').toLowerCase()]||0);
-  });
-  var rows=items.length?items.map(function(it){
-    var cls=it.category==='done'?'st-done':(it.category==='indeterminate'?'st-ind':'st-new');
-    var pl=String(it.priority||'').toLowerCase();
-    var tcol=JTYPE_COLOR[it.type]||'#737984';
-    var prio=it.priority?'<span class="jprio jp-'+(JPRIO_W[pl]?pl:'low')+'" title="'+esc(it.priority)+' priority">'+esc(it.priority)+'</span>':'';
-    var ava=it.assignee?'<span class="java" title="'+esc(it.assignee)+'">'+esc(initials(it.assignee))+'</span>':'<span class="jempty"></span>';
-    var sum=dec(it.summary);
-    return '<a class="jira-item" href="'+esc(it.url)+'" target="_blank" rel="noopener" aria-label="'+esc(it.key+': '+sum+' ('+it.type+', '+it.status+(it.priority?', '+it.priority:'')+(it.assignee?', '+it.assignee:'')+')')+'">'+
-      '<span class="jtype" style="background:'+tcol+'" title="'+esc(it.type||'')+'"></span>'+
-      '<span class="jkey">'+esc(it.key)+'</span>'+
-      '<span class="js" title="'+esc(sum)+'">'+esc(sum)+'</span>'+
-      prio+ava+
-      '<span class="spill '+cls+'">'+esc(it.status)+'</span></a>';
-  }).join(''):'<div class="empty">No open issues - nice</div>';
-  el.innerHTML=seg+rows;
+  var c=j.counts;
+  // Prefer the server-grouped board; fall back to grouping openItems/recent so
+  // the kanban works even before the bot is restarted with the new code.
+  var board=j.board;
+  if(!board){var open=j.openItems||[],rec=j.recent||[];board={todo:open.filter(function(i){return i.category==='new';}),inProgress:open.filter(function(i){return i.category==='indeterminate';}),done:rec.filter(function(i){return i.category==='done';})};}
+  function sw(col){return '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+'"></span>';}
+  var summary='<div class="jsummary"><span>'+sw('#6f9bd8')+'<b>'+c.todo+'</b> to do</span><span>'+sw('#c89a4a')+'<b>'+c.inProgress+'</b> in progress</span><span>'+sw('#5fb58a')+'<b>'+c.done+'</b> done</span><span style="margin-left:auto"><b>'+j.open+'</b> open of '+j.total+'</span></div>';
+  var kb='<div class="kanban">'+
+    jiraColumn('To do','#6f9bd8',board.todo||[])+
+    jiraColumn('In progress','#c89a4a',board.inProgress||[])+
+    jiraColumn('Done','#5fb58a',board.done||[])+'</div>';
+  el.innerHTML=summary+kb;
+}
+
+// "Do next": one ranked queue of the most urgent board work to act on.
+function focusQueue(d){
+  var el=document.getElementById('focus'); if(!el) return;
+  var rows=[];
+  (d.lists.overdue||[]).forEach(function(c){rows.push({rank:0+(100-Math.min(99,c.daysOverdue||0)),badge:'fb-late',label:(c.daysOverdue||0)+'d late',it:c});});
+  (d.lists.blocked||[]).forEach(function(c){rows.push({rank:200,badge:'fb-blocked',label:'blocked',it:c});});
+  (d.lists.dueSoon||[]).forEach(function(c){var today=c.daysUntil===0;rows.push({rank:today?150:300+(c.daysUntil||0),badge:today?'fb-today':'fb-soon',label:today?'due today':'in '+c.daysUntil+'d',it:c});});
+  rows.sort(function(a,b){return a.rank-b.rank;});
+  if(!rows.length){el.innerHTML='<div class="focus-clear">All caught up. Nothing overdue, blocked, or due soon.</div>';return;}
+  el.innerHTML=rows.slice(0,7).map(function(r){
+    var it=r.it,who=(it.assignees&&it.assignees.length)?it.assignees.join(', '):'Unassigned',ttl=dec(it.title);
+    var dc=deptColor(it.department);
+    return '<div class="focus-row"><span class="fbadge '+r.badge+'">'+r.label+'</span>'+
+      (it.department?'<span class="tag" style="color:'+dc+';border-color:'+dc+'66">'+esc(it.department)+'</span>':'')+
+      '<span class="ft" title="'+esc(ttl)+'">'+esc(ttl)+'</span><span class="fo">'+esc(who)+'</span></div>';
+  }).join('');
 }
 
 function sparkline(vals,color){
@@ -342,6 +390,7 @@ function render(d){
     kpi(t.shippedThisWeek,'Shipped 7d','shipped')+
     kpi(t.ideasOpen,'Open ideas','ideas');
 
+  focusQueue(d);
   donut(d.departments||[]);
   pipeline(d.columns||[]);
   crew(d.members||[]);
@@ -364,12 +413,6 @@ function render(d){
 
   document.getElementById('shipped').innerHTML=listItems((d.lists.shipped||[]).slice(0,6),'shipped');
 
-  var mEl=document.getElementById('metrics');
-  if(d.metrics){var mt=d.metrics,ser=mt.series||{};
-    function met(n,label,delta,vals,color){var dh=(delta==null)?'':'<div class="md '+(delta>=0?'up':'down')+'">'+(delta>=0?'+':'')+fmtNum(delta)+'</div>';return '<div class="metric"><div class="mn">'+fmtNum(n)+'</div><div class="ml">'+label+'</div>'+dh+sparkline(vals,color)+'</div>';}
-    mEl.innerHTML=met(mt.ytSubs,'YouTube subs',mt.deltas.ytSubs,ser.ytSubs,'#d9656b')+met(mt.tiktokFollowers,'TikTok',mt.deltas.tiktokFollowers,ser.tiktokFollowers,getC('--blue'))+met(mt.patreonSubs,'Patreon',mt.deltas.patreonSubs,ser.patreonSubs,getC('--amber'))+met(mt.avgViews,'Avg views',mt.deltas.avgViews,ser.avgViews,getC('--violet'));
-  }else{mEl.innerHTML='<div class="empty">No metrics yet - log with /metrics</div>';}
-
   document.getElementById('sub').textContent=t.cards+' cards tracked';
   document.getElementById('updated').textContent='updated '+ago(d.generatedAt);
   if(firstLoad){animateCounts();firstLoad=false;}
@@ -384,7 +427,7 @@ function demoData(){
   var now=Date.now(),iso=function(minAgo){return new Date(now-minAgo*60000).toISOString();};
   var dep=function(id,label,color,a,o,s,ds){return {id:id,label:label,color:color,icon:'x',active:a,overdue:o,stuck:s,dueSoon:ds,total:a+5};};
   var card=function(title,d,p,who,extra){return Object.assign({title:title,department:d,priority:p,assignees:who?[who]:[],blocked:false},extra||{});};
-  var ji=function(key,sum,cat,st,pr,who){return {key:key,summary:sum,category:cat,status:st,priority:pr,assignee:who,type:'Task',url:'#'};};
+  var ji=function(key,sum,cat,st,pr,who,ty){return {key:key,summary:sum,category:cat,status:st,priority:pr,assignee:who,type:ty||'Task',url:'#'};};
   return {
     generatedAt:iso(0),
     totals:{active:14,overdue:3,stuck:2,dueSoon:4,blocked:1,shippedThisWeek:5,cards:31,ideasOpen:7},
@@ -415,14 +458,31 @@ function demoData(){
       {channelName:'General',status:'completed',durationSeconds:920,tasksCreated:3,summary:'Content slate planning.',createdAt:iso(1500)}
     ],
     metrics:{ytSubs:48200,tiktokFollowers:91300,patreonSubs:412,avgViews:21400,deltas:{ytSubs:640,tiktokFollowers:2100,patreonSubs:18,avgViews:-300},series:{ytSubs:[44100,45000,45800,46500,47200,47700,48200],tiktokFollowers:[80100,82400,84900,86700,88200,89800,91300],patreonSubs:[360,372,381,390,398,401,412],avgViews:[18900,19600,20800,22100,21700,21100,21400]}},
-    jira:{configured:true,projectKey:'KAN',browseUrl:'#',total:31,open:12,counts:{todo:8,inProgress:4,done:19},openItems:[
-      ji('KAN-31','Fix duplicate registration bug in lobby builder','new','To Do','High','Fridley'),
-      ji('KAN-30','Create Set 18 launch thumbnail','indeterminate','In Progress','High','Axel'),
-      ji('KAN-29','Draft Patreon promo copy + Discord announcement','new','To Do','High','Tactic'),
-      ji('KAN-27','Patreon promo re-push for Set 18 wave','indeterminate','In Progress','Medium','Cathy'),
-      ji('KAN-24','Record Set 18 overview VOD','new','To Do','Medium','Levitate'),
-      ji('KAN-22','Rework channel branding','new','To Do','Low','Tactic')
-    ]}
+    jira:{configured:true,projectKey:'KAN',browseUrl:'#',total:31,open:12,counts:{todo:8,inProgress:4,done:19},
+      board:{
+        todo:[
+          ji('KAN-31','Fix duplicate registration bug in lobby builder','new','To Do','High','Fridley','Bug'),
+          ji('KAN-29','Draft Patreon promo copy + Discord announcement','new','To Do','High','Tactic','Story'),
+          ji('KAN-24','Record Set 18 overview VOD','new','To Do','Medium','Levitate','Task'),
+          ji('KAN-22','Rework channel branding','new','To Do','Low','Tactic','Task'),
+          ji('KAN-19','Set 18 launch campaign','new','To Do','High','Levitate','Epic')
+        ],
+        inProgress:[
+          ji('KAN-30','Create Set 18 launch thumbnail','indeterminate','In Progress','High','Axel','Task'),
+          ji('KAN-27','Patreon promo re-push for Set 18 wave','indeterminate','In Progress','Medium','Cathy','Story'),
+          ji('KAN-18','Edit weekly recap short','indeterminate','In Progress','Medium','Bacrif','Task')
+        ],
+        done:[
+          ji('KAN-15','Set 17 finale recap video','done','Done','Medium','Bacrif','Task'),
+          ji('KAN-12','New intro animation','done','Done','Medium','Axel','Task'),
+          ji('KAN-9','Comp tier list video','done','Done','High','Cathy','Story')
+        ]
+      },
+      openItems:[
+        ji('KAN-31','Fix duplicate registration bug in lobby builder','new','To Do','High','Fridley','Bug'),
+        ji('KAN-30','Create Set 18 launch thumbnail','indeterminate','In Progress','High','Axel','Task'),
+        ji('KAN-29','Draft Patreon promo copy + Discord announcement','new','To Do','High','Tactic','Story')
+      ]}
   };
 }
 

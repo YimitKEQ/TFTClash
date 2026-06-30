@@ -243,6 +243,16 @@ export async function jiraOverview() {
       else if (i.category === 'indeterminate') counts.inProgress++;
       else counts.todo++;
     });
+    // Group into kanban columns, highest-priority first, capped per column.
+    var PW = { highest: 4, high: 3, medium: 2, low: 1 };
+    function byPrio(a, b) {
+      return (PW[String(b.priority || '').toLowerCase()] || 0) - (PW[String(a.priority || '').toLowerCase()] || 0);
+    }
+    var board = {
+      todo: issues.filter(function(i) { return i.category !== 'done' && i.category !== 'indeterminate'; }).sort(byPrio).slice(0, 12),
+      inProgress: issues.filter(function(i) { return i.category === 'indeterminate'; }).sort(byPrio).slice(0, 12),
+      done: issues.filter(function(i) { return i.category === 'done'; }).slice(0, 12),
+    };
     return {
       configured: true,
       projectKey: c.projectKey,
@@ -250,6 +260,7 @@ export async function jiraOverview() {
       total: issues.length,
       open: counts.todo + counts.inProgress,
       counts: counts,
+      board: board,
       recent: issues.slice(0, 10),
       // The most recent still-open items are the most useful to surface.
       openItems: issues.filter(function(i) { return i.category !== 'done'; }).slice(0, 10),

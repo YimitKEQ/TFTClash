@@ -103,23 +103,6 @@ function buildEmbed(d) {
   });
   if (rec.length) embed.addFields({ name: 'Recent recordings', value: clamp(rec.join('\n'), 1024), inline: true });
 
-  // Channel metrics.
-  if (d.metrics) {
-    var mt = d.metrics;
-    function fmt(n, delta) {
-      if (n == null) return '-';
-      var s = Number(n).toLocaleString();
-      if (delta != null && delta !== 0) s += ' (' + (delta > 0 ? '+' : '') + delta + ')';
-      return s;
-    }
-    embed.addFields({
-      name: 'Channel metrics',
-      value: 'YouTube ' + fmt(mt.ytSubs, mt.deltas.ytSubs)
-        + '  -  TikTok ' + fmt(mt.tiktokFollowers, mt.deltas.tiktokFollowers)
-        + '  -  Patreon ' + fmt(mt.patreonSubs, mt.deltas.patreonSubs),
-    });
-  }
-
   // Jira board (when connected).
   if (d.jira && d.jira.configured && !d.jira.error) {
     var jl = [];

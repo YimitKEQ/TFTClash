@@ -50,7 +50,7 @@ Two views of the same live snapshot.
 ### In Discord: `/dashboard`
 Posts a command-center embed - active / overdue / stuck / due-soon / blocked /
 shipped counts, department health, who's behind, blocked items, recent meetings
-and recordings, Jira status, and channel metrics. Has a **Refresh** button.
+and recordings, and Jira status. Has a **Refresh** button.
 
 ### In the browser
 A dark, auto-refreshing (every 20s) web dashboard the bot serves itself. Open:
@@ -62,13 +62,13 @@ The token is stored in a cookie after the first visit. What's on it:
 | Section | Shows |
 |---|---|
 | KPI row | active, overdue, stuck, due soon, blocked, shipped this week, open ideas |
+| Do next | one ranked queue of the most urgent work (overdue, blocked, due today/soon) |
 | Active load by department | donut split of active work per department |
-| Board pipeline | card counts across Ideas → … → Published |
+| Board pipeline | card counts across Ideas to Published |
 | Crew | each member's active / overdue / stuck / due-soon load |
 | Needs attention | overdue, due-soon, stuck, and blocked cards |
-| Jira board | to-do / in-progress / done bar + open issues with links |
+| Jira board | a live kanban (To Do / In Progress / Done) of your Jira issues |
 | Momentum | recent meetings, recordings, and recently shipped |
-| Channel metrics | YouTube / TikTok / Patreon / avg views with trend sparklines |
 
 ![workload](images/workload.png)
 ![jira panel](images/jira-panel.png)
@@ -79,7 +79,7 @@ The token is stored in a cookie after the first visit. What's on it:
 
 ## 3. Channel metrics (`/metrics`)
 
-Track growth so the dashboard's metrics + sparklines fill in over time.
+Log channel growth over time (kept in `bt_metrics_snapshots`).
 
 - `/metrics log yt:48200 tiktok:91300 patreon:412 avgviews:21400` - record today's
   numbers. Any channel you leave out carries forward from the last entry, so a
