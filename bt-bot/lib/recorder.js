@@ -41,6 +41,9 @@ var BYTES_PER_SEC = SAMPLE_RATE * CHANNELS * BYTES_PER_SAMPLE; // 192000
 // never the overall recording length.
 var SILENCE_MS = 1000;
 
+// Safety cap so a forgotten /record stop never records (and fills disk) forever.
+var MAX_RECORDING_MS = 4 * 60 * 60 * 1000; // 4 hours
+
 // guildId -> session. One active recording per guild.
 var sessions = new Map();
 
@@ -174,19 +177,48 @@ export async function startRecording(opts) {
     users: new Map(),
   };
 
-  session.receiver.speaking.on('start', function(userId) {
-    try { onSpeakingStart(session, userId); } catch (e) {}
+  // (Re)bind the speaking listener to the current receiver. Called on start and
+  // again whenever we return to Ready after a reconnect, so capture resumes.
+  function attachSpeaking() {
+    session.receiver = connection.receiver;
+    try { session.receiver.speaking.removeAllListeners('start'); } catch (e) {}
+    session.receiver.speaking.on('start', function(userId) {
+      try { onSpeakingStart(session, userId); } catch (e) {}
+    });
+  }
+  attachSpeaking();
+
+  connection.on(VoiceConnectionStatus.Ready, function() {
+    if (sessions.get(guild.id) === session) attachSpeaking();
   });
 
-  // If the connection drops unexpectedly, tear the session down so a later
-  // /record stop does not hang. The transcript of whatever we captured is lost
-  // in that edge case, which is acceptable for a dropped connection.
-  connection.on(VoiceConnectionStatus.Disconnected, function() {
-    if (sessions.get(guild.id) === session) {
-      try { connection.destroy(); } catch (e) {}
-      sessions.delete(guild.id);
+  // Survive transient disconnects. Discord moves voice servers / regions
+  // mid-call, which briefly drops the connection - that must NOT end a long
+  // meeting. Try to recover; only on a genuine, unrecoverable disconnect do we
+  // stop, and even then we KEEP every byte captured so far so /record stop can
+  // still transcribe the meeting (the recording is never silently lost).
+  connection.on(VoiceConnectionStatus.Disconnected, async function() {
+    if (sessions.get(guild.id) !== session) return;
+    try {
+      await Promise.race([
+        entersState(connection, VoiceConnectionStatus.Signalling, 5000),
+        entersState(connection, VoiceConnectionStatus.Connecting, 5000),
+      ]);
+      // Reconnecting - it will transition back to Ready and resume on its own.
+    } catch (e) {
+      session.dropped = true; // genuine drop: keep files + session for /record stop
+      try { connection.destroy(); } catch (e2) {}
     }
   });
+
+  // Hard safety cap: stop receiving after MAX_RECORDING_MS but preserve audio.
+  session.maxTimer = setTimeout(function() {
+    if (sessions.get(guild.id) === session && !session.dropped) {
+      session.dropped = true;
+      session.timedOut = true;
+      try { connection.destroy(); } catch (e) {}
+    }
+  }, MAX_RECORDING_MS);
 
   sessions.set(guild.id, session);
   return session;
@@ -205,6 +237,7 @@ export async function stopRecording(guildId) {
   var session = sessions.get(guildId);
   if (!session) throw new Error('Not recording in this server');
   sessions.delete(guildId);
+  if (session.maxTimer) { try { clearTimeout(session.maxTimer); } catch (e) {} }
 
   var durationMs = Date.now() - session.startMs;
 
@@ -244,6 +277,8 @@ export async function stopRecording(guildId) {
     channelId: session.channelId,
     channelName: session.channelName,
     speakers: speakers,
+    dropped: !!session.dropped,   // connection was lost before /record stop
+    timedOut: !!session.timedOut, // hit the safety cap
   };
 }
 
@@ -252,6 +287,7 @@ export function abortRecording(guildId) {
   var session = sessions.get(guildId);
   if (!session) return;
   sessions.delete(guildId);
+  if (session.maxTimer) { try { clearTimeout(session.maxTimer); } catch (e) {} }
   try { session.connection.destroy(); } catch (e) {}
   try { fs.rmSync(session.dir, { recursive: true, force: true }); } catch (e) {}
 }

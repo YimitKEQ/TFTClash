@@ -59,11 +59,13 @@ async function pcmToWav(pcmPath, wavPath) {
     '-hide_banner', '-loglevel', 'error', '-y',
     '-f', 's16le', '-ar', '48000', '-ac', '2', '-i', pcmPath,
     '-ar', '16000', '-ac', '1', wavPath,
-  ], 120000);
+  ], 600000); // up to 10 min - resampling a multi-hour file is still fast
 }
 
 // Run whisper.cpp and return its parsed segment list: [{ startSec, text }].
-async function whisperSegments(wavPath, outBase) {
+// audioSec lets long recordings get a proportionally longer timeout so a big
+// meeting is never cut short mid-transcription.
+async function whisperSegments(wavPath, outBase, audioSec) {
   var cmd = process.env.WHISPER_CMD;
   var model = process.env.WHISPER_MODEL;
   if (!cmd || !model) {
@@ -72,7 +74,10 @@ async function whisperSegments(wavPath, outBase) {
   if (!fs.existsSync(model)) throw new Error('WHISPER_MODEL not found at ' + model);
 
   var lang = process.env.WHISPER_LANG || 'en';
-  var timeout = parseInt(process.env.WHISPER_TIMEOUT_MS, 10) || 900000;
+  // Floor from env (default 15 min), but always allow ~4s of compute per second
+  // of audio so long files finish even on a slow CPU.
+  var floor = parseInt(process.env.WHISPER_TIMEOUT_MS, 10) || 900000;
+  var timeout = Math.max(floor, Math.ceil((audioSec || 0) * 4000));
 
   // -oj writes <outBase>.json ; -of sets the output base path (no extension).
   await run(cmd, [
@@ -150,7 +155,9 @@ export async function transcribeManifest(manifest) {
       console.warn('[transcribe] ffmpeg failed for ' + sp.userId + ': ' + ((e && e.message) || e));
       continue;
     }
-    var segs = await whisperSegments(wavPath, outBase);
+    var utts = sp.utterances || [];
+    var audioSec = utts.length ? utts[utts.length - 1].fileEndSec : 0;
+    var segs = await whisperSegments(wavPath, outBase, audioSec);
     if (!segs.length) continue;
     var name = displayName(sp);
     names.push(name);

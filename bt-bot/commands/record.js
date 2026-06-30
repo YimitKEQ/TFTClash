@@ -135,8 +135,11 @@ async function statusCmd(interaction) {
   var mins = Math.floor((Date.now() - session.startMs) / 60000);
   var secs = Math.floor(((Date.now() - session.startMs) % 60000) / 1000);
   var speakers = Array.from(session.users.values()).map(function(u) { return u.name; });
+  var prefix = session.dropped
+    ? ((session.timedOut ? 'Hit the 4h safety cap' : 'Voice connection dropped') + ' - audio is safe, run /record stop to save it.\n')
+    : '';
   await interaction.reply({
-    content: 'Recording ' + session.channelName + ' for ' + mins + 'm ' + secs + 's. '
+    content: prefix + 'Recording ' + session.channelName + ' for ' + mins + 'm ' + secs + 's. '
       + (speakers.length ? ('Heard: ' + speakers.join(', ')) : 'No one has spoken yet.'),
     ephemeral: true,
   });
@@ -172,7 +175,9 @@ async function stopCmd(interaction) {
   var titleOpt = interaction.options.getString('title');
   var meetingTitle = titleOpt || (manifest.channelName + ' - ' + new Date().toISOString().split('T')[0]);
 
-  await interaction.editReply('Stopped. Transcribing ' + manifest.speakers.length + ' track(s) locally, this can take a moment...');
+  var earlyNote = manifest.timedOut ? '(Note: hit the 4h cap - transcribing what was captured.) '
+    : (manifest.dropped ? '(Note: the voice connection dropped earlier - transcribing what was captured.) ' : '');
+  await interaction.editReply(earlyNote + 'Stopped. Transcribing ' + manifest.speakers.length + ' track(s) locally, this can take a moment...');
 
   var tr;
   try {
