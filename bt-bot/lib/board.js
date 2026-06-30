@@ -214,6 +214,7 @@ export async function recordMeeting(meeting) {
     raw_notes: String(m.raw_notes || ''),
     created_by: String(m.created_by || ''),
     tasks_created: m.tasks_created || 0,
+    recap: (m.recap && typeof m.recap === 'object') ? m.recap : null,
   };
   var res = await supabase.from('bt_meetings').insert(row).select('id').single();
   if (res.error) {

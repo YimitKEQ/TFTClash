@@ -30,6 +30,7 @@ import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
 import { createIssue, jiraConfigured, jiraMissingHint, checkJira } from '../lib/jira.js';
+import { resolveChannel } from '../lib/channels.js';
 import { BT_DEPARTMENTS } from '../config/crew.js';
 
 var DEPT_LABEL = {};
@@ -57,6 +58,71 @@ function transcriptFile(meetingTitle, summary, transcript) {
     + '## Full transcript\n' + (transcript || '(empty)') + '\n';
   var safe = String(meetingTitle || 'meeting').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'meeting';
   return new AttachmentBuilder(Buffer.from(body, 'utf8'), { name: safe + '-transcript.md' });
+}
+
+function bulletList(items, max) {
+  var arr = Array.isArray(items) ? items.slice(0, max) : [];
+  var lines = arr.map(function(s) { return '- ' + clamp(String(s), 180); });
+  return lines.length ? clamp(lines.join('\n'), 1024) : '';
+}
+
+// The persistent, skimmable recap card posted to #bt-meetings.
+// p = { recap, byline, meetingTitle, engine, durationSeconds }
+// res = { cards, jiraResults, jiraOn }
+function buildRecapEmbed(p, res) {
+  var r = p.recap || {};
+  var mins = Math.max(1, Math.round((p.durationSeconds || 0) / 60));
+  var embed = new EmbedBuilder()
+    .setColor(0x34D399)
+    .setTitle(clamp('🎙 Recap: ' + p.meetingTitle, 240))
+    .setDescription(clamp(r.tldr || 'No summary.', 1400));
+
+  var decisions = bulletList(r.decisions, 6);
+  if (decisions) embed.addFields({ name: '✅ Decisions', value: decisions });
+
+  var next = bulletList(r.next_steps, 6);
+  if (next) embed.addFields({ name: '➡️ Next steps', value: next });
+
+  embed.addFields(
+    { name: 'Duration', value: mins + 'm', inline: true },
+    { name: 'Spoke', value: clamp(p.byline || '-', 200), inline: true },
+    { name: 'Tasks', value: String((res.cards || []).length)
+        + (res.jiraOn ? (' (' + (res.jiraResults || []).filter(function(x) { return x.key; }).length + ' Jira)') : ''),
+      inline: true }
+  );
+
+  var blockers = bulletList(r.blockers, 5);
+  if (blockers) embed.addFields({ name: '🚧 Blockers', value: blockers });
+
+  var cardLines = (res.cards || []).map(function(c) {
+    var dept = DEPT_LABEL[c.department] || c.department || 'Content';
+    return '- ' + clamp(c.title, 90) + '  (' + dept + ')';
+  });
+  if (cardLines.length) embed.addFields({ name: '📋 Board cards', value: clamp(cardLines.join('\n'), 1024) });
+
+  if (res.jiraOn) {
+    var jLines = (res.jiraResults || []).map(function(x) {
+      if (x.key) return '- [' + x.key + '](' + x.url + ') ' + clamp(x.title, 70);
+      return '- (failed) ' + clamp(x.title, 70);
+    });
+    if (jLines.length) embed.addFields({ name: '🔗 Jira', value: clamp(jLines.join('\n'), 1024) });
+  }
+
+  embed.setFooter({ text: (p.engine === 'ai' ? 'AI recap' : 'Auto recap (no AI key)') + ' • whisper.cpp • BrosephTech' })
+    .setTimestamp(new Date());
+  return embed;
+}
+
+// Post the recap to the meetings channel (best-effort, never throws).
+async function postRecap(interaction, embed, file) {
+  try {
+    if (!interaction.guild) return;
+    var name = process.env.BT_MEETINGS_CHANNEL || 'bt-meetings';
+    var ch = resolveChannel(interaction.guild, name);
+    if (ch) await ch.send({ embeds: [embed], files: file ? [file] : [] });
+  } catch (e) {
+    console.warn('[record] could not post recap to meetings channel: ' + ((e && e.message) || e));
+  }
 }
 
 export var data = new SlashCommandBuilder()
@@ -196,8 +262,10 @@ async function stopCmd(interaction) {
     return;
   }
 
+  await interaction.editReply('Transcribed ' + manifest.speakers.length + ' track(s). Summarizing with AI, almost there...');
   var analysis = await analyzeMeeting(tr.transcript, null);
   var tasks = (analysis.tasks || []).slice(0, 25);
+  var durationSeconds = Math.round(manifest.durationMs / 1000);
 
   // Log the recording to bt_voice_sessions so it shows in the dashboard history.
   var aiEngine = analysis.engine === 'ai' ? (process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5') : 'rule-based';
@@ -226,12 +294,14 @@ async function stopCmd(interaction) {
     var noTaskEmbed = new EmbedBuilder()
       .setColor(0x5BA3DB)
       .setTitle('Meeting captured: ' + meetingTitle)
-      .setDescription(clamp((analysis.summary || 'No summary.') + noAiNote, 2000))
-      .addFields({ name: 'Transcript (preview)', value: clamp(tr.transcript, 1000) || '-' })
-      .setFooter({ text: 'No clear action items found - full transcript attached' });
-    var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0 });
+      .setDescription(clamp((analysis.recap.tldr || analysis.summary || 'No summary.') + noAiNote, 2000))
+      .setFooter({ text: 'No clear action items found - full recap posted to #bt-meetings' });
+    var storedRecap0 = Object.assign({}, analysis.recap, { tasks: [] });
+    var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0, recap: storedRecap0 });
     await updateVoiceSession(voiceSessionId, { status: 'transcribed', tasksCreated: 0, meetingId: mtg0 && mtg0.id });
     await interaction.editReply({ content: '', embeds: [noTaskEmbed], files: [file] });
+    var recapEmbed0 = buildRecapEmbed({ recap: analysis.recap, byline: tr.byline, meetingTitle: meetingTitle, engine: analysis.engine, durationSeconds: durationSeconds }, { cards: [], jiraResults: [], jiraOn: false });
+    await postRecap(interaction, recapEmbed0, file);
     return;
   }
 
@@ -240,6 +310,8 @@ async function stopCmd(interaction) {
     tasks: tasks,
     transcript: tr.transcript,
     summary: analysis.summary || '',
+    recap: analysis.recap,
+    durationSeconds: durationSeconds,
     meetingTitle: meetingTitle,
     byline: tr.byline,
     createdBy: interaction.user ? interaction.user.tag : '',
@@ -272,7 +344,7 @@ function buildSuggestionMessage(token, p) {
   if (p.byline) embed.addFields({ name: 'Spoke', value: clamp(p.byline, 200) });
   embed.addFields({ name: 'Transcript (preview - full file attached)', value: clamp(p.transcript, 900) || '-' });
   embed.addFields({ name: 'Suggested tasks (' + p.tasks.length + ')', value: clamp(taskLines.join('\n'), 1024) });
-  embed.setFooter({ text: (p.engine === 'ai' ? 'AI suggestions' : 'Basic suggestions (set ANTHROPIC_API_KEY)') + ' - pick the real ones, then Create' });
+  embed.setFooter({ text: (p.engine === 'ai' ? 'AI suggestions' : 'Basic suggestions (set ANTHROPIC_API_KEY)') + ' - pick the real ones, then Create. Full recap posts to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings') });
 
   var options = p.tasks.map(function(t, i) {
     var dept = DEPT_LABEL[t.department] || t.department || 'Content';
@@ -369,13 +441,16 @@ export async function handleComponent(interaction) {
       }
     }
 
-    // 3) Log the meeting + finalize the voice session record for the dashboard.
+    // 3) Log the meeting (with the recap + created tasks) and finalize the
+    // voice session record for the dashboard.
+    var storedRecap = Object.assign({}, p.recap, { tasks: chosen });
     var mtg = await recordMeeting({
       title: p.meetingTitle,
       summary: p.summary,
       raw_notes: p.transcript,
       created_by: p.createdBy,
       tasks_created: chosen.length,
+      recap: storedRecap,
     }).catch(function() { return null; });
 
     await updateVoiceSession(p.voiceSessionId, {
@@ -407,8 +482,13 @@ export async function handleComponent(interaction) {
     } else {
       resultEmbed.addFields({ name: 'Jira', value: 'Skipped (not configured: ' + jiraMissingHint() + ')' });
     }
+    resultEmbed.addFields({ name: 'Recap', value: 'Posted the full recap to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings') + '.' });
 
     await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] }).catch(function() {});
+
+    // Post the persistent recap card to the meetings channel.
+    var recapEmbed = buildRecapEmbed(p, { cards: cards, jiraResults: jiraResults, jiraOn: jiraOn });
+    await postRecap(interaction, recapEmbed, transcriptFile(p.meetingTitle, p.summary, p.transcript));
     return;
   }
 }

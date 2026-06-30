@@ -58,47 +58,98 @@ function daysUntil(due, now) {
   return Math.round((d.getTime() - now.getTime()) / MS_PER_DAY);
 }
 
-async function recentMeetings() {
-  try {
-    var res = await supabase
-      .from('bt_meetings')
-      .select('id, title, summary, created_by, tasks_created, created_at')
-      .order('created_at', { ascending: false })
-      .limit(6);
-    if (res.error) return [];
-    return (res.data || []).map(function(m) {
-      return {
-        id: m.id,
-        title: m.title || 'Untitled meeting',
-        summary: m.summary || '',
-        createdBy: m.created_by || '',
-        tasksCreated: m.tasks_created || 0,
-        createdAt: m.created_at,
-      };
-    });
-  } catch (e) { return []; }
+function recapArr(recap, key) {
+  return (recap && Array.isArray(recap[key])) ? recap[key] : [];
 }
 
-async function recentVoice() {
+// Distinct speaker names from a voice-session segments array (jsonb).
+function speakersFromSegments(segs) {
+  if (!Array.isArray(segs)) return [];
+  var seen = {}, out = [];
+  segs.forEach(function(s) {
+    var n = s && s.name;
+    if (n && !seen[n]) { seen[n] = true; out.push(String(n)); }
+  });
+  return out.slice(0, 12);
+}
+
+// Merge a bt_meetings row + its bt_voice_sessions row into a recap object the
+// dashboard renders. tldr falls back to the legacy summary so old rows (no
+// recap JSON) still display.
+function deriveRecap(m, v) {
+  var recap = (m && m.recap && typeof m.recap === 'object') ? m.recap : null;
+  var tldr = (recap && recap.tldr) ? recap.tldr : (m.summary || '');
+  var participants = (recap && Array.isArray(recap.attendees) && recap.attendees.length)
+    ? recap.attendees
+    : speakersFromSegments(v && v.segments);
+  return {
+    id: m.id,
+    title: m.title || 'Untitled meeting',
+    tldr: tldr,
+    createdBy: m.created_by || '',
+    createdAt: m.created_at,
+    durationSeconds: (v && v.duration_seconds) || 0,
+    participants: participants,
+    tasksCreated: m.tasks_created || 0,
+    decisions: recapArr(recap, 'decisions'),
+    blockers: recapArr(recap, 'blockers'),
+    tasks: (recap && Array.isArray(recap.tasks)) ? recap.tasks : [],
+    hasTranscript: false,
+  };
+}
+
+// The recap feed: the latest meeting in full + a compact list for history.
+async function recapFeed() {
   try {
-    var res = await supabase
-      .from('bt_voice_sessions')
-      .select('id, channel_name, status, started_at, ended_at, duration_seconds, tasks_created, summary, created_at')
+    var mres = await supabase
+      .from('bt_meetings')
+      .select('id, title, summary, created_by, tasks_created, created_at, recap')
       .order('created_at', { ascending: false })
-      .limit(6);
-    if (res.error) return [];
-    return (res.data || []).map(function(v) {
+      .limit(8);
+    if (mres.error || !mres.data) return { latest: null, list: [] };
+    var meetings = mres.data;
+    var ids = meetings.map(function(m) { return m.id; });
+    var voiceByMeeting = {};
+    if (ids.length) {
+      var vres = await supabase
+        .from('bt_voice_sessions')
+        .select('meeting_id, duration_seconds, segments')
+        .in('meeting_id', ids);
+      if (!vres.error && vres.data) vres.data.forEach(function(v) { if (v.meeting_id) voiceByMeeting[v.meeting_id] = v; });
+    }
+    var full = meetings.map(function(m) { return deriveRecap(m, voiceByMeeting[m.id] || null); });
+    var list = full.map(function(r) {
       return {
-        id: v.id,
-        channelName: v.channel_name || '',
-        status: v.status || '',
-        durationSeconds: v.duration_seconds || 0,
-        tasksCreated: v.tasks_created || 0,
-        summary: v.summary || '',
-        createdAt: v.created_at || v.started_at,
+        id: r.id, title: r.title, tldr: r.tldr, createdBy: r.createdBy,
+        createdAt: r.createdAt, durationSeconds: r.durationSeconds,
+        participantCount: r.participants.length, tasksCreated: r.tasksCreated,
       };
     });
-  } catch (e) { return []; }
+    return { latest: full[0] || null, list: list };
+  } catch (e) { return { latest: null, list: [] }; }
+}
+
+// One meeting in full, for lazy history expansion on the dashboard.
+export async function getRecap(id) {
+  try {
+    var mres = await supabase
+      .from('bt_meetings')
+      .select('id, title, summary, created_by, tasks_created, created_at, recap')
+      .eq('id', id).maybeSingle();
+    if (mres.error || !mres.data) return null;
+    var m = mres.data;
+    var vres = await supabase
+      .from('bt_voice_sessions')
+      .select('duration_seconds, segments, transcript')
+      .eq('meeting_id', id)
+      .order('created_at', { ascending: false }).limit(1);
+    var v = (!vres.error && vres.data && vres.data[0]) ? vres.data[0] : null;
+    var r = deriveRecap(m, v);
+    r.discussion = recapArr(m.recap, 'discussion');
+    r.next_steps = recapArr(m.recap, 'next_steps');
+    r.hasTranscript = !!(v && v.transcript);
+    return r;
+  } catch (e) { return null; }
 }
 
 async function ideaStats() {
@@ -222,8 +273,7 @@ export async function buildOverview() {
     return Object.assign({}, d, { color: meta.color || '#888', icon: meta.icon || 'tag' });
   });
 
-  var meetings = await recentMeetings();
-  var voice = await recentVoice();
+  var feed = await recapFeed();
   var ideas = await ideaStats();
   var jira = await jiraOverview().catch(function() { return { configured: false }; });
 
@@ -249,8 +299,8 @@ export async function buildOverview() {
       shipped: shipped.slice(0, 12),
     },
     columns: orderColumns(columnTally),
-    meetings: meetings,
-    voice: voice,
+    latestRecap: feed.latest,
+    recaps: feed.list,
     ideas: ideas,
     jira: jira,
   };

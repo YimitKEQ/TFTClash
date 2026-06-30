@@ -14,7 +14,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { buildOverview } from '../lib/dashboardData.js';
+import { buildOverview, getRecap } from '../lib/dashboardData.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -83,6 +83,19 @@ export function startDashboard() {
     } catch (e) {
       console.error('[dashboard] overview failed: ' + ((e && e.message) || e));
       res.status(500).json({ error: 'overview_failed', detail: (e && e.message) || String(e) });
+    }
+  });
+
+  // Full recap for one meeting (lazy history expansion on the dashboard).
+  app.get('/api/recap/:id', async function(req, res) {
+    if (!authed(req)) { res.status(401).json({ error: 'unauthorized' }); return; }
+    try {
+      var recap = await getRecap(req.params.id);
+      if (!recap) { res.status(404).json({ error: 'not_found' }); return; }
+      res.json(recap);
+    } catch (e) {
+      console.error('[dashboard] recap failed: ' + ((e && e.message) || e));
+      res.status(500).json({ error: 'recap_failed' });
     }
   });
 

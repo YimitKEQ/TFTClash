@@ -92,16 +92,15 @@ function buildEmbed(d) {
   });
   if (soon.length) embed.addFields({ name: 'Due soon', value: clamp(soon.join('\n'), 1024) });
 
-  // Recent meetings + recordings, side by side.
-  var meet = (d.meetings || []).slice(0, 3).map(function(m) {
-    return '**' + clamp(m.title, 50) + '** - ' + m.tasksCreated + ' task(s), ' + ago(m.createdAt);
+  // Latest meeting recap (the headline + the recent list).
+  if (d.latestRecap && d.latestRecap.tldr) {
+    var lr = d.latestRecap;
+    embed.addFields({ name: 'Latest meeting: ' + clamp(lr.title, 60), value: clamp(lr.tldr, 600) + '\n*' + (lr.createdBy || 'team') + ' - ' + ago(lr.createdAt) + ' - ' + lr.tasksCreated + ' task(s)*' });
+  }
+  var meet = (d.recaps || []).slice(1, 4).map(function(m) {
+    return '**' + clamp(m.title, 46) + '** - ' + m.tasksCreated + ' task(s), ' + ago(m.createdAt);
   });
-  if (meet.length) embed.addFields({ name: 'Recent meetings', value: clamp(meet.join('\n'), 1024), inline: true });
-
-  var rec = (d.voice || []).slice(0, 3).map(function(v) {
-    return '**' + clamp(v.channelName || 'Recording', 40) + '** - ' + v.tasksCreated + ' task(s), ' + ago(v.createdAt);
-  });
-  if (rec.length) embed.addFields({ name: 'Recent recordings', value: clamp(rec.join('\n'), 1024), inline: true });
+  if (meet.length) embed.addFields({ name: 'Earlier meetings', value: clamp(meet.join('\n'), 1024) });
 
   // Jira board (when connected).
   if (d.jira && d.jira.configured && !d.jira.error) {

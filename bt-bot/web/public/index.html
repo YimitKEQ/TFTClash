@@ -155,6 +155,42 @@
   .focus-row .ft{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .focus-row .fo{font-size:11px;color:var(--faint);white-space:nowrap}
   .focus-clear{color:var(--green);font-size:13px;padding:16px 0;text-align:center}
+  /* meeting recap hero */
+  .recap{padding:0;overflow:hidden}
+  .recap .empty{padding:24px}
+  .rhero{padding:18px 20px}
+  .reyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--faint);font-weight:600}
+  .rtldr{font-size:18px;line-height:1.45;margin:9px 0 12px;color:var(--text);font-weight:500;max-width:80ch}
+  .rmeta{display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+  .rmeta .sep{color:#2b2f37}
+  .ravas{display:flex;margin-left:auto}
+  .ravas .java{margin-left:-6px;border:1px solid var(--panel)}
+  .rgrid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+  @media(max-width:760px){.rgrid{grid-template-columns:1fr}}
+  .rcol{padding:16px 20px}
+  .rcol + .rcol{border-left:1px solid var(--line)}
+  @media(max-width:760px){.rcol + .rcol{border-left:0;border-top:1px solid var(--line)}}
+  .rcol h4,.rblock h4{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);font-weight:600}
+  .rlist{list-style:none;margin:0;padding:0}
+  .rlist li{position:relative;padding:5px 0 5px 16px;font-size:13px;line-height:1.4;color:#c7ccd4}
+  .rlist li::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .rtask{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
+  .rtask .rt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rtask .ro{font-size:11px;color:var(--faint);white-space:nowrap}
+  .rblock{border-top:1px solid var(--line);padding:15px 20px}
+  .rblock h4{color:var(--red)}
+  .rblock .rlist li::before{background:var(--red)}
+  /* past recaps accordion */
+  .rcap{border-bottom:1px solid var(--line-soft)}
+  .rcap:last-child{border-bottom:0}
+  .rcap-h{display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;width:100%;background:none;border:0;color:inherit;text-align:left;font:inherit}
+  .rcap-h:hover .rct{color:#fff}
+  .rcap-h .rct{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rcap-h .rcm{font-size:11px;color:var(--faint);white-space:nowrap}
+  .rcap-h .chev{color:var(--faint);transition:transform .15s;flex:none}
+  .rcap.open .chev{transform:rotate(90deg)}
+  .rcap-body{display:none;padding:2px 0 14px 2px}
+  .rcap.open .rcap-body{display:block}
 
   /* feeds + metrics */
   .feed .row{padding:12px 0;border-bottom:1px solid var(--line-soft)}
@@ -195,6 +231,9 @@
   <h2 class="section-title">Do next</h2>
   <div class="panel"><div id="focus"></div></div>
 
+  <h2 class="section-title">Latest meeting</h2>
+  <div class="panel recap" id="recap"></div>
+
   <h2 class="section-title">Workload</h2>
   <div class="grid split">
     <div class="panel"><h3>Active load by department</h3><div class="donut-wrap"><div class="donut" id="donut" role="img" aria-label="Active work by department"></div><div class="legend" id="legend"></div></div></div>
@@ -215,10 +254,9 @@
   <h2 class="section-title">Jira</h2>
   <div class="panel" id="jira-panel"><h3>Jira board <span class="link" id="jira-link"></span></h3><div id="jira"></div></div>
 
-  <h2 class="section-title">Momentum</h2>
-  <div class="grid cols-3">
-    <div class="panel feed"><h3>Recent meetings</h3><div id="meetings"></div></div>
-    <div class="panel feed"><h3>Recent recordings</h3><div id="voice"></div></div>
+  <h2 class="section-title">Meeting history</h2>
+  <div class="grid cols-2">
+    <div class="panel"><h3>Past recaps</h3><div id="recaps"></div></div>
     <div class="panel feed"><h3>Recently shipped</h3><div id="shipped"></div></div>
   </div>
 
@@ -366,6 +404,63 @@ function focusQueue(d){
   }).join('');
 }
 
+// ---- meeting recap ----
+function durLong(sec){sec=Math.round(sec||0);if(sec<60)return sec+'s';var m=Math.round(sec/60);if(m<60)return m+'m';return Math.floor(m/60)+'h '+(m%60)+'m';}
+function recapListHtml(items){if(!items||!items.length)return '';return '<ul class="rlist">'+items.map(function(s){return '<li>'+esc(dec(s))+'</li>';}).join('')+'</ul>';}
+function recapTasksHtml(tasks){
+  if(!tasks||!tasks.length)return '<div style="color:var(--faint);font-size:13px">No tasks created</div>';
+  return tasks.slice(0,8).map(function(t){
+    var pc=PRIO_COLOR[String(t.priority||'').toLowerCase()]||'#5f656f',dc=deptColor(t.department);
+    var tag=t.department?'<span class="tag" style="color:'+dc+';border-color:'+dc+'66">'+esc(t.department)+'</span>':'';
+    return '<div class="rtask"><span class="pdot" style="background:'+pc+'" title="'+esc(t.priority||'')+'"></span><span class="rt" title="'+esc(dec(t.title))+'">'+esc(dec(t.title))+'</span>'+tag+(t.assignee?'<span class="ro">'+esc(t.assignee)+'</span>':'')+'</div>';
+  }).join('');
+}
+function avatarsHtml(names){if(!names||!names.length)return '';return '<span class="ravas">'+names.slice(0,6).map(function(n){return '<span class="java" title="'+esc(n)+'">'+esc(initials(n))+'</span>';}).join('')+'</span>';}
+function recapBody(r){
+  var meta=[];if(r.createdBy)meta.push(esc(r.createdBy));meta.push(ago(r.createdAt));
+  if(r.durationSeconds)meta.push(durLong(r.durationSeconds));
+  if(r.participants&&r.participants.length)meta.push(r.participants.length+' in call');
+  meta.push((r.tasksCreated||0)+' task(s)');
+  var html='<div class="rhero"><div class="reyebrow">'+esc(r.title||'Meeting')+'</div>'+
+    '<div class="rtldr">'+esc(dec(r.tldr||'No summary yet.'))+'</div>'+
+    '<div class="rmeta">'+meta.join(' <span class="sep">/</span> ')+avatarsHtml(r.participants)+'</div></div>';
+  var hasD=r.decisions&&r.decisions.length,hasTk=r.tasks&&r.tasks.length;
+  if(hasD||hasTk){
+    html+='<div class="rgrid"><div class="rcol"><h4>Decisions</h4>'+(hasD?recapListHtml(r.decisions):'<div style="color:var(--faint);font-size:13px">None logged</div>')+'</div>'+
+      '<div class="rcol"><h4>Tasks created</h4>'+recapTasksHtml(r.tasks)+'</div></div>';
+  }
+  if(r.blockers&&r.blockers.length)html+='<div class="rblock"><h4>Blockers</h4>'+recapListHtml(r.blockers)+'</div>';
+  return html;
+}
+function renderRecap(r){
+  var el=document.getElementById('recap');
+  if(!r||!r.tldr){el.innerHTML='<div class="empty">No meetings yet. Run /record start in a voice channel.</div>';return;}
+  el.innerHTML=recapBody(r);
+}
+var RECAP_CACHE={};
+function renderRecapList(list){
+  var el=document.getElementById('recaps');
+  var rest=(list||[]).slice(1);
+  if(!rest.length){el.innerHTML='<div class="empty">No earlier meetings</div>';return;}
+  el.innerHTML=rest.map(function(m){
+    var meta=[m.createdBy||'team',durLong(m.durationSeconds),(m.participantCount||0)+' in call',(m.tasksCreated||0)+' task(s)'].join(' / ');
+    return '<div class="rcap" data-id="'+esc(m.id)+'"><button class="rcap-h" type="button" aria-expanded="false">'+
+      '<span class="chev">&rsaquo;</span><span class="rct" title="'+esc(dec(m.tldr||m.title))+'">'+esc(dec(m.tldr||m.title))+'</span><span class="rcm">'+ago(m.createdAt)+'</span></button>'+
+      '<div class="rcap-body"><div class="rmeta" style="font-size:11px">'+esc(meta)+'</div></div></div>';
+  }).join('');
+}
+document.getElementById('recaps').addEventListener('click',function(e){
+  var btn=e.target.closest('.rcap-h');if(!btn)return;
+  var cap=btn.closest('.rcap'),id=cap.getAttribute('data-id');
+  var open=cap.classList.toggle('open');btn.setAttribute('aria-expanded',open?'true':'false');
+  if(!open||cap.getAttribute('data-loaded')==='1')return;
+  var body=cap.querySelector('.rcap-body');
+  if(RECAP_CACHE[id]){body.innerHTML=recapBody(RECAP_CACHE[id]);cap.setAttribute('data-loaded','1');return;}
+  fetch('/api/recap/'+encodeURIComponent(id),{credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(rc){
+    if(rc){RECAP_CACHE[id]=rc;body.innerHTML=recapBody(rc);cap.setAttribute('data-loaded','1');}
+  }).catch(function(){});
+});
+
 function sparkline(vals,color){
   if(!vals||vals.length<2)return '';
   var w=120,h=32,min=Math.min.apply(null,vals),max=Math.max.apply(null,vals),rng=(max-min)||1;
@@ -403,15 +498,9 @@ function render(d){
 
   jiraPanel(d.jira);
 
-  document.getElementById('meetings').innerHTML=(d.meetings||[]).map(function(m){
-    return '<div class="row"><div class="rt">'+esc(m.title)+'</div>'+(m.summary?'<div class="rs">'+esc(m.summary.slice(0,170))+(m.summary.length>170?'...':'')+'</div>':'')+'<div class="rm">'+m.tasksCreated+' task(s) - '+ago(m.createdAt)+'</div></div>';
-  }).join('')||'<div class="empty">No meetings yet</div>';
-
-  document.getElementById('voice').innerHTML=(d.voice||[]).map(function(v){
-    return '<div class="row"><div class="rt">'+esc(v.channelName||'Recording')+' <span class="crew-role">'+esc(v.status)+'</span></div>'+(v.summary?'<div class="rs">'+esc(v.summary.slice(0,150))+(v.summary.length>150?'...':'')+'</div>':'')+'<div class="rm">'+dur(v.durationSeconds)+' - '+v.tasksCreated+' task(s) - '+ago(v.createdAt)+'</div></div>';
-  }).join('')||'<div class="empty">No recordings yet</div>';
-
-  document.getElementById('shipped').innerHTML=listItems((d.lists.shipped||[]).slice(0,6),'shipped');
+  renderRecap(d.latestRecap);
+  renderRecapList(d.recaps||[]);
+  document.getElementById('shipped').innerHTML=listItems((d.lists.shipped||[]).slice(0,8),'shipped');
 
   document.getElementById('sub').textContent=t.cards+' cards tracked';
   document.getElementById('updated').textContent='updated '+ago(d.generatedAt);
@@ -448,16 +537,25 @@ function demoData(){
       blocked:[card('Sponsor deal paperwork','ops','high','Levitate')],
       shipped:[card('Set 17 finale recap','content','medium','Bacrif',{shippedAt:iso(180)}),card('New intro animation','design','medium','Axel',{shippedAt:iso(600)}),card('Comp tier list video','content','high','Cathy',{shippedAt:iso(1400)}),card('Patreon tier revamp','marketing','medium','Tactic',{shippedAt:iso(2600)}),card('Bug bash sweep','engineering','low','Fridley',{shippedAt:iso(4000)})]
     },
-    meetings:[
-      {title:'Weekly sync',summary:'Reviewed Clash 3 fixes and the Set 18 launch plan. Fridley owns the registration bug, Axel the thumbnail, Tactic the Patreon promo.',createdBy:'Levitate',tasksCreated:5,createdAt:iso(120)},
-      {title:'Content planning',summary:'Mapped the Set 18 video slate and shorts cadence for launch week.',createdBy:'Cathy',tasksCreated:3,createdAt:iso(1500)},
-      {title:'Growth review',summary:'Looked at last month YouTube + TikTok growth and the Patreon funnel.',createdBy:'Maestosoya',tasksCreated:2,createdAt:iso(4300)}
+    latestRecap:{
+      id:'demo-1',title:'Weekly sync 2026-07-01',
+      tldr:'Locked the Set 18 launch for Saturday August 12 and unblocked the overlay build by moving Barontactics auth to Supabase.',
+      createdBy:'Levitate',createdAt:iso(120),durationSeconds:1680,
+      participants:['Levitate','Broseph','Tactic','Axel'],tasksCreated:4,
+      decisions:['Set 18 launch locked for Saturday August 12','Overlay ships behind a feature flag first','Move Barontactics auth from custom JWT to Supabase'],
+      blockers:['Lobby builder blocked on the registration bug'],
+      tasks:[
+        {title:'Spike Supabase auth migration',department:'engineering',priority:'high',assignee:'Tactic'},
+        {title:'Create Set 18 launch thumbnail',department:'design',priority:'high',assignee:'Axel'},
+        {title:'Draft Patreon promo copy',department:'marketing',priority:'medium',assignee:'Tactic'},
+        {title:'Record Set 18 overview VOD',department:'content',priority:'high',assignee:'Levitate'}
+      ]
+    },
+    recaps:[
+      {id:'demo-1',title:'Weekly sync 2026-07-01',tldr:'Locked the Set 18 launch for Saturday and unblocked the overlay build.',createdBy:'Levitate',createdAt:iso(120),durationSeconds:1680,participantCount:4,tasksCreated:4},
+      {id:'demo-2',title:'Content planning',tldr:'Mapped the Set 18 video slate and shorts cadence for launch week.',createdBy:'Cathy',createdAt:iso(1500),durationSeconds:920,participantCount:3,tasksCreated:3},
+      {id:'demo-3',title:'Growth review',tldr:'Reviewed last month YouTube and TikTok growth and the Patreon funnel.',createdBy:'Maestosoya',createdAt:iso(4300),durationSeconds:1500,participantCount:3,tasksCreated:2}
     ],
-    voice:[
-      {channelName:'Dev',status:'completed',durationSeconds:1840,tasksCreated:5,summary:'Clash 3 + Set 18 launch sync.',createdAt:iso(120)},
-      {channelName:'General',status:'completed',durationSeconds:920,tasksCreated:3,summary:'Content slate planning.',createdAt:iso(1500)}
-    ],
-    metrics:{ytSubs:48200,tiktokFollowers:91300,patreonSubs:412,avgViews:21400,deltas:{ytSubs:640,tiktokFollowers:2100,patreonSubs:18,avgViews:-300},series:{ytSubs:[44100,45000,45800,46500,47200,47700,48200],tiktokFollowers:[80100,82400,84900,86700,88200,89800,91300],patreonSubs:[360,372,381,390,398,401,412],avgViews:[18900,19600,20800,22100,21700,21100,21400]}},
     jira:{configured:true,projectKey:'KAN',browseUrl:'#',total:31,open:12,counts:{todo:8,inProgress:4,done:19},
       board:{
         todo:[
