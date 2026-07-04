@@ -420,8 +420,21 @@ function BracketScreen(){
         pool=[].concat.apply([],swissBuckets);
       }
     }
+    // Distribute into as-even-as-possible lobbies instead of naive fixed-size
+    // chunking, which dumps any remainder into a final rump lobby (e.g. 25
+    // players at lobbySize 8 -> 8/8/8/1). Sizes here never differ by more
+    // than 1 and never exceed lobbySize.
+    if(pool.length===0)return [];
+    var lobbyCount=Math.max(1,Math.ceil(pool.length/lobbySize));
+    var base=Math.floor(pool.length/lobbyCount);
+    var remainder=pool.length-base*lobbyCount;
     var result=[];
-    for(var i=0;i<pool.length;i+=lobbySize)result.push(pool.slice(i,i+lobbySize));
+    var idx=0;
+    for(var li=0;li<lobbyCount;li++){
+      var count=base+(li<remainder?1:0);
+      result.push(pool.slice(idx,idx+count));
+      idx+=count;
+    }
     return result;
   }
 
