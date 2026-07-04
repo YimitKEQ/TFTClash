@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Panel } from '../../components/ui'
 import { loadCards } from '../../lib/riftbound/cards.js'
 import { DOMAINS } from '../../lib/riftbound/content.js'
-import { CardThumb, CardModal, DomainDot } from './CardBits.jsx'
+import { CardThumb, CardModal, DomainIcon } from './CardBits.jsx'
 
 // Pick a few showcase cards for a domain: its Rune card first, then a Legend
 // and a couple of iconic (Epic/Rare) mono-domain cards.
@@ -51,15 +51,21 @@ export default function DomainsSection() {
         Every deck is built around a Legend, and every Legend gives you access to two of the six Domains. A Domain is a playstyle as much as a color: it decides what your Rune deck looks like and what kinds of tricks your deck can pull. The Rune card shown first for each Domain is the actual resource card you shuffle 12 of into your Rune deck.
       </p>
 
-      {DOMAINS.map(function(d) {
+      {DOMAINS.map(function(d, di) {
         var picks = (showcases[d.name] || [])
+        var flipped = di % 2 === 1
         return (
           <Panel key={d.id} padding="spacious" className="relative overflow-hidden">
             <span className="absolute inset-y-0 left-0 w-1" style={{ background: d.color }} aria-hidden="true" />
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-start">
-              <div>
+            <span
+              className="absolute top-1/2 -translate-y-1/2 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-20"
+              style={{ background: d.color, right: flipped ? 'auto' : '-3rem', left: flipped ? '-3rem' : 'auto' }}
+              aria-hidden="true"
+            />
+            <div className={'relative flex flex-col gap-6 items-start lg:items-center ' + (flipped ? 'lg:flex-row-reverse' : 'lg:flex-row')}>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2.5 mb-1">
-                  <DomainDot name={d.name} size={14} />
+                  <DomainIcon name={d.name} size={22} />
                   <h3 className="font-display text-xl text-on-surface">{d.name}</h3>
                   <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/50">{d.identity}</span>
                 </div>
@@ -71,7 +77,7 @@ export default function DomainsSection() {
                   </p>
                 )}
               </div>
-              <div className="flex gap-2.5 flex-wrap lg:flex-nowrap">
+              <div className="flex gap-2.5 flex-wrap lg:flex-nowrap flex-shrink-0">
                 {!cards
                   ? [0, 1, 2].map(function(k) {
                       return <div key={k} className="w-24 sm:w-28 rounded-lg bg-surface-container/60 animate-pulse" style={{ aspectRatio: '744 / 1039' }} />

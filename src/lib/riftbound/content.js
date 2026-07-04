@@ -160,7 +160,7 @@ export var DOMAINS = [
 // Every keyword that appears on printed cards, grouped and defined in plain
 // language (definitions paraphrase the official Core Rules).
 export var KEYWORDS = [
-  { name: 'Action', kind: 'Timing', def: 'Can be played during showdowns, including on other players\' turns. The base speed for interactive cards.' },
+  { name: 'Action', kind: 'Timing', def: 'Can be played freely on your own turn AND during showdowns, including showdowns on other players\' turns. The base speed for interactive cards.' },
   { name: 'Reaction', kind: 'Timing', def: 'Everything Action allows, plus playing in direct response to another card or ability. Reactions resolve before the thing they answered.', tip: 'Reactions are how you counter tricks with tricks in the middle of combat.' },
   { name: 'Assault', kind: 'Combat', def: 'This unit gets +X Might while attacking. Stacks if a unit somehow has it twice.' },
   { name: 'Shield', kind: 'Combat', def: 'This unit gets +X Might while defending. The defensive mirror of Assault.' },
@@ -179,12 +179,12 @@ export var KEYWORDS = [
   { name: 'Deathknell', kind: 'Trigger', def: 'When this unit dies, the listed effect happens. Death insurance that makes trades awkward for the opponent.' },
   { name: 'Temporary', kind: 'Trigger', def: 'This unit dies automatically at the start of your Beginning Phase, before scoring. Rented muscle.' },
   { name: 'Vision', kind: 'Trigger', def: 'When played: look at the top card of your main deck and optionally recycle it to the bottom.' },
-  { name: 'Predict', kind: 'Trigger', def: 'Look at the top X cards of your main deck, recycle any you do not want, and put the rest back in any order.' },
+  { name: 'Predict', kind: 'Trigger', def: 'Look at the top X cards of your main deck (just the top card when there is no number), recycle any you do not want, and put the rest back in any order.' },
   { name: 'Hunt', kind: 'Trigger', def: 'When this unit Conquers or Holds, you gain X XP, a public player-level resource some cards feed on.' },
   { name: 'Level', kind: 'Trigger', def: 'The ability after Level N is only active while you have N or more XP. Cards that grow with your game progress.' },
   { name: 'Equip', kind: 'Equipment', def: 'An activated ability on Equipment gear: pay the cost to attach it to a unit you control. The gear\'s lower text and Might bonus apply to the wearer.' },
   { name: 'Quick-Draw', kind: 'Equipment', def: 'This Equipment has Reaction, and when played it attaches immediately to a friendly unit without paying its Equip cost.' },
-  { name: 'Weaponmaster', kind: 'Equipment', def: 'When this unit is played, you may attach an Equipment to it at a discount of 1 Power off its Equip cost.' },
+  { name: 'Weaponmaster', kind: 'Equipment', def: 'When this unit is played, you may attach an Equipment to it at a discount of 1 Power off its Equip cost, even pulling gear that is already attached to another unit.' },
   { name: 'Buff', kind: 'Term', def: 'A counter worth +1 Might. A unit holds at most one buff at a time, and some effects spend buffs as a cost.' },
   { name: 'Add', kind: 'Term', def: 'Puts Energy or Power into your rune pool. Add abilities resolve instantly and can even be used mid-payment.' },
 ]

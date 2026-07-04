@@ -3,7 +3,7 @@ import { Panel, Icon } from '../../components/ui'
 import { supabase } from '../../lib/supabase.js'
 import { loadCards, findLegendCard } from '../../lib/riftbound/cards.js'
 import { TIER_LABELS, TIER_ORDER } from '../../lib/riftbound/content.js'
-import { CardThumb, CardModal, DomainDot } from './CardBits.jsx'
+import { CardThumb, CardModal, DomainIcon } from './CardBits.jsx'
 
 var META_KEY = 'riftbound_meta'
 
@@ -36,7 +36,7 @@ function TierEntry(props) {
           <div className="flex gap-1">
             {domains.map(function(id) {
               var name = id.charAt(0).toUpperCase() + id.slice(1)
-              return <DomainDot key={id} name={name} size={10} />
+              return <DomainIcon key={id} name={name} size={15} />
             })}
           </div>
           <span className="font-display text-base text-on-surface truncate">{entry.name}</span>

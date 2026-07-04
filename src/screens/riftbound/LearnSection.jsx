@@ -104,6 +104,19 @@ export default function LearnSection() {
         return <Chapter key={ch.id} chapter={ch} cards={cards} onOpen={setOpen} />
       })}
 
+      {/* Bridge into the interactive tutorial */}
+      <Panel padding="spacious" className="text-center border-primary/20">
+        <h3 className="font-display text-xl text-on-surface mb-2">Ready to try it?</h3>
+        <p className="text-sm text-on-surface-variant/70 mb-4 max-w-md mx-auto">Walk through three real turns of Annie vs Garen, with quizzes, actual combat math, and every card shown as printed.</p>
+        <a
+          href="#tutorial"
+          className="inline-flex items-center gap-2 px-7 py-3 bg-primary text-on-primary font-label font-bold text-sm uppercase tracking-widest rounded-full hover:brightness-110 transition-all no-underline"
+        >
+          <Icon name="play_circle" size={18} aria-hidden="true" />
+          Play the Tutorial
+        </a>
+      </Panel>
+
       <CardModal card={open} onClose={function() { setOpen(null) }} />
     </div>
   )

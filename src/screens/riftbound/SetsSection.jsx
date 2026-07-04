@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Panel } from '../../components/ui'
+import { Panel, Icon } from '../../components/ui'
 import { loadCards, findByName } from '../../lib/riftbound/cards.js'
 import { SETS } from '../../lib/riftbound/content.js'
 import { CardThumb, CardModal } from './CardBits.jsx'
@@ -48,9 +48,13 @@ export default function SetsSection() {
         <div className="space-y-5">
           {SETS.map(function(s) {
             var picks = showcases[s.code] || []
+            var isCurrent = s.code === 'UNL'
             return (
               <div key={s.code} className="relative">
-                <span className="absolute -left-5 sm:-left-6 top-6 w-3 h-3 rounded-full bg-primary border-2 border-surface translate-x-[-1px]" aria-hidden="true" />
+                <span
+                  className={'absolute -left-5 sm:-left-6 top-6 w-3 h-3 rounded-full border-2 border-surface translate-x-[-1px] ' + (isCurrent ? 'bg-primary shadow-[0_0_12px_rgba(232,168,56,0.7)]' : 'bg-primary/60')}
+                  aria-hidden="true"
+                />
                 <Panel padding="spacious">
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5 items-start">
                     <div>
@@ -58,11 +62,27 @@ export default function SetsSection() {
                         <h3 className="font-display text-lg text-on-surface">{s.name}</h3>
                         <span className="font-mono text-[10px] text-on-surface-variant/40 bg-surface-container-low border border-outline-variant/15 rounded px-1.5 py-0.5">{s.code}</span>
                         <span className="font-label text-[10px] uppercase tracking-widest text-primary/70">{s.date}</span>
+                        {isCurrent && (
+                          <span className="font-label text-[9px] uppercase tracking-widest bg-primary/15 text-primary border border-primary/40 rounded px-1.5 py-0.5">Current</span>
+                        )}
                         {counts[s.code] ? (
                           <span className="font-mono text-[10px] text-on-surface-variant/40">{counts[s.code] + ' cards'}</span>
                         ) : null}
                       </div>
                       <p className="text-sm text-on-surface-variant/75 leading-relaxed max-w-xl">{s.desc}</p>
+                      {counts[s.code] ? (
+                        <button
+                          type="button"
+                          onClick={function() {
+                            try { sessionStorage.setItem('rb-lib-set', s.code) } catch (e) {}
+                            window.location.hash = 'cards'
+                          }}
+                          className="mt-2.5 inline-flex items-center gap-1 text-primary font-label font-bold text-[11px] uppercase tracking-widest hover:underline cursor-pointer bg-transparent border-0 p-0"
+                        >
+                          {'Browse all ' + counts[s.code] + ' cards'}
+                          <Icon name="arrow_forward" size={13} aria-hidden="true" />
+                        </button>
+                      ) : null}
                     </div>
                     {picks.length > 0 && (
                       <div className="flex gap-2.5">
