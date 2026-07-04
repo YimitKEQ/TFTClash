@@ -299,18 +299,26 @@ export function resultsEmbed(clashNum, placements) {
   const winner = sorted[0];
   const winQuote = WIN_QUOTES[Math.floor(Math.random() * WIN_QUOTES.length)];
 
+  // `place` here is the player's OVERALL clash standing (1..N players), not a
+  // per-game finish, so it can go well past 8 — PTS only covers 1-8. Callers
+  // that aggregate points across multiple games attach the real earned total
+  // as `pts`; use that when present instead of re-deriving from PTS[place],
+  // which silently zeroed everyone outside the top 8 regardless of what they
+  // actually scored across their games.
+  function ptsOf(p) { return (typeof p.pts === 'number') ? p.pts : (PTS[p.place] || 0); }
+
   const podium = sorted.slice(0, 3).map(function(p) {
-    const pts = PTS[p.place] || 0;
+    const pts = ptsOf(p);
     return placeBadge(p.place) + '  **' + p.name + '** +' + pts + ' pts';
   }).join('\n');
 
   const rest = sorted.slice(3).map(function(p) {
-    const pts = PTS[p.place] || 0;
+    const pts = ptsOf(p);
     return placeBadge(p.place) + '  ' + p.name + '  +' + pts + ' pts';
   }).join('\n');
 
   var totalPts = 0;
-  sorted.forEach(function(p) { totalPts += (PTS[p.place] || 0); });
+  sorted.forEach(function(p) { totalPts += ptsOf(p); });
 
   return brandEmbed({
     color: STATUS_COLOR.complete,

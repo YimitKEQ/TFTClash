@@ -50,7 +50,10 @@ export async function execute(interaction) {
       totals[r.name].totalPts += (PTS[r.place] || 0);
     });
     const sorted = Object.values(totals).sort(function(a, b) { return b.totalPts - a.totalPts; });
-    placements = sorted.map(function(p, i) { return { name: p.name, place: i + 1 }; });
+    // pts = the real earned total, so resultsEmbed doesn't re-derive it from
+    // the 8-slot per-game table using the overall rank (which zeroes anyone
+    // outside the top 8 regardless of what they actually scored).
+    placements = sorted.map(function(p, i) { return { name: p.name, place: i + 1, pts: p.totalPts }; });
   } else {
     placements = results.map(function(r) { return { name: r.name, place: r.place }; });
   }

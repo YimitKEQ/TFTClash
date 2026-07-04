@@ -35,7 +35,11 @@ function aggregatePlacements(rows) {
   });
   return Object.values(totals)
     .sort(function(a, b) { return b.total - a.total; })
-    .map(function(p, i) { return { name: p.name, place: i + 1 }; });
+    // `place` is the overall clash standing used for ordering/medal display;
+    // `pts` carries the player's REAL earned total so resultsEmbed doesn't
+    // re-derive it from the 8-slot per-game table (which zeroed everyone
+    // ranked 9th or worse regardless of how many points they actually scored).
+    .map(function(p, i) { return { name: p.name, place: i + 1, pts: p.total }; });
 }
 
 async function autoPostResults(guild, clashNumber) {
