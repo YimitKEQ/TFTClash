@@ -549,6 +549,15 @@ export default function TournamentTab() {
             waitlistIds: [],
             lobbies: [],
             lockedLobbies: [],
+            // Full wipe of per-clash carryover. Stale savedLobbies from a previous
+            // clash silently reuse last week's lobby draw and DROP any player who
+            // wasn't in it (BracketScreen prefers savedLobbies over a fresh draw).
+            savedLobbies: [],
+            lockedPlacements: {},
+            roundHistory: {},
+            roundLobbies: {},
+            eliminatedIds: [],
+            finalsStartRound: 0,
             round: 1,
             maxPlayers: maxP,
             roundCount: rounds,

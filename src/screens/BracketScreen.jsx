@@ -389,11 +389,11 @@ function BracketScreen(){
       if(algo==="random"){
         pool=[...checkedIn].sort(function(){return Math.random()-0.5;});
       } else if(algo==="snake"){
-        var sorted=[...checkedIn].sort(function(a,b){return b.lp-a.lp;});
+        var sorted=[...checkedIn].sort(function(a,b){return b.pts-a.pts||String(a.id).localeCompare(String(b.id));});
         pool=[];
         sorted.forEach(function(p,i){if(Math.floor(i/lobbySize)%2===0)pool.push(p);else pool.unshift(p);});
       } else if(algo==="anti-stack"){
-        var ranked=[...checkedIn].sort(function(a,b){return b.pts-a.pts||b.lp-a.lp;});
+        var ranked=[...checkedIn].sort(function(a,b){return b.pts-a.pts||String(a.id).localeCompare(String(b.id));});
         var lobbyCount=Math.ceil(ranked.length/lobbySize);
         var buckets=Array.from({length:lobbyCount},function(){return[];});
         ranked.forEach(function(p,i){
@@ -403,10 +403,10 @@ function BracketScreen(){
         });
         pool=[].concat.apply([],buckets);
       } else {
-        pool=[...checkedIn].sort(function(a,b){return b.pts-a.pts||b.lp-a.lp;});
+        pool=[...checkedIn].sort(function(a,b){return b.pts-a.pts||String(a.id).localeCompare(String(b.id));});
       }
     } else {
-      var byPts=[...checkedIn].sort(function(a,b){return b.pts-a.pts||b.lp-a.lp;});
+      var byPts=[...checkedIn].sort(function(a,b){return b.pts-a.pts||String(a.id).localeCompare(String(b.id));});
       var lCount=Math.ceil(byPts.length/lobbySize);
       if(lCount<=1){
         pool=byPts;
@@ -502,9 +502,20 @@ function BracketScreen(){
   // Auto-persist lobby assignments
   useEffect(function(){
     if(lobbies.length===0)return;
+    // Single-writer: only the admin's client may persist a draw. During week 2,
+    // every staff client raced to compute+persist its own draw on round advance
+    // (each from a slightly different roster), and the per-lobby upserts merged
+    // row-wise into a corrupted draw (players double-booked AND dropped).
+    if(!isAdmin)return;
     var saved=tournamentState&&tournamentState.savedLobbies;
     var lobbyIds=lobbies.map(function(l){return l.map(function(p){return p.id;});});
     if(saved&&JSON.stringify(saved)===JSON.stringify(lobbyIds))return;
+    // Once a draw is persisted, derived lobbies can only differ from it when
+    // players are missing from checkedIn (e.g. a transient refetch gap).
+    // Persisting that back would permanently drop them from the draw, so only
+    // the initial draw for the round is ever auto-persisted here; edits go
+    // through movePlayerToLobby/rebalance which write savedLobbies directly.
+    if(saved&&saved.length>0)return;
     setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:lobbyIds});});
     if(supabase.from&&tournamentState.dbTournamentId){
       lobbyIds.forEach(function(playerIds,idx){
@@ -515,8 +526,16 @@ function BracketScreen(){
           player_ids:playerIds,
           status:'pending'
         },{onConflict:'tournament_id,lobby_number,round_number'})
-        .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
+        .then(function(res){ if(res&&res.error){console.error('[BracketScreen] lobby persist failed:',res.error);} })
+        .catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       });
+      // Drop orphaned rows from an earlier, larger draw for this round so the
+      // lobbies table never carries players in two lobbies at once.
+      supabase.from('lobbies').delete()
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('round_number',round)
+        .gt('lobby_number',lobbyIds.length)
+        .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
     }
   },[lobbies]);
 
@@ -532,11 +551,13 @@ function BracketScreen(){
     var lobby=lobbies[li];
     var init={};
     var subs=(playerSubmissions||{})[li]||{};
-    lobby.forEach(function(p,i){
+    lobby.forEach(function(p){
       if(subs[p.id]&&subs[p.id].placement){
         init[p.id]=String(subs[p.id].placement);
       } else {
-        init[p.id]=String(i+1);
+        // Start unset so staff must explicitly pick every finish - a silent
+        // 1..8 prefill passes validation while recording arbitrary placements.
+        init[p.id]="";
       }
     });
     setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:{open:true,placements:init}});});
@@ -555,7 +576,10 @@ function BracketScreen(){
   function placementValid(li){
     var lobby=lobbies[li];
     if(!placementEntry[li])return false;
-    var vals=lobby.map(function(p){return parseInt(placementEntry[li].placements[p.id]||"0");});
+    var raw=lobby.map(function(p){return placementEntry[li].placements[p.id];});
+    // Every player needs an explicit pick (1-8 or DNP) before the lobby can lock.
+    if(raw.some(function(v){return v===undefined||v==="";}))return false;
+    var vals=raw.map(function(v){return parseInt(v);});
     var rangeValid=vals.every(function(v){return v>=0&&v<=8;});
     // 1-8 placements must be unique; DNP (0) can repeat.
     var placedVals=vals.filter(function(v){return v>0;});
@@ -755,7 +779,8 @@ function BracketScreen(){
         var newWins=Math.max((current.wins||0)-(place===1?1:0),0);
         var newTop4=Math.max((current.top4||0)-(place>=1&&place<=4?1:0),0);
         var newPts=Math.max((current.pts||0)-totalReverted,0);
-        var newAvgRaw=newGames>0&&place>0?(((parseFloat(current.avg)||0)*(current.games||1)-place)/newGames):0;
+        // DNP (place 0) never touched avg on lock, so leave it unchanged on revert too.
+        var newAvgRaw=newGames>0&&place>0?(((parseFloat(current.avg)||0)*(current.games||1)-place)/newGames):(parseFloat(current.avg)||0);
         var newAvg=parseFloat(newAvgRaw.toFixed(2));
         revertSnapshot[pid]={place:place,earned:earned,bonusPts:bonusPts,
           newPts:newPts,newWins:newWins,newTop4:newTop4,newGames:newGames,newAvg:newAvg};
@@ -783,6 +808,13 @@ function BracketScreen(){
       delete newSavedPlacements[li];
       return Object.assign({},ts,{lockedLobbies:newLocked,lockedPlacements:newSavedPlacements});
     });
+    // Reopen entry prefilled with the reverted placements so staff can correct
+    // a single seat instead of re-entering the whole lobby.
+    if(savedPlacements){
+      var restored={};
+      Object.keys(savedPlacements).forEach(function(pid){restored[pid]=String(savedPlacements[pid]);});
+      setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:{open:true,placements:restored}});});
+    }
     if(supabase.from&&tournamentState.dbTournamentId){
       var lobbyPlayerIds=lobbies[li]?lobbies[li].map(function(p){return p.id;}):[];
       if(lobbyPlayerIds.length>0){
@@ -1645,6 +1677,14 @@ function BracketScreen(){
                   var locked=lockedLobbies.includes(li);
                   var lobbyLetter=lobbyLetters[li]||String(li+1);
                   var hasPlacements=placementEntry[li]&&placementEntry[li].open;
+                  var entryOpen=isStaff&&!locked&&hasPlacements;
+                  var entryPlacements=entryOpen?(placementEntry[li].placements||{}):{};
+                  var entrySetCount=entryOpen?lobby.filter(function(p){var v=entryPlacements[p.id];return v!==undefined&&v!=="";}).length:0;
+                  var entryHasDup=entryOpen&&lobby.some(function(p){
+                    var v=entryPlacements[p.id];
+                    if(!v||v==="0")return false;
+                    return lobby.filter(function(x){return entryPlacements[x.id]===v;}).length>1;
+                  });
                   var lobbyMeta=getLobbyMeta(li);
                   var lobbyCode=lobbyMeta&&lobbyMeta.lobby_code;
 
@@ -1693,6 +1733,9 @@ function BracketScreen(){
                       <div className="divide-y divide-outline-variant/10">
                         {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p,pi){
                           var isMe=currentUser&&p.name===currentUser.username;
+                          var entryVal=entryOpen?(entryPlacements[p.id]||""):"";
+                          var entryDup=entryOpen&&entryVal!==""&&entryVal!=="0"&&lobby.filter(function(x){return entryPlacements[x.id]===entryVal;}).length>1;
+                          var entrySelf=entryOpen&&((playerSubmissions||{})[li]||{})[p.id];
 
                           return(
                             <div
@@ -1731,6 +1774,21 @@ function BracketScreen(){
                                 <span className={"font-mono text-xs font-bold " + (tournamentState.lockedPlacements[li][p.id]===1?"text-primary":tournamentState.lockedPlacements[li][p.id]<=4?"text-tertiary":"text-on-surface-variant/50")}>
                                   {"#" + tournamentState.lockedPlacements[li][p.id]}
                                 </span>
+                              ):entryOpen?(
+                                <div onClick={function(e){e.stopPropagation();}} className="flex items-center gap-1.5 flex-shrink-0">
+                                  {entrySelf&&(
+                                    <span className="text-[9px] text-tertiary font-bold font-label" title={"Self-reported #"+entrySelf.placement}>SELF</span>
+                                  )}
+                                  <select
+                                    value={entryVal}
+                                    onChange={function(e){setPlace(li,p.id,e.target.value);}}
+                                    aria-label={"Placement for "+p.name}
+                                    className={"bg-surface-container-low border rounded px-2 py-1 text-sm font-mono font-bold cursor-pointer appearance-none text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 " + (entryDup?"border-error text-error ring-1 ring-error":entryVal===""?"border-secondary/50 text-on-surface-variant/50":entryVal==="0"?"border-outline-variant/30 text-on-surface-variant/50":entryVal==="1"?"border-primary/50 text-primary":"border-secondary/40 text-secondary")}>
+                                    <option value="">--</option>
+                                    {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={String(n)}>{"#"+n}</option>;})}
+                                    <option value="0">DNP</option>
+                                  </select>
+                                </div>
                               ):isMe&&!locked&&isLive?(
                                 playerSubmissions[li]&&playerSubmissions[li][p.id]?(
                                   <div className="font-mono text-xs text-tertiary font-bold">
@@ -1798,32 +1856,17 @@ function BracketScreen(){
                             </div>
                           ):(
                             <div className="p-4 bg-secondary/3 border-t border-secondary/10">
-                              <div className="text-[11px] font-label font-bold text-secondary/70 uppercase tracking-widest mb-3">
-                                {"Enter Placements - Round " + round}
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="text-[11px] font-label font-bold text-secondary/70 uppercase tracking-widest">
+                                  {"Placements - Round " + round}
+                                </div>
+                                <span className={"font-mono text-xs font-bold " + (entrySetCount===lobby.length?"text-tertiary":"text-on-surface-variant/50")}>
+                                  {entrySetCount + "/" + lobby.length + " set"}
+                                </span>
                               </div>
-                              <div className="space-y-2 mb-3">
-                                {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){
-                                  var dup=lobby.filter(function(x){return placementEntry[li].placements[x.id]===placementEntry[li].placements[p.id];}).length>1;
-                                  var wasSelfSubmitted=((playerSubmissions||{})[li]||{})[p.id];
-                                  return(
-                                    <div key={p.id} className="flex items-center gap-2">
-                                      <span className="text-sm text-on-surface flex-1 truncate">
-                                        {p.name}
-                                        {wasSelfSubmitted&&<span className="text-[9px] text-tertiary font-bold ml-1">SELF</span>}
-                                      </span>
-                                      <Sel
-                                        value={placementEntry[li].placements[p.id]||"1"}
-                                        onChange={function(v){setPlace(li,p.id,v);}}
-                                        className={dup?"ring-1 ring-error":""}>
-                                        {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
-                                        <option value="0">DNP</option>
-                                      </Sel>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              {!placementValid(li)&&(
-                                <div className="text-xs text-error mb-2">Each placement must be unique (1-8)</div>
+                              <p className="text-xs text-on-surface-variant/60 mb-3">Pick each player's finish next to their name above.</p>
+                              {entryHasDup&&(
+                                <div className="text-xs text-error mb-2">Placements 1-8 can only be used once each</div>
                               )}
                               <div className="flex gap-2">
                                 <button
