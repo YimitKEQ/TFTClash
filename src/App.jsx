@@ -85,6 +85,7 @@ var TournamentsListScreenNew = lazyWithRetry(function(){ return import('./screen
 var AdminScreenNew = lazyWithRetry(function(){ return import('./screens/AdminScreen'); });
 var HofScreenNew = lazyWithRetry(function(){ return import('./screens/HofScreen'); });
 var GearScreenNew = lazyWithRetry(function(){ return import('./screens/GearScreen'); });
+var RiftboundScreenNew = lazyWithRetry(function(){ return import('./screens/RiftboundScreen'); });
 var SquadsSimScreen = lazyWithRetry(function(){ return import('./screens/sim/SquadsSimScreen'); });
 var TeamsScreen = lazyWithRetry(function(){ return import('./screens/TeamsScreen'); });
 var TeamProfileScreen = lazyWithRetry(function(){ return import('./screens/TeamProfileScreen'); });
@@ -261,7 +262,7 @@ function TFTClash(){
     "/milestones":"milestones","/challenges":"challenges","/hall-of-fame":"hof",
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/guide":"guide","/builder":"builder","/host/apply":"host-apply","/host/dashboard":"host-dashboard","/overlay":"overlay",
-    "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
+    "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash","/riftbound":"riftbound",
     "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links","/sim/squads":"squads-sim","/teams":"teams","/news":"news","/banner-preview":"banner-preview","/horizon-lab":"horizon-lab"
   };
   useEffect(function(){
@@ -416,7 +417,7 @@ function TFTClash(){
     milestones:"/milestones",challenges:"/challenges",hof:"/hall-of-fame",
     archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",guide:"/guide",builder:"/builder",
     account:"/account","host-apply":"/host/apply","host-dashboard":"/host/dashboard",
-    admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",
+    admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",riftbound:"/riftbound",
     tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear",sponsors:"/sponsors",donut17:"/donut17"
   };
 
@@ -764,6 +765,8 @@ function TFTClash(){
         {screen==="terms"      &&<TermsScreenNew/>}
 
         {screen==="gear"       &&<GearScreenNew/>}
+
+        {screen==="riftbound"  &&<RiftboundScreenNew/>}
 
         {screen==="account"    &&<AccountScreenNew />}
 

@@ -13,6 +13,7 @@ import SponsorsTab from './admin/SponsorsTab'
 import LinksTab from './admin/LinksTab'
 import TeamsTab from './admin/TeamsTab'
 import PayoutsTab from './admin/PayoutsTab'
+import RiftboundTab from './admin/RiftboundTab'
 
 var TABS = [
   { id: 'overview',    label: 'Overview',    icon: 'dashboard' },
@@ -24,6 +25,7 @@ var TABS = [
   { id: 'hosts',       label: 'Hosts',       icon: 'verified_user' },
   { id: 'sponsors',    label: 'Sponsors',    icon: 'handshake' },
   { id: 'links',       label: 'Links',       icon: 'link' },
+  { id: 'riftbound',   label: 'Riftbound',   icon: 'auto_awesome' },
   { id: 'settings',    label: 'Settings',    icon: 'settings' },
   { id: 'audit',       label: 'Audit Log',   icon: 'assignment' },
 ]
@@ -132,6 +134,7 @@ export default function AdminScreen() {
           {tab === 'hosts'      && <HostsTab />}
           {tab === 'sponsors'   && <SponsorsTab />}
           {tab === 'links'      && <LinksTab />}
+          {tab === 'riftbound'  && <RiftboundTab />}
           {tab === 'settings'   && <SettingsTab />}
           {tab === 'audit'      && <AuditTab />}
         </div>

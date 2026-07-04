@@ -16,7 +16,7 @@ var SCREEN_TO_ROUTE = {
   ops: '/ops', rules: '/rules', faq: '/faq', guide: '/guide', builder: '/builder', stats: '/stats',
   bracket: '/bracket', profile: '/player', recap: '/season-recap',
   privacy: '/privacy', terms: '/terms', gear: '/gear', tournaments: '/tournaments',
-  teams: '/teams', news: '/news'
+  teams: '/teams', news: '/news', riftbound: '/riftbound'
 };
 
 function SectionHeading(props) {
@@ -135,6 +135,7 @@ export default function Sidebar() {
         <NavItem id="archive"     icon="inventory_2"           label="Archive" />
 
         <SectionHeading label="Community" />
+        <NavItem id="riftbound"   icon="auto_awesome" label="Riftbound" />
         <NavItem id="milestones"  icon="redeem"     label="Milestones" />
         <NavItem id="challenges"  icon="star"       label="Challenges" />
         <NavItem id="sponsors"    icon="handshake"  label="Sponsors" />
