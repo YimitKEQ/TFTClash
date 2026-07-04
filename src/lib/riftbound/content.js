@@ -1,0 +1,220 @@
+// Original reference content for the /riftbound hub. Written from scratch
+// against the official Riftbound Core Rules (2026-03-30 revision) and Riot's
+// published tournament rules. Facts verified; prose is ours.
+
+export var LEARN_CHAPTERS = [
+  {
+    id: 'goal',
+    num: '01',
+    icon: 'flag',
+    title: 'The Goal',
+    intro: 'Riftbound is a fight over territory. Two battlefields sit between you and your opponent, and every point you score comes from taking or keeping one of them. First to 8 points wins the game.',
+    points: [
+      { label: 'Conquer:', text: 'take control of a battlefield by winning the fight for it. That scores a point on the spot.' },
+      { label: 'Hold:', text: 'still control a battlefield when your next turn starts. That scores another point.' },
+      { text: 'So one successful push is worth up to 2 points: one when you take the battlefield, one more if you are still standing there at the start of your next turn. Defending what you took is half the game.' },
+    ],
+    callout: 'Team games (2v2) play to 11 points instead of 8. Free-for-all with 3 or 4 players stays at 8.',
+  },
+  {
+    id: 'bring',
+    num: '02',
+    icon: 'inventory',
+    title: 'What You Bring',
+    intro: 'A Riftbound deck is really four things, and your Legend decides what the other three can look like.',
+    points: [
+      { label: 'Legend.', text: 'A champion card that sits in its own zone all game. It grants a passive ability and, most importantly, sets your two Domains, the colors every card in your deck must fit inside.' },
+      { label: 'Chosen Champion.', text: 'A champion unit matching your Legend, which starts the game in its own zone ready to be played like a card from hand.' },
+      { label: 'Main deck.', text: 'At least 40 cards (exactly 40 in tournaments) of units, spells, and gear. Maximum 3 copies of any card.' },
+      { label: 'Rune deck.', text: 'Exactly 12 Rune cards matching your Domains. This is your resource engine, completely separate from your main deck.' },
+      { label: 'Battlefields.', text: 'You bring 3, but only 1 of yours is used per game, so each game is fought over 2 battlefields (yours and theirs).' },
+    ],
+    cards: [
+      { name: 'Jinx - Loose Cannon', caption: 'A Legend: sets your Domains (Fury and Chaos here)' },
+      { name: 'Jinx - Demolitionist', caption: 'A champion unit that can be your Chosen Champion' },
+      { name: 'Fury Rune', caption: 'The actual Rune card: you run 12 of these' },
+      { name: 'Bandle Tree', caption: 'A battlefield, the thing everyone is fighting over' },
+    ],
+  },
+  {
+    id: 'setup',
+    num: '03',
+    icon: 'shuffle',
+    title: 'Setup and Mulligan',
+    intro: 'Setup is quick: zones out, decks shuffled, and a small mulligan decision before turn one.',
+    points: [
+      { text: 'Place your Legend and Chosen Champion in their zones, set the two battlefields, shuffle both decks, and randomly decide who goes first.' },
+      { label: 'Draw 4 cards.', text: 'Then you may set aside up to 2 of them, draw that many replacements, and put the set-aside cards on the bottom of your deck. It is a partial mulligan, so keep the good half of your hand.' },
+      { label: 'Going second?', text: 'You channel 1 extra rune on your first turn (3 instead of 2), so you hit your bigger plays a beat earlier as compensation.' },
+    ],
+    callout: 'Mulligan toward your curve, not your dream card. You draw only 1 card per turn, so a hand you can actually play beats a hand with one great card in it.',
+  },
+  {
+    id: 'turn',
+    num: '04',
+    icon: 'cycle',
+    title: 'The Turn, Phase by Phase',
+    intro: 'Every turn walks through the same six phases. Most of the action happens in the Main Phase, but the points are scored before you even draw.',
+    points: [
+      { label: '1. Awaken.', text: 'Ready everything you control: units, gear, and runes.' },
+      { label: '2. Beginning.', text: 'Start-of-turn effects fire, then the Scoring Step: you score 1 point for each battlefield you still control. This is the Hold.' },
+      { label: '3. Channel.', text: 'Put the top 2 runes of your rune deck onto the board. Your resource base grows every turn.' },
+      { label: '4. Draw.', text: 'Draw 1 card.' },
+      { label: '5. Main.', text: 'Play cards, move units, start fights, in any order you like. This is the whole middle of the game.' },
+      { label: '6. Ending.', text: 'End-of-turn effects fire, then all damage on all units heals. Damage never carries over between turns.' },
+    ],
+    callout: 'Because Holds score during YOUR Beginning Phase, whatever you conquer on your turn must survive one full enemy turn to pay out the second point. That rhythm drives the entire game.',
+  },
+  {
+    id: 'runes',
+    num: '05',
+    icon: 'diamond',
+    title: 'Energy and Power',
+    intro: 'Costs come in two currencies, and both come from the same 12 runes. The numeral on a card is its Energy cost; the domain symbols under it are its Power cost.',
+    points: [
+      { label: 'Energy:', text: 'exhaust a rune (turn it sideways) to add 1 Energy. The rune stays on the board and readies next turn. This is your everyday money.' },
+      { label: 'Power:', text: 'recycle a rune (put it on the bottom of your rune deck) to add 1 Power of its domain. The rune physically leaves the board, so Power is the expensive currency that shrinks your board to pay for your strongest effects.' },
+      { text: 'Unspent Energy and Power drain away at the end of each turn, so there is no saving up across turns.' },
+      { text: 'Recycled runes are not gone forever: the rune deck cycles, and future Channel Phases bring them back.' },
+    ],
+    cards: [
+      { name: 'Mind Rune', caption: 'Exhaust for Energy, or recycle for Mind Power' },
+      { name: 'Acceptable Losses', caption: 'The numeral is Energy; symbols below it are Power' },
+    ],
+  },
+  {
+    id: 'combat',
+    num: '06',
+    icon: 'swords',
+    title: 'Moving, Showdowns, and Combat',
+    intro: 'Units enter play at your base, exhausted. To threaten anything they have to march. Exhaust a unit in your Main Phase to move it to a battlefield; that is where the arguing starts.',
+    points: [
+      { label: 'Empty battlefield?', text: 'Moving in starts a Showdown: a window where both players can play Action and Reaction cards. If your units are still alone there when it closes, you Conquer it.' },
+      { label: 'Defended battlefield?', text: 'That is Combat. It opens with a Combat Showdown where both sides sling combat tricks, then damage is dealt.' },
+      { label: 'Damage:', text: 'each side adds up the total Might of its units, then assigns that damage across the enemy units. Both sides deal damage at the same time. A unit dies when damage on it reaches its Might.' },
+      { label: 'Ties favor the defender.', text: 'If both sides still have units standing after damage, the attackers get sent home to base. You need to actually clear the defenders to take the ground.' },
+      { text: 'Survivors heal completely after every combat, so chip damage means nothing. Kill it or it comes back clean.' },
+    ],
+    cards: [
+      { name: 'Sunlit Guardian', caption: 'Tank: must be assigned lethal damage first' },
+      { name: 'Defy', caption: 'A Reaction: the classic mid-combat surprise' },
+      { name: 'Commander Ledros', caption: 'Ganking: can move battlefield to battlefield' },
+    ],
+    callout: 'Combat is always strictly between two players, even in free-for-all. Nobody can third-party an ongoing fight.',
+  },
+  {
+    id: 'scoring',
+    num: '07',
+    icon: 'scoreboard',
+    title: 'Scoring and the Winning Point',
+    intro: 'Points come from Conquering (taking a battlefield) and Holding (keeping it into your next turn). Each battlefield can give you each kind of point once per turn. The last point has a special rule.',
+    points: [
+      { label: 'The Winning Point:', text: 'a Hold can always win you the game. A Conquer can only deliver the final point if you swept every battlefield that turn; otherwise you draw a card instead of scoring it. Closing out a game rewards defense or total domination, not a lucky last poke.' },
+      { label: 'Burn Out:', text: 'if you have to draw from an empty deck, you shuffle your trash back in, but an opponent of your choice gains a point. Decking yourself literally feeds the enemy.' },
+    ],
+    callout: 'Scoreboard math to internalize early: taking a battlefield and defending it once is 2 points. Doing that four times is the whole game.',
+  },
+  {
+    id: 'first',
+    num: '08',
+    icon: 'rocket_launch',
+    title: 'Your First Game',
+    intro: 'The cleanest way in is the Proving Grounds box: four ready-built starter decks (Annie, Master Yi, Lux, Garen) plus boards and a learn guide, designed exactly for a first night of Riftbound.',
+    points: [
+      { text: 'Play your first game with just units and moves. Layer in spell timing (Actions and Reactions in showdowns) in game two; that is where the real depth lives.' },
+      { text: 'Watch the rune math: every Power you spend is a rune off your board. Overspending Power early can leave you unable to afford your own turn.' },
+      { text: 'Do not fight every fight. Giving up a battlefield to fortify the other one is often the winning line, especially with the defender advantage on ties.' },
+      { text: 'When you are ready to build your own deck, pick a Legend first. Its two Domains define everything you can play, so the Legend IS the deck concept.' },
+    ],
+    cards: [
+      { name: 'Annie - Dark Child', caption: 'Fury/Chaos starter Legend from Proving Grounds' },
+      { name: 'Master Yi - Wuju Bladesman', caption: 'Calm/Body: the starter that grew into a meta deck' },
+      { name: 'Garen - Might of Demacia', caption: 'Body/Order: straightforward big units' },
+      { name: 'Lux - Lady of Luminosity', caption: 'Mind/Order: spells and wide boards' },
+    ],
+  },
+]
+
+// The six Domains. Identity lines and prose are original summaries.
+export var DOMAINS = [
+  { id: 'fury', name: 'Fury', color: '#E5484D', identity: 'All-out aggression',
+    desc: 'Fury plays fast and lives in the present. Its signature move is discarding cards from hand as fuel for immediate, oversized payoffs, and its units tend to hit harder on the attack.',
+    playIf: 'you want to set the pace, end games early, and treat your hand as ammunition.' },
+  { id: 'calm', name: 'Calm', color: '#2FB380', identity: 'Reactive control',
+    desc: 'Calm wins by answering. It is the domain of combat tricks, movement shenanigans, and counterplay that punishes an opponent for committing first.',
+    playIf: 'you like holding up mana, bluffing, and winning fights you looked like you were losing.' },
+  { id: 'mind', name: 'Mind', color: '#3B82F6', identity: 'Setup and card advantage',
+    desc: 'Mind plans two turns ahead. Draw effects keep your hand full and Hidden cards let you plant facedown surprises at battlefields that go off later, at Reaction speed.',
+    playIf: 'you want to out-draw, out-plan, and spring traps your opponent forgot about.' },
+  { id: 'body', name: 'Body', color: '#F2994A', identity: 'Ramp',
+    desc: 'Body accelerates your rune economy, letting you channel ahead of the normal curve and land bigger units earlier than anyone expects.',
+    playIf: 'your favorite thing in card games is cheating out something huge ahead of schedule.' },
+  { id: 'chaos', name: 'Chaos', color: '#9B59B6', identity: 'Recursion',
+    desc: 'Chaos treats the trash as a second hand. It brings cards back, squeezes extra value out of everything that dies, and grinds long games out of thin resources.',
+    playIf: 'you like value engines and making the opponent beat the same card twice.' },
+  { id: 'order', name: 'Order', color: '#E8C93B', identity: 'Go-wide',
+    desc: 'Order floods the board with units and rallies them into coordinated pushes. Individual units are expendable; the formation is the weapon.',
+    playIf: 'you want armies, tokens, and math that gets scarier every extra body you add.' },
+]
+
+// Every keyword that appears on printed cards, grouped and defined in plain
+// language (definitions paraphrase the official Core Rules).
+export var KEYWORDS = [
+  { name: 'Action', kind: 'Timing', def: 'Can be played during showdowns, including on other players\' turns. The base speed for interactive cards.' },
+  { name: 'Reaction', kind: 'Timing', def: 'Everything Action allows, plus playing in direct response to another card or ability. Reactions resolve before the thing they answered.', tip: 'Reactions are how you counter tricks with tricks in the middle of combat.' },
+  { name: 'Assault', kind: 'Combat', def: 'This unit gets +X Might while attacking. Stacks if a unit somehow has it twice.' },
+  { name: 'Shield', kind: 'Combat', def: 'This unit gets +X Might while defending. The defensive mirror of Assault.' },
+  { name: 'Tank', kind: 'Combat', def: 'Enemies must assign lethal combat damage to this unit before any of your other units.', tip: 'Tanks soak the hit so your damage dealers survive to swing back.' },
+  { name: 'Backline', kind: 'Combat', def: 'Enemies must assign combat damage to this unit last, after all your other units.' },
+  { name: 'Deflect', kind: 'Combat', def: 'Opposing spells and abilities that target this unit cost X more Power. Soft protection that taxes removal.' },
+  { name: 'Stun', kind: 'Combat', def: 'A stunned unit contributes 0 Might in combat until the end of turn, but still has to be killed with full damage.' },
+  { name: 'Mighty', kind: 'Combat', def: 'Not an ability, a category: any unit with Might 5 or greater counts as Mighty, and some cards care about that.' },
+  { name: 'Accelerate', kind: 'Play', def: 'Pay an optional extra cost (1 Energy plus 1 Power of its domain) when playing this unit and it arrives ready instead of exhausted, able to move or fight immediately.' },
+  { name: 'Legion', kind: 'Play', def: 'The ability after Legion only works if you have already played another card this turn. Rewards sequencing.' },
+  { name: 'Repeat', kind: 'Play', def: 'Pay the listed extra cost when casting this spell to execute its instructions one additional time, with new choices.' },
+  { name: 'Hidden', kind: 'Play', def: 'Pay 1 Power to place this card facedown at a battlefield you control (one facedown per battlefield). From your next turn it can be played from there for free, at Reaction speed.', tip: 'A visible facedown card changes how opponents attack that battlefield, even if it is a bluff.' },
+  { name: 'Unique', kind: 'Play', def: 'Deckbuilding restriction: you can only run 1 copy of this card.' },
+  { name: 'Ganking', kind: 'Movement', def: 'This unit\'s move can also go battlefield to battlefield, not just base to battlefield and back.' },
+  { name: 'Ambush', kind: 'Movement', def: 'Can be played directly to a battlefield where you control units, at Reaction speed. Reinforcements mid-fight.' },
+  { name: 'Deathknell', kind: 'Trigger', def: 'When this unit dies, the listed effect happens. Death insurance that makes trades awkward for the opponent.' },
+  { name: 'Temporary', kind: 'Trigger', def: 'This unit dies automatically at the start of your Beginning Phase, before scoring. Rented muscle.' },
+  { name: 'Vision', kind: 'Trigger', def: 'When played: look at the top card of your main deck and optionally recycle it to the bottom.' },
+  { name: 'Predict', kind: 'Trigger', def: 'Look at the top X cards of your main deck, recycle any you do not want, and put the rest back in any order.' },
+  { name: 'Hunt', kind: 'Trigger', def: 'When this unit Conquers or Holds, you gain X XP, a public player-level resource some cards feed on.' },
+  { name: 'Level', kind: 'Trigger', def: 'The ability after Level N is only active while you have N or more XP. Cards that grow with your game progress.' },
+  { name: 'Equip', kind: 'Equipment', def: 'An activated ability on Equipment gear: pay the cost to attach it to a unit you control. The gear\'s lower text and Might bonus apply to the wearer.' },
+  { name: 'Quick-Draw', kind: 'Equipment', def: 'This Equipment has Reaction, and when played it attaches immediately to a friendly unit without paying its Equip cost.' },
+  { name: 'Weaponmaster', kind: 'Equipment', def: 'When this unit is played, you may attach an Equipment to it at a discount of 1 Power off its Equip cost.' },
+  { name: 'Buff', kind: 'Term', def: 'A counter worth +1 Might. A unit holds at most one buff at a time, and some effects spend buffs as a cost.' },
+  { name: 'Add', kind: 'Term', def: 'Puts Energy or Power into your rune pool. Add abilities resolve instantly and can even be used mid-payment.' },
+]
+
+export var SETS = [
+  { code: 'OGN', name: 'Origins', date: 'Oct 2025',
+    desc: 'The launch set: 298 cards, 12 Legends, and the full core of the game. Everything from Jinx to Kadregrin the Infernal starts here, along with the base keyword set (Tank, Accelerate, Hidden, Deathknell, and friends).',
+    showcase: ['Kadregrin the Infernal', 'Jinx - Rebel', 'Immortal Phoenix'] },
+  { code: 'OGS', name: 'Origins: Proving Grounds', date: 'Oct 2025',
+    desc: 'The learn-to-play box: four ready-built starter decks (Annie, Master Yi, Lux, Garen) with boards, oversized battlefields, and a set of exclusive cards. Still the best first purchase for a new player.',
+    showcase: ['Firestorm', 'Flash', 'Blast of Power'] },
+  { code: 'SFD', name: 'Spiritforged', date: 'Feb 2026',
+    desc: 'The equipment set. Introduced Equipment gear with Equip costs, Quick-Draw, and Weaponmaster, plus Repeat spells. Suddenly your units had swords, and B.F. Sword meant something in a card game again.',
+    showcase: ['B.F. Sword', 'Azir - Sovereign', 'Arcane Shift'] },
+  { code: 'UNL', name: 'Unleashed', date: 'May 2026',
+    desc: 'The current set. Added the XP and Level system, Hunt, Ambush reinforcements, Backline positioning, and Predict. Also the set that put Baron Nashor on a card with 12 Might.',
+    showcase: ['Baron Nashor', 'Alpha Wildclaw', 'Chakram Dancer'] },
+  { code: 'VEN', name: 'Vendetta', date: 'Late Jul 2026',
+    desc: 'Announced: the next set, and the first with a simultaneous global release. Preview season starts July 6. A smaller set (166 cards, 9 Legends) introducing new domain pairings, plus the first Showdown Decks product (Shen vs Zed). Cards land in the library here once the set is out.',
+    showcase: [] },
+  { code: 'RAD', name: 'Radiance', date: 'Oct 2026',
+    desc: 'Announced for late 2026. Details are still thin; expect spoiler season a few weeks before release.',
+    showcase: [] },
+]
+
+export var TIER_LABELS = {
+  S: { label: 'Tier S', desc: 'Format-defining. Expected to top cut and contend for the win in high-stakes events.' },
+  1: { label: 'Tier 1', desc: 'Strong contender for a top 16-32 finish; usually a win or two short of top 8.' },
+  2: { label: 'Tier 2', desc: 'Competes for top 64 with an experienced pilot who knows the legend and the metagame well.' },
+  3: { label: 'Tier 3', desc: 'Can spike a good run when the matchups and draws line up, but not a consistent top performer.' },
+}
+
+export var TIER_ORDER = ['S', '1', '2', '3']

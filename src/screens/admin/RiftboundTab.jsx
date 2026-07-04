@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase.js'
 import { Btn, Inp, Icon, Sel } from '../../components/ui'
-import { DOMAINS, TIER_ORDER, TIER_LABELS } from '../../lib/riftboundContent.js'
+import { DOMAINS, TIER_ORDER, TIER_LABELS } from '../../lib/riftbound/content.js'
 
 var SETTING_KEY = 'riftbound_meta'
 
