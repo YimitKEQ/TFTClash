@@ -9,15 +9,17 @@ import CardLibrary from './riftbound/CardLibrary.jsx'
 import KeywordsSection from './riftbound/KeywordsSection.jsx'
 import MetaSection from './riftbound/MetaSection.jsx'
 import SetsSection from './riftbound/SetsSection.jsx'
+import CompanionSection from './riftbound/CompanionSection.jsx'
 
 var TABS = [
-  { id: 'tutorial', label: 'Tutorial',     icon: 'play_circle' },
-  { id: 'learn',    label: 'How to Play',  icon: 'school' },
-  { id: 'domains',  label: 'Domains',      icon: 'category' },
-  { id: 'cards',    label: 'Card Library', icon: 'style' },
-  { id: 'keywords', label: 'Keywords',     icon: 'menu_book' },
-  { id: 'meta',     label: 'Meta',         icon: 'trending_up' },
-  { id: 'sets',     label: 'Sets',         icon: 'inventory_2' },
+  { id: 'tutorial',  label: 'Tutorial',     icon: 'play_circle' },
+  { id: 'learn',     label: 'How to Play',  icon: 'school' },
+  { id: 'companion', label: 'Companion',    icon: 'table_restaurant' },
+  { id: 'domains',   label: 'Domains',      icon: 'category' },
+  { id: 'cards',     label: 'Card Library', icon: 'style' },
+  { id: 'keywords',  label: 'Keywords',     icon: 'menu_book' },
+  { id: 'meta',      label: 'Meta',         icon: 'trending_up' },
+  { id: 'sets',      label: 'Sets',         icon: 'inventory_2' },
 ]
 
 // Legends fanned behind the hero. Picked for art variety across domains.
@@ -170,13 +172,14 @@ export default function RiftboundScreen() {
           })}
         </PillTabGroup>
 
-        {tab === 'tutorial' && <TutorialSection />}
-        {tab === 'learn'    && <LearnSection />}
-        {tab === 'domains'  && <DomainsSection />}
-        {tab === 'cards'    && <CardLibrary />}
-        {tab === 'keywords' && <KeywordsSection />}
-        {tab === 'meta'     && <MetaSection />}
-        {tab === 'sets'     && <SetsSection />}
+        {tab === 'tutorial'  && <TutorialSection />}
+        {tab === 'learn'     && <LearnSection />}
+        {tab === 'companion' && <CompanionSection />}
+        {tab === 'domains'   && <DomainsSection />}
+        {tab === 'cards'     && <CardLibrary />}
+        {tab === 'keywords'  && <KeywordsSection />}
+        {tab === 'meta'      && <MetaSection />}
+        {tab === 'sets'      && <SetsSection />}
 
         <p className="mt-10 text-[10px] text-on-surface-variant/35 leading-relaxed max-w-2xl">
           TFT Clash is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riftbound, League of Legends, and Riot Games are trademarks or registered trademarks of Riot Games, Inc. Card images are property of Riot Games.

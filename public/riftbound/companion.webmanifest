@@ -1,0 +1,16 @@
+{
+  "name": "Riftbound Table Companion",
+  "short_name": "RB Companion",
+  "description": "In-person Riftbound game companion by TFT Clash: points, runes, battlefields, combat math, and full undo.",
+  "start_url": "/riftbound/companion.html",
+  "scope": "/riftbound/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#010A13",
+  "theme_color": "#010A13",
+  "icons": [
+    { "src": "/riftbound/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/riftbound/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/riftbound/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
