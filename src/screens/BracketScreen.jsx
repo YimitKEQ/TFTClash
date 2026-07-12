@@ -468,16 +468,25 @@ function BracketScreen(){
   var checkmate=useMemo(function(){
     if(!isCheckmate)return {winner:null,progress:{}};
     var startR=finalsStartRound>0?finalsStartRound:round;
+    var dbTid=tournamentState&&tournamentState.dbTournamentId?String(tournamentState.dbTournamentId):"";
     var rows=[];
     checkedIn.forEach(function(p){
       (p.clashHistory||[]).forEach(function(h){
-        if(h.clashId!==currentClashId)return;
+        // clashHistory entries come from two sources with different shapes:
+        // locally-submitted-this-session entries carry `clashId`+`pts`, while
+        // entries reloaded from game_results (AppContext's realtime-triggered
+        // refetch, which fires often mid-clash) carry `tournamentId`+`points`
+        // and never have `clashId`. Match either shape so a refetch never
+        // silently zeroes out live finals progress.
+        var matchesClash=h.clashId===currentClashId||(dbTid&&h.tournamentId!=null&&String(h.tournamentId)===dbTid);
+        if(!matchesClash)return;
         if((h.round||0)<startR)return;
-        rows.push({player_id:p.id,game_number:h.round,placement:(h.place||h.placement)||9,points:(h.pts||0)});
+        var pts=h.pts!=null?h.pts:(h.points||0);
+        rows.push({player_id:p.id,game_number:h.round,placement:(h.place||h.placement)||9,points:pts});
       });
     });
     return {winner:checkCheckmateWinner(rows,finalsThreshold),progress:checkmateProgress(rows)};
-  },[isCheckmate,finalsStartRound,round,checkedIn,currentClashId,finalsThreshold]);
+  },[isCheckmate,finalsStartRound,round,checkedIn,currentClashId,finalsThreshold,tournamentState.dbTournamentId]);
 
   var checkmateWinner=checkmate.winner;
   var checkmateWinnerPlayer=checkmateWinner?checkedIn.find(function(p){return p.id===checkmateWinner.winnerId;}):null;
