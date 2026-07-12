@@ -13,7 +13,11 @@ function computeLifetimeRecords(pastClashes) {
   for (var i = 0; i < pastClashes.length; i++) {
     var c = pastClashes[i]
     if (!c) continue
-    if (c.champion) {
+    // 'Unknown' is a placeholder for a completed clash with no recorded
+    // tournament_results (a historical data gap), not a real champion - never
+    // let it accumulate crowns or "best run" credit.
+    var hasRealChampion = c.champion && c.champion !== 'Unknown'
+    if (hasRealChampion) {
       var key = String(c.champion)
       champCounts[key] = (champCounts[key] || 0) + 1
     }
@@ -21,9 +25,9 @@ function computeLifetimeRecords(pastClashes) {
     // total (set when the clash is finalized in ClashReportScreen). Treating
     // it as the per-champion run score is correct here.
     var pts = Number(c.pts || 0)
-    if (pts > topScore) {
+    if (hasRealChampion && pts > topScore) {
       topScore = pts
-      topScoreChamp = c.champion || null
+      topScoreChamp = c.champion
     }
     prizeTotal += Number(c.prize_pool || c.prizePool || 0) || 0
   }
