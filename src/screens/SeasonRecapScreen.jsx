@@ -6,7 +6,7 @@ import { Btn, Icon } from '../components/ui'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
+function buildNarrativeParts(player, s, position, totalPlayers, seasonName, isChampion) {
   var name = player.name || 'You'
   var winRate = s.top1Rate || 0
   var avp = s.avgPlacement || '-'
@@ -20,7 +20,12 @@ function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
       { text: ' recorded so far. Keep climbing.', highlight: false },
     ]
   }
-  if (position === 1) {
+  // The Champion narrative is reserved for whoever actually won the season -
+  // once a finale/playoffs has been played, that is the finale winner, not
+  // necessarily whoever has banked the most raw season points (a real but
+  // separate distinction; a top-3 points finish still gets its own narrative
+  // below).
+  if (isChampion) {
     return [
       { text: name + ' stood above every challenger this season. ', highlight: false },
       { text: wins + ' victories', highlight: true },
@@ -155,8 +160,10 @@ export default function SeasonRecapScreen() {
   var sorted = players.slice().sort(function(a, b) { return b.pts - a.pts })
   var position = sorted.findIndex(function(p) { return p.id === player.id }) + 1
   var totalPlayers = players.length
+  var resolvedChampion = ctx.seasonChampion
+  var isChampion = !!(resolvedChampion && resolvedChampion.name && player.name && String(resolvedChampion.name).toLowerCase() === String(player.name).toLowerCase())
 
-  var narrativeParts = buildNarrativeParts(player, s, position, totalPlayers, seasonName)
+  var narrativeParts = buildNarrativeParts(player, s, position, totalPlayers, seasonName, isChampion)
   var topPct = topPercentLabel(position, totalPlayers)
   var rankLabel = getRankLabel(player)
   var highlights = buildHighlights(player, s, awards, seasonTag)

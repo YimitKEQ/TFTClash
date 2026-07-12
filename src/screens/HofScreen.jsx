@@ -205,9 +205,17 @@ export default function HofScreen(props) {
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var competedSorted = sorted.filter(function(p) { return (p.games || 0) > 0 || (p.pts || 0) > 0 || (p.wins || 0) > 0 })
-  var king = competedSorted[0] || null
+  // The site-wide champion resolution (ctx.seasonChampion) prefers a completed
+  // finale's winner over raw points - a decided playoffs champion is not
+  // necessarily the same player as whoever has banked the most points across
+  // the whole season. Fall back to the raw points leader only if no champion
+  // has been resolved yet (matches the pre-finale behavior exactly).
+  var resolvedChampion = ctx.seasonChampion
+  var king = (resolvedChampion && resolvedChampion.name)
+    ? (players.find(function(p) { return p.name === resolvedChampion.name }) || competedSorted[0] || null)
+    : (competedSorted[0] || null)
   var kingStats = king ? getStats(king) : null
-  var challengers = competedSorted.slice(1, 4)
+  var challengers = king ? competedSorted.filter(function(p) { return p.id !== king.id }).slice(0, 3) : competedSorted.slice(1, 4)
   var kingGap = challengers[0] ? (king.pts || 0) - (challengers[0].pts || 0) : 0
 
   function openProfile(name) {
@@ -233,7 +241,12 @@ export default function HofScreen(props) {
     }
   })
 
-  var SEASON_CHAMPS = king
+  // A decided finale already appears in pastChamps (e.g. "Grand Final" ->
+  // wondeR) with status 'past' - don't also synthesize a duplicate 'active'
+  // entry for the same person. Only synthesize the in-progress entry when the
+  // season has no finale yet and king is just the current points leader.
+  var seasonDecided = resolvedChampion && resolvedChampion.title === 'Season Champion'
+  var SEASON_CHAMPS = (king && !seasonDecided)
     ? pastChamps.concat([{ season: 'S1', champion: king.name, pts: king.pts, rank: king.rank, wins: king.wins, status: 'active' }])
     : pastChamps
 
@@ -357,7 +370,7 @@ export default function HofScreen(props) {
 
                 <div className="relative z-10">
                   <div className="inline-block px-4 py-1 font-label font-bold text-xs tracking-widest mb-4 bg-primary text-on-primary">
-                    {'SEASON ' + (seasonConfig && seasonConfig.seasonNumber || 1) + ' LEADER'}
+                    {'SEASON ' + (seasonConfig && seasonConfig.seasonNumber || 1) + ' ' + ((resolvedChampion && resolvedChampion.title === 'Season Champion') ? 'CHAMPION' : 'LEADER')}
                   </div>
                   <h2
                     className="font-editorial text-3xl sm:text-5xl md:text-7xl text-on-surface mb-2 cursor-pointer hover:text-primary transition-colors"

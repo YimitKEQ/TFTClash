@@ -1148,7 +1148,7 @@ export function AppProvider(props) {
   var playersLoadedCount=players.length;
   useEffect(function(){
     if(!supabase.from||!playersLoadedCount)return;
-    supabase.from('tournaments').select('id,name,date').eq('phase','complete').eq('type','season_clash').is('archived_at',null).order('date',{ascending:false}).limit(50)
+    supabase.from('tournaments').select('id,name,date,is_finale').eq('phase','complete').eq('type','season_clash').is('archived_at',null).order('date',{ascending:false}).limit(50)
       .then(function(res){
         if(res.error){return;}
         if(!res.data||!res.data.length){setPastClashes([]);return;}
@@ -1165,7 +1165,7 @@ export function AppProvider(props) {
                 var p=playersCopy.find(function(pl){return String(pl.id)===String(r.player_id);});
                 return p?p.name:('Player '+r.player_id);
               });
-              return{id:t.id,name:t.name,date:t.date,season:'S1',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8};
+              return{id:t.id,name:t.name,date:t.date,season:'S1',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8,isFinale:!!t.is_finale};
             });
             setPastClashes(clashes);
           });
@@ -1351,16 +1351,30 @@ export function AppProvider(props) {
       });
   },[isAdmin]);
 
-  // ── Compute season champion from live standings ──
+  // ── Compute season champion ──
+  // A completed FINALE overrides raw season-points ranking. Once a season has a
+  // decided playoffs/finals winner, that result IS the champion - not whoever
+  // has banked the most cumulative points across the whole season (a different,
+  // honest metric that the raw leaderboard still shows correctly on its own).
+  // Falls back to the points leader only when no finale has been played yet.
   var computedChampion=useMemo(function(){
     if(!players||players.length===0)return null;
+    var finales=(pastClashes||[]).filter(function(c){return c&&c.isFinale;});
+    if(finales.length>0){
+      var finale=finales.slice().sort(function(a,b){return String(b.date||"").localeCompare(String(a.date||""));})[0];
+      var champLower=finale.champion?String(finale.champion).toLowerCase():"";
+      var champPlayer=champLower?players.find(function(p){return p.name&&String(p.name).toLowerCase()===champLower;}):null;
+      if(champPlayer){
+        return{name:champPlayer.name,title:"Season Champion",season:seasonConfig.name||"Season 1",since:finale.date||"",pts:champPlayer.pts||0,wins:champPlayer.wins||0,rank:champPlayer.rank||"Challenger",tournamentName:finale.name||""};
+      }
+    }
     var scSorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
     var scTop=scSorted[0];
     if(scTop&&scTop.pts>0){
       return{name:scTop.name,title:"Season Leader",season:seasonConfig.name||"Season 1",since:"",pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
     }
     return null;
-  },[players,seasonConfig]);
+  },[players,seasonConfig,pastClashes]);
   useEffect(function(){ setSeasonChampion(computedChampion); },[computedChampion]);
 
   // ── Compute user tier ──
@@ -1431,7 +1445,8 @@ export function AppProvider(props) {
       loadPlayersFromTable: loadPlayersFromTable,
 
       // Derived
-      userTier: userTier
+      userTier: userTier,
+      seasonChampion: computedChampion
     };
   }, [
     screen, subRoute,
@@ -1447,7 +1462,7 @@ export function AppProvider(props) {
     subscriptions, subscriptionsLoaded, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
     userTier, pendingResults, allPendingResults, liveResults,
-    passwordRecovery
+    passwordRecovery, computedChampion
   ]);
 
   return React.createElement(AppContext.Provider, {value: value}, children);

@@ -68,10 +68,34 @@ async function getPlayerTier(authUserId) {
 }
 
 /**
- * Check if a player is the season champion.
+ * Check if a player is the season champion. A completed finale overrides raw
+ * season_pts ranking - mirrors the site's computedChampion logic in
+ * AppContext.jsx exactly, so the Discord role and the website badge never
+ * disagree about who actually won the season.
  */
 async function isSeasonChampion(username) {
   try {
+    var finaleRes = await supabase
+      .from('tournaments')
+      .select('id,date')
+      .eq('phase', 'complete')
+      .eq('type', 'season_clash')
+      .eq('is_finale', true)
+      .is('archived_at', null)
+      .order('date', { ascending: false })
+      .limit(1);
+    if (!finaleRes.error && finaleRes.data && finaleRes.data.length) {
+      var winnerRes = await supabase
+        .from('tournament_results')
+        .select('player_id, players(username)')
+        .eq('tournament_id', finaleRes.data[0].id)
+        .eq('final_placement', 1)
+        .limit(1);
+      if (!winnerRes.error && winnerRes.data && winnerRes.data.length) {
+        var winnerName = winnerRes.data[0].players && winnerRes.data[0].players.username;
+        if (winnerName) return winnerName === username;
+      }
+    }
     var standings = await supabase
       .from('players')
       .select('username')
