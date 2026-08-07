@@ -1,21 +1,35 @@
 /**
- * /scorecard [member] - ephemeral per-member accountability scorecard.
+ * /scorecard [member] - one crew member's accountability standing.
  *
- * With a member option, scores that crew member. Without one, scores the caller
- * (mapped via BT_CREW_DISCORD), or explains how to pick one when unmapped.
+ * Leads with a standing and a plain-language verdict rather than six bare
+ * counters, so the card is usable as a nudge instead of as a stat dump. With a
+ * member option it scores that person; without one it scores the caller
+ * (mapped via BT_CREW_DISCORD).
+ *
+ * Copy rule: zero em or en dashes anywhere in user-facing strings.
  */
 
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { fetchCards } from '../lib/board.js';
 import { BT_CREW, crewNameForDiscordId, matchCrewName } from '../config/crew.js';
-import { memberScorecard } from '../lib/scoring.js';
-import { EMBED_COLORS } from '../lib/embeds.js';
+import { memberScorecard, accountabilityStanding } from '../lib/scoring.js';
+import {
+  BRAND,
+  DOT,
+  MARK,
+  bar,
+  baseEmbed,
+  eyebrow,
+} from '../lib/ui.js';
 
 var CREW_CHOICES = BT_CREW.map(function(m) { return { name: m.name, value: m.name }; });
 
+var ROLE_BY_NAME = {};
+BT_CREW.forEach(function(m) { ROLE_BY_NAME[m.name] = m.role; });
+
 export var data = new SlashCommandBuilder()
   .setName('scorecard')
-  .setDescription('Show a crew member\'s accountability scorecard')
+  .setDescription('Show a crew member\'s accountability standing')
   .addStringOption(function(opt) {
     opt
       .setName('member')
@@ -38,7 +52,7 @@ export async function execute(interaction) {
       content:
         'I do not have you mapped to a board name yet, so I cannot guess whose scorecard to show.\n' +
         'Pass the `member` option, or ask whoever runs the bot to add you to BT_CREW_DISCORD as ' +
-        '`"YourBoardName": "' + interaction.user.id + '"` and redeploy.',
+        '`"YourBoardName": "' + interaction.user.id + '"` and restart.',
     });
   }
 
@@ -49,20 +63,34 @@ export async function execute(interaction) {
     return interaction.editReply({ content: 'Could not read the board right now. Try again shortly.' });
   }
 
-  var card = memberScorecard(cards, name);
+  await interaction.editReply({ embeds: [scorecardEmbed(name, cards, new Date())] });
+}
 
-  var embed = new EmbedBuilder()
-    .setColor(EMBED_COLORS.brand)
-    .setTitle('Scorecard: ' + name)
-    .addFields(
-      { name: 'Shipped this week', value: String(card.shippedThisWeek), inline: true },
-      { name: 'Active', value: String(card.active), inline: true },
-      { name: 'Due soon', value: String(card.dueSoon), inline: true },
-      { name: 'Overdue', value: String(card.overdue), inline: true },
-      { name: 'Stuck', value: String(card.stuck), inline: true },
-      { name: 'Blocked', value: String(card.blocked), inline: true }
-    )
-    .setTimestamp();
+/**
+ * The standing card. Pure, so the preview renderer and the tests can build the
+ * real thing without a Discord connection or a database.
+ */
+export function scorecardEmbed(name, cards, now) {
+  var card = memberScorecard(cards, name, now);
+  var standing = accountabilityStanding(card);
+  var role = ROLE_BY_NAME[name];
 
-  await interaction.editReply({ embeds: [embed] });
+  var embed = baseEmbed({
+    color: standing.color,
+    author: BRAND.name + '  ' + MARK.arrow + '  standing' + (role ? '  ' + MARK.arrow + '  ' + role : ''),
+    title: name + '  ' + MARK.arrow + '  ' + standing.band,
+    description: '`' + bar(standing.score, 100, 16) + '`  ' + standing.score + '/100\n' + standing.verdict,
+    footer: 'Shipped counts the last 7 days  ' + MARK.arrow + '  /mytasks for the actual cards',
+  });
+
+  embed.addFields(
+    { name: eyebrow('Shipped 7d'), value: (card.shippedThisWeek ? MARK.shipped + ' ' : '') + card.shippedThisWeek, inline: true },
+    { name: eyebrow('Active'), value: String(card.active), inline: true },
+    { name: eyebrow('Due soon'), value: (card.dueSoon ? DOT.soon + ' ' : '') + card.dueSoon, inline: true },
+    { name: eyebrow('Overdue'), value: (card.overdue ? DOT.danger + ' ' : '') + card.overdue, inline: true },
+    { name: eyebrow('Gone quiet'), value: (card.stuck ? DOT.warn + ' ' : '') + card.stuck, inline: true },
+    { name: eyebrow('Blocked'), value: (card.blocked ? MARK.blocked + ' ' : '') + card.blocked, inline: true }
+  );
+
+  return embed;
 }

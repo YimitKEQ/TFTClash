@@ -1,50 +1,81 @@
 /**
- * /metrics - log and view BrosephTech channel growth (YouTube, TikTok, Patreon,
- * average views). Snapshots feed the dashboard's "Channel metrics" section and
- * its sparkline trend.
+ * /metrics - log and view channel growth (YouTube, TikTok, Patreon, avg views).
  *
  *   /metrics log yt:1200 tiktok:8400 ...   record today's numbers
- *   /metrics show                          show the latest snapshot + deltas
+ *   /metrics show                          latest snapshot, deltas, and trend
  *
- * Any field you leave out of /metrics log is carried forward from the last
- * snapshot, so a partial update never looks like a drop to zero.
+ * Any field left out of /metrics log is carried forward from the last snapshot,
+ * so a partial update never looks like a drop to zero.
+ *
+ * /metrics show draws a unicode sparkline per channel from the stored history,
+ * which turns a column of numbers into a shape you can read in one glance.
+ *
+ * Copy rule: zero em or en dashes anywhere in user-facing strings.
  */
 
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { supabase } from '../lib/supabase.js';
+import {
+  BRAND,
+  COLOR,
+  MARK,
+  baseEmbed,
+  delta,
+  eyebrow,
+  spark,
+} from '../lib/ui.js';
 
-function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
-function deltaStr(cur, prev) {
-  if (cur == null || prev == null) return '';
-  var d = cur - prev;
-  if (d === 0) return '  (no change)';
-  return '  (' + (d > 0 ? '+' : '') + d.toLocaleString() + ')';
+// The channels tracked, in display order. One list drives the log options, the
+// readout, and the trend, so adding a platform is a one-line change.
+var CHANNELS = [
+  { key: 'yt_subs', option: 'yt', label: 'YouTube', unit: 'subs' },
+  { key: 'tiktok_followers', option: 'tiktok', label: 'TikTok', unit: 'followers' },
+  { key: 'patreon_subs', option: 'patreon', label: 'Patreon', unit: 'members' },
+  { key: 'avg_views', option: 'avgviews', label: 'Avg views', unit: 'per video' },
+];
+
+var HISTORY_LIMIT = 14;
+
+function fmt(n) {
+  return n == null ? '-' : Number(n).toLocaleString();
 }
 
-async function latestSnapshot() {
+async function history(limit) {
   var res = await supabase
     .from('bt_metrics_snapshots')
     .select('snapshot_date, yt_subs, tiktok_followers, patreon_subs, avg_views, created_at')
     .order('snapshot_date', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(1);
-  if (res.error || !res.data || !res.data.length) return null;
-  return res.data[0];
+    .limit(limit);
+  if (res.error || !res.data) return [];
+  return res.data;
+}
+
+// One readout row per channel: value, delta, and the trend shape.
+function channelLines(current, previous, series) {
+  return CHANNELS.map(function(c) {
+    var d = delta(current[c.key], previous ? previous[c.key] : null);
+    var trend = series ? spark((series[c.key] || [])) : '';
+    return '**' + c.label + '**  ' + fmt(current[c.key]) + ' ' + c.unit
+      + (d ? '  ' + MARK.arrow + '  ' + d : '')
+      + (trend ? '\n`' + trend + '`' : '');
+  }).join('\n');
 }
 
 export var data = new SlashCommandBuilder()
   .setName('metrics')
-  .setDescription('Log or view BrosephTech channel growth')
+  .setDescription('Log or view channel growth')
   .addSubcommand(function(s) {
-    return s.setName('log').setDescription('Record the latest channel numbers')
-      .addIntegerOption(function(o) { return o.setName('yt').setDescription('YouTube subscribers').setMinValue(0); })
-      .addIntegerOption(function(o) { return o.setName('tiktok').setDescription('TikTok followers').setMinValue(0); })
-      .addIntegerOption(function(o) { return o.setName('patreon').setDescription('Patreon members').setMinValue(0); })
-      .addIntegerOption(function(o) { return o.setName('avgviews').setDescription('Average views per video').setMinValue(0); })
-      .addStringOption(function(o) { return o.setName('notes').setDescription('Optional note').setMaxLength(280); });
+    var sub = s.setName('log').setDescription('Record the latest channel numbers');
+    CHANNELS.forEach(function(c) {
+      sub.addIntegerOption(function(o) {
+        return o.setName(c.option).setDescription(c.label + ' ' + c.unit).setMinValue(0);
+      });
+    });
+    return sub.addStringOption(function(o) { return o.setName('notes').setDescription('Optional note').setMaxLength(280); });
   })
   .addSubcommand(function(s) {
-    return s.setName('show').setDescription('Show the latest channel metrics');
+    return s.setName('show').setDescription('Show the latest channel metrics and trend');
   });
 
 export async function execute(interaction) {
@@ -56,28 +87,27 @@ export async function execute(interaction) {
 async function logCmd(interaction) {
   await interaction.deferReply();
 
-  var yt = interaction.options.getInteger('yt');
-  var tiktok = interaction.options.getInteger('tiktok');
-  var patreon = interaction.options.getInteger('patreon');
-  var avgviews = interaction.options.getInteger('avgviews');
+  var supplied = {};
+  var any = false;
+  CHANNELS.forEach(function(c) {
+    var v = interaction.options.getInteger(c.option);
+    supplied[c.key] = v;
+    if (v != null) any = true;
+  });
   var notes = interaction.options.getString('notes');
 
-  if (yt == null && tiktok == null && patreon == null && avgviews == null) {
-    await interaction.editReply('Give at least one number, e.g. `/metrics log yt:1200 tiktok:8400`.');
+  if (!any) {
+    await interaction.editReply('Give at least one number, for example `/metrics log yt:1200 tiktok:8400`.');
     return;
   }
 
-  var prev = await latestSnapshot();
-  var pick = function(v, k) { return v != null ? v : (prev && prev[k] != null ? prev[k] : 0); };
+  var rows = await history(1);
+  var prev = rows[0] || null;
 
-  var row = {
-    snapshot_date: new Date().toISOString().split('T')[0],
-    yt_subs: pick(yt, 'yt_subs'),
-    tiktok_followers: pick(tiktok, 'tiktok_followers'),
-    patreon_subs: pick(patreon, 'patreon_subs'),
-    avg_views: pick(avgviews, 'avg_views'),
-    notes: notes || '',
-  };
+  var row = { snapshot_date: new Date().toISOString().split('T')[0], notes: notes || '' };
+  CHANNELS.forEach(function(c) {
+    row[c.key] = supplied[c.key] != null ? supplied[c.key] : (prev && prev[c.key] != null ? prev[c.key] : 0);
+  });
 
   var res = await supabase.from('bt_metrics_snapshots').insert(row).select('*').single();
   if (res.error) {
@@ -85,45 +115,44 @@ async function logCmd(interaction) {
     return;
   }
 
-  var embed = new EmbedBuilder()
-    .setColor(0xE8A020)
-    .setTitle('Metrics logged')
-    .setDescription(
-      'YouTube **' + fmt(row.yt_subs) + '**' + deltaStr(row.yt_subs, prev && prev.yt_subs) + '\n' +
-      'TikTok **' + fmt(row.tiktok_followers) + '**' + deltaStr(row.tiktok_followers, prev && prev.tiktok_followers) + '\n' +
-      'Patreon **' + fmt(row.patreon_subs) + '**' + deltaStr(row.patreon_subs, prev && prev.patreon_subs) + '\n' +
-      'Avg views **' + fmt(row.avg_views) + '**' + deltaStr(row.avg_views, prev && prev.avg_views)
-    )
-    .setFooter({ text: 'BrosephTech - ' + row.snapshot_date })
-    .setTimestamp(new Date());
-  if (notes) embed.addFields({ name: 'Note', value: notes });
+  var embed = baseEmbed({
+    color: COLOR.warn,
+    author: BRAND.name + '  ' + MARK.arrow + '  metrics',
+    title: 'Logged for ' + row.snapshot_date,
+    description: channelLines(row, prev, null),
+    footer: 'Fields you left out were carried forward from the last snapshot',
+  });
+  if (notes) embed.addFields({ name: eyebrow('Note'), value: notes });
 
   await interaction.editReply({ embeds: [embed] });
 }
 
 async function showCmd(interaction) {
   await interaction.deferReply();
-  var res = await supabase
-    .from('bt_metrics_snapshots')
-    .select('snapshot_date, yt_subs, tiktok_followers, patreon_subs, avg_views, created_at')
-    .order('snapshot_date', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(2);
-  if (res.error || !res.data || !res.data.length) {
+
+  var rows = await history(HISTORY_LIMIT);
+  if (!rows.length) {
     await interaction.editReply('No metrics logged yet. Use `/metrics log` to start tracking.');
     return;
   }
-  var cur = res.data[0];
-  var prev = res.data[1] || null;
-  var embed = new EmbedBuilder()
-    .setColor(0xE8A020)
-    .setTitle('Channel metrics')
-    .setDescription(
-      'YouTube **' + fmt(cur.yt_subs) + '**' + deltaStr(cur.yt_subs, prev && prev.yt_subs) + '\n' +
-      'TikTok **' + fmt(cur.tiktok_followers) + '**' + deltaStr(cur.tiktok_followers, prev && prev.tiktok_followers) + '\n' +
-      'Patreon **' + fmt(cur.patreon_subs) + '**' + deltaStr(cur.patreon_subs, prev && prev.patreon_subs) + '\n' +
-      'Avg views **' + fmt(cur.avg_views) + '**' + deltaStr(cur.avg_views, prev && prev.avg_views)
-    )
-    .setFooter({ text: 'As of ' + cur.snapshot_date });
+
+  var current = rows[0];
+  var previous = rows[1] || null;
+
+  // Oldest to newest, so the sparkline reads left to right like a chart.
+  var chrono = rows.slice().reverse();
+  var series = {};
+  CHANNELS.forEach(function(c) {
+    series[c.key] = chrono.map(function(r) { return r[c.key] || 0; });
+  });
+
+  var embed = baseEmbed({
+    color: COLOR.warn,
+    author: BRAND.name + '  ' + MARK.arrow + '  metrics',
+    title: 'Channel growth',
+    description: channelLines(current, previous, series),
+    footer: 'As of ' + current.snapshot_date + '  ' + MARK.arrow + '  trend over the last ' + rows.length + ' snapshot(s)',
+  });
+
   await interaction.editReply({ embeds: [embed] });
 }

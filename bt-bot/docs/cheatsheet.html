@@ -64,16 +64,39 @@
       <div class="sec">
         <h2>Commands</h2>
         <table>
+          <tr><td class="k">/guide</td><td class="d">this sheet in Discord, with walkthroughs</td></tr>
           <tr><td class="k">/record</td><td class="d">start · stop · status · jiracheck</td></tr>
-          <tr><td class="k">/dashboard</td><td class="d">live snapshot embed + Refresh</td></tr>
-          <tr><td class="k">/metrics</td><td class="d">log · show channel growth</td></tr>
+          <tr><td class="k">/dashboard</td><td class="d">live command centre + Refresh</td></tr>
+          <tr><td class="k">/mytasks</td><td class="d">your own cards, worst first</td></tr>
+          <tr><td class="k">/board · /blocked</td><td class="d">the kanban, and what cannot move</td></tr>
+          <tr><td class="k">/scorecard</td><td class="d">a crew member's standing</td></tr>
           <tr><td class="k">/meeting</td><td class="d">capture from pasted notes</td></tr>
-          <tr><td class="k">/board</td><td class="d">board health summary</td></tr>
-          <tr><td class="k">/mytasks</td><td class="d">your active / overdue cards</td></tr>
-          <tr><td class="k">/scorecard</td><td class="d">a crew member's accountability</td></tr>
-          <tr><td class="k">/card add</td><td class="d">create a board card</td></tr>
-          <tr><td class="k">/blocked</td><td class="d">cards still needing unblocking</td></tr>
+          <tr><td class="k">/metrics</td><td class="d">log · show channel growth</td></tr>
           <tr><td class="k">/standup · /digest</td><td class="d">post standup / weekly digest now</td></tr>
+          <tr><td class="k">/setup</td><td class="d">build the HQ channels, re-runnable</td></tr>
+        </table>
+      </div>
+
+      <div class="sec">
+        <h2>Driving a card (autocomplete on the title)</h2>
+        <table>
+          <tr><td class="k">/card add</td><td class="d">create it in Ideas</td></tr>
+          <tr><td class="k">/card done</td><td class="d">ship it to Published</td></tr>
+          <tr><td class="k">/card move</td><td class="d">push it to another column</td></tr>
+          <tr><td class="k">/card block</td><td class="d">flag it, with what it waits on</td></tr>
+          <tr><td class="k">/card unblock</td><td class="d">clear the flag</td></tr>
+          <tr><td class="k">/card assign</td><td class="d">hand it to someone</td></tr>
+        </table>
+      </div>
+
+      <div class="sec">
+        <h2>Status at a glance</h2>
+        <table>
+          <tr><td class="k">red</td><td class="d">overdue</td></tr>
+          <tr><td class="k">orange</td><td class="d">gone quiet, 5 days untouched</td></tr>
+          <tr><td class="k">yellow</td><td class="d">due within 2 days</td></tr>
+          <tr><td class="k">green</td><td class="d">healthy and moving</td></tr>
+          <tr><td class="k">no entry</td><td class="d">blocked, sorts first everywhere</td></tr>
         </table>
       </div>
     </div>
@@ -84,6 +107,16 @@
         <div class="env">http://&lt;host&gt;:&lt;port&gt;/?k=<span class="c">YOUR_TOKEN</span></div>
         <p style="margin:7px 0 0;color:#4b5560"><b>Do next</b> (what to act on now), <b>Latest meeting</b> recap, KPIs, department donut, board pipeline, per-crew load, work needing attention, a live <b>Jira kanban</b>, and meeting history. Read-only; auto-refreshes every 20s. Add <code>&amp;demo=1</code> to preview.</p>
       </div>
+      <div class="sec">
+        <h2>Schedules</h2>
+        <table>
+          <tr><td class="k">09:30 daily</td><td class="d">standup: what needs a human today</td></tr>
+          <tr><td class="k">12:00 daily</td><td class="d">blocked sweep, owners pinged</td></tr>
+          <tr><td class="k">18:00 daily</td><td class="d">private nudge, only if you owe something</td></tr>
+          <tr><td class="k">Mon 09:00</td><td class="d">weekly digest: who shipped what</td></tr>
+        </table>
+      </div>
+
       <div class="sec">
         <h2>Setup (bt-bot/.env)</h2>
         <div class="env">

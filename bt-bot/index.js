@@ -47,7 +47,11 @@ var client = new Client({
 });
 
 // ---- Load slash commands -----------------------------------------------------
+// A command owns its own interactive pieces. Exporting `componentIds` registers
+// the customId prefixes it answers to, so adding a command with buttons never
+// means editing a hardcoded prefix table down in the interaction handler.
 client.commands = new Collection();
+var componentOwners = {};
 var commandFiles = readdirSync(path.join(__dirname, 'commands')).filter(function(f) { return f.endsWith('.js'); });
 for (var i = 0; i < commandFiles.length; i++) {
   var file = commandFiles[i];
@@ -55,8 +59,16 @@ for (var i = 0; i < commandFiles.length; i++) {
   var cmd = await import(url);
   if (cmd.data && cmd.execute) {
     client.commands.set(cmd.data.name, cmd);
-    console.log('[cmd] ' + cmd.data.name);
+    var prefixes = Array.isArray(cmd.componentIds) ? cmd.componentIds : [];
+    prefixes.forEach(function(prefix) { componentOwners[prefix] = cmd.data.name; });
+    console.log('[cmd] ' + cmd.data.name + (prefixes.length ? ' (components: ' + prefixes.join(', ') + ')' : ''));
   }
+}
+
+// Map a component customId ("rec:approve:123") to the command that owns it.
+function ownerOfComponent(customId) {
+  var prefix = String(customId || '').split(':')[0];
+  return componentOwners[prefix] || null;
 }
 
 // ---- Ready -------------------------------------------------------------------
@@ -98,10 +110,25 @@ client.on(Events.InteractionCreate, async function(interaction) {
     return;
   }
 
+  // Autocomplete must answer inside about three seconds and must never throw:
+  // an unanswered autocomplete leaves the user staring at a spinner.
+  if (interaction.isAutocomplete()) {
+    var acCmd = client.commands.get(interaction.commandName);
+    if (acCmd && acCmd.autocomplete) {
+      try {
+        await acCmd.autocomplete(interaction);
+      } catch (err) {
+        console.error('[error] autocomplete /' + interaction.commandName + ':', err);
+        await interaction.respond([]).catch(function() {});
+      }
+    }
+    return;
+  }
+
   // Buttons / select menus routed to their owning command by customId prefix.
   if (interaction.isButton() || interaction.isStringSelectMenu()) {
     var cid = String(interaction.customId || '');
-    var ownerName = cid.indexOf('rec:') === 0 ? 'record' : (cid.indexOf('dash:') === 0 ? 'dashboard' : null);
+    var ownerName = ownerOfComponent(cid);
     if (ownerName) {
       var ownerCmd = client.commands.get(ownerName);
       if (ownerCmd && ownerCmd.handleComponent) {

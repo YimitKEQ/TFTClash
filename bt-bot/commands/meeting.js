@@ -13,13 +13,22 @@ import {
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
-  EmbedBuilder,
 } from 'discord.js';
 
 import { BT_DEPARTMENTS } from '../config/crew.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { resolveChannel } from '../lib/channels.js';
+import {
+  BRAND,
+  COLOR,
+  DOT,
+  MARK,
+  baseEmbed,
+  clamp,
+  eyebrow,
+  pack,
+} from '../lib/ui.js';
 
 var DEPT_CHOICES = BT_DEPARTMENTS.map(function(d) { return { name: d.label, value: d.id }; });
 var DEPT_LABEL = {};
@@ -97,29 +106,27 @@ export async function handleModal(interaction) {
     tasks_created: created.length,
   });
 
-  var engineNote = analysis.engine === 'ai' ? 'AI summary' : 'Auto summary (no AI key set)';
+  var engineNote = analysis.engine === 'ai' ? 'AI summary' : 'Auto summary, no AI key set';
 
-  var embed = new EmbedBuilder()
-    .setColor(0x5BA3DB)
-    .setTitle('Meeting captured: ' + title)
-    .setTimestamp(new Date());
-
-  if (analysis.summary) {
-    embed.setDescription(analysis.summary.slice(0, 1024));
-  }
+  var embed = baseEmbed({
+    color: created.length ? COLOR.brand : COLOR.neutral,
+    author: BRAND.name + '  ' + MARK.arrow + '  meeting captured',
+    title: clamp(title, 200),
+    description: analysis.summary ? clamp(analysis.summary, 1400) : '',
+    footer: engineNote + '  ' + MARK.arrow + '  recap logged to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings'),
+  });
 
   if (created.length === 0) {
-    embed.addFields({ name: 'Tasks', value: 'No clear action items were found, so no cards were created. Add bullet points or "TODO" lines and try again.' });
-  } else {
-    var lines = created.slice(0, 20).map(function(c) {
-      var label = DEPT_LABEL[c.department] || c.department || 'Content';
-      return '- ' + c.title + '  (' + label + ')';
+    embed.addFields({
+      name: eyebrow('Tasks'),
+      value: 'No clear action items were found, so no cards were created. Write the actions as bullet points or "TODO" lines and try again.',
     });
-    if (created.length > 20) lines.push('...and ' + (created.length - 20) + ' more');
-    embed.addFields({ name: created.length + ' card(s) created in Ideas/Backlog', value: lines.join('\n').slice(0, 1024) });
+  } else {
+    var lines = created.map(function(c) {
+      return DOT.ok + ' ' + clamp(c.title, 84) + '  ' + MARK.arrow + '  ' + (DEPT_LABEL[c.department] || c.department || 'Content');
+    });
+    embed.addFields({ name: eyebrow('Created in Ideas', created.length), value: pack(lines) });
   }
-
-  embed.setFooter({ text: engineNote + ' - BrosephTech' });
 
   await interaction.editReply({ embeds: [embed] });
 

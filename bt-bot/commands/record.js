@@ -15,7 +15,6 @@
 
 import {
   SlashCommandBuilder,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -32,9 +31,24 @@ import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
 import { createIssue, jiraConfigured, jiraMissingHint, checkJira } from '../lib/jira.js';
 import { resolveChannel } from '../lib/channels.js';
 import { BT_DEPARTMENTS } from '../config/crew.js';
+import {
+  BRAND,
+  COLOR,
+  DOT,
+  MARK,
+  baseEmbed,
+  eyebrow,
+  pack,
+} from '../lib/ui.js';
 
 var DEPT_LABEL = {};
 BT_DEPARTMENTS.forEach(function(d) { DEPT_LABEL[d.id] = d.label; });
+
+// Priority reads as a dot in a list, the same vocabulary the board uses.
+var PRIORITY_DOT = { high: DOT.danger, medium: DOT.soon, low: DOT.ok };
+function priorityDot(p) {
+  return PRIORITY_DOT[String(p || 'medium').toLowerCase()] || DOT.soon;
+}
 
 // token -> { tasks, transcript, summary, meetingTitle, byline, createdBy, selected, engine }
 var PENDING = new Map();
@@ -72,44 +86,46 @@ function bulletList(items, max) {
 function buildRecapEmbed(p, res) {
   var r = p.recap || {};
   var mins = Math.max(1, Math.round((p.durationSeconds || 0) / 60));
-  var embed = new EmbedBuilder()
-    .setColor(0x34D399)
-    .setTitle(clamp('🎙 Recap: ' + p.meetingTitle, 240))
-    .setDescription(clamp(r.tldr || 'No summary.', 1400));
+  var jiraMade = (res.jiraResults || []).filter(function(x) { return x.key; }).length;
 
-  var decisions = bulletList(r.decisions, 6);
-  if (decisions) embed.addFields({ name: '✅ Decisions', value: decisions });
-
-  var next = bulletList(r.next_steps, 6);
-  if (next) embed.addFields({ name: '➡️ Next steps', value: next });
+  var embed = baseEmbed({
+    color: COLOR.success,
+    author: BRAND.name + '  ' + MARK.arrow + '  meeting recap',
+    title: MARK.live + '  ' + clamp(p.meetingTitle, 200),
+    description: clamp(r.tldr || 'No summary.', 1400),
+    footer: (p.engine === 'ai' ? 'AI recap' : 'Auto recap, no AI key set')
+      + '  ' + MARK.arrow + '  transcribed locally with whisper.cpp'
+      + '  ' + MARK.arrow + '  full transcript attached',
+  });
 
   embed.addFields(
-    { name: 'Duration', value: mins + 'm', inline: true },
-    { name: 'Spoke', value: clamp(p.byline || '-', 200), inline: true },
-    { name: 'Tasks', value: String((res.cards || []).length)
-        + (res.jiraOn ? (' (' + (res.jiraResults || []).filter(function(x) { return x.key; }).length + ' Jira)') : ''),
-      inline: true }
+    { name: eyebrow('Length'), value: mins + 'm', inline: true },
+    { name: eyebrow('Spoke'), value: clamp(p.byline || 'unknown', 200), inline: true },
+    { name: eyebrow('Tasks'), value: String((res.cards || []).length) + (res.jiraOn ? ' (' + jiraMade + ' in Jira)' : ''), inline: true }
   );
 
+  var decisions = bulletList(r.decisions, 6);
+  if (decisions) embed.addFields({ name: eyebrow('Decisions'), value: decisions });
+
+  var next = bulletList(r.next_steps, 6);
+  if (next) embed.addFields({ name: eyebrow('Next steps'), value: next });
+
   var blockers = bulletList(r.blockers, 5);
-  if (blockers) embed.addFields({ name: '🚧 Blockers', value: blockers });
+  if (blockers) embed.addFields({ name: eyebrow('Blockers'), value: blockers });
 
   var cardLines = (res.cards || []).map(function(c) {
-    var dept = DEPT_LABEL[c.department] || c.department || 'Content';
-    return '- ' + clamp(c.title, 90) + '  (' + dept + ')';
+    return DOT.ok + ' ' + clamp(c.title, 84) + '  ' + MARK.arrow + '  ' + (DEPT_LABEL[c.department] || c.department || 'Content');
   });
-  if (cardLines.length) embed.addFields({ name: '📋 Board cards', value: clamp(cardLines.join('\n'), 1024) });
+  if (cardLines.length) embed.addFields({ name: eyebrow('Board cards', cardLines.length), value: pack(cardLines) });
 
   if (res.jiraOn) {
     var jLines = (res.jiraResults || []).map(function(x) {
-      if (x.key) return '- [' + x.key + '](' + x.url + ') ' + clamp(x.title, 70);
-      return '- (failed) ' + clamp(x.title, 70);
+      if (x.key) return '[' + x.key + '](' + x.url + ')  ' + clamp(x.title, 70);
+      return MARK.blocked + ' failed  ' + clamp(x.title, 70);
     });
-    if (jLines.length) embed.addFields({ name: '🔗 Jira', value: clamp(jLines.join('\n'), 1024) });
+    if (jLines.length) embed.addFields({ name: eyebrow('Jira', jLines.length), value: pack(jLines) });
   }
 
-  embed.setFooter({ text: (p.engine === 'ai' ? 'AI recap' : 'Auto recap (no AI key)') + ' • whisper.cpp • BrosephTech' })
-    .setTimestamp(new Date());
   return embed;
 }
 
@@ -124,6 +140,9 @@ async function postRecap(interaction, embed, file) {
     console.warn('[record] could not post recap to meetings channel: ' + ((e && e.message) || e));
   }
 }
+
+// customId prefixes this command answers to (see the router in index.js).
+export var componentIds = ['rec'];
 
 export var data = new SlashCommandBuilder()
   .setName('record')
@@ -183,12 +202,13 @@ async function startCmd(interaction) {
     return;
   }
 
-  var embed = new EmbedBuilder()
-    .setColor(0xE05B5B)
-    .setTitle('Recording: ' + voice.name)
-    .setDescription('Capturing the conversation. Everyone who speaks is recorded on their own track. Run /record stop when you are done.')
-    .setFooter({ text: 'Local transcription - audio never leaves this machine' })
-    .setTimestamp(new Date());
+  var embed = baseEmbed({
+    color: COLOR.live,
+    author: BRAND.name + '  ' + MARK.arrow + '  recording',
+    title: MARK.live + '  ' + voice.name,
+    description: 'Capturing the conversation. Everyone who speaks is recorded on their own track, so a pause never cuts the call short.\nRun `/record stop` when you are done.',
+    footer: 'Transcribed locally  ' + MARK.arrow + '  audio never leaves this machine and is deleted after',
+  });
   await interaction.editReply({ embeds: [embed] });
 }
 
@@ -291,11 +311,14 @@ async function stopCmd(interaction) {
     : '';
 
   if (!tasks.length) {
-    var noTaskEmbed = new EmbedBuilder()
-      .setColor(0x5BA3DB)
-      .setTitle('Meeting captured: ' + meetingTitle)
-      .setDescription(clamp((analysis.recap.tldr || analysis.summary || 'No summary.') + noAiNote, 2000))
-      .setFooter({ text: 'No clear action items found - full recap posted to #bt-meetings' });
+    var noTaskEmbed = baseEmbed({
+      color: COLOR.brand,
+      author: BRAND.name + '  ' + MARK.arrow + '  meeting captured',
+      title: MARK.live + '  ' + clamp(meetingTitle, 200),
+      description: clamp((analysis.recap.tldr || analysis.summary || 'No summary.') + noAiNote, 2000),
+      footer: 'No clear action items found  ' + MARK.arrow + '  full recap posted to #'
+        + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings'),
+    });
     var storedRecap0 = Object.assign({}, analysis.recap, { tasks: [] });
     var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0, recap: storedRecap0 });
     await updateVoiceSession(voiceSessionId, { status: 'transcribed', tasksCreated: 0, meetingId: mtg0 && mtg0.id });
@@ -325,26 +348,36 @@ async function stopCmd(interaction) {
 }
 
 // Build the embed + select + buttons for a pending suggestion set.
+//
+// The 900 character transcript preview that used to sit in the middle of this
+// card is gone: the complete transcript is attached to the same message as a
+// file, so the preview was pure noise between the summary and the thing the
+// reader actually has to act on.
 function buildSuggestionMessage(token, p) {
   var selectedSet = p.selected; // null or Set of index strings
   var taskLines = p.tasks.map(function(t, i) {
     var on = !selectedSet || selectedSet.has(String(i));
     var dept = DEPT_LABEL[t.department] || t.department || 'Content';
-    var who = t.assignee ? (' - ' + t.assignee) : '';
-    return (on ? '`x` ' : '`  ` ') + clamp(t.title, 90) + '  (' + dept + ', ' + (t.priority || 'medium') + who + ')';
+    var who = t.assignee ? ('  ' + MARK.arrow + '  ' + t.assignee) : '';
+    return (on ? '`[x]` ' : '`[ ]` ') + priorityDot(t.priority) + ' ' + clamp(t.title, 84)
+      + '  ' + MARK.arrow + '  ' + dept + who;
   });
 
   var aiNote = p.engine !== 'ai'
-    ? '\n\n*Basic extraction (no AI key). Full transcript attached below.*'
+    ? '\n\n*Basic extraction, no AI key set. Set `ANTHROPIC_API_KEY` for real summaries.*'
     : '';
-  var embed = new EmbedBuilder()
-    .setColor(0x5BA3DB)
-    .setTitle('Meeting captured: ' + clamp(p.meetingTitle, 200))
-    .setDescription(clamp((p.summary || 'No summary.') + aiNote, 1400));
-  if (p.byline) embed.addFields({ name: 'Spoke', value: clamp(p.byline, 200) });
-  embed.addFields({ name: 'Transcript (preview - full file attached)', value: clamp(p.transcript, 900) || '-' });
-  embed.addFields({ name: 'Suggested tasks (' + p.tasks.length + ')', value: clamp(taskLines.join('\n'), 1024) });
-  embed.setFooter({ text: (p.engine === 'ai' ? 'AI suggestions' : 'Basic suggestions (set ANTHROPIC_API_KEY)') + ' - pick the real ones, then Create. Full recap posts to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings') });
+
+  var embed = baseEmbed({
+    color: COLOR.brand,
+    author: BRAND.name + '  ' + MARK.arrow + '  meeting captured',
+    title: MARK.live + '  ' + clamp(p.meetingTitle, 200),
+    description: clamp((p.summary || 'No summary.') + aiNote, 1400),
+    footer: 'Tick the real ones, then Create selected  ' + MARK.arrow + '  recap posts to #'
+      + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings'),
+  });
+
+  if (p.byline) embed.addFields({ name: eyebrow('Spoke'), value: clamp(p.byline, 200) });
+  embed.addFields({ name: eyebrow('Suggested tasks', p.tasks.length), value: pack(taskLines) });
 
   var options = p.tasks.map(function(t, i) {
     var dept = DEPT_LABEL[t.department] || t.department || 'Content';
@@ -462,27 +495,27 @@ export async function handleComponent(interaction) {
 
     PENDING.delete(token);
 
-    var resultEmbed = new EmbedBuilder()
-      .setColor(0x34D399)
-      .setTitle('Created ' + chosen.length + ' task(s): ' + clamp(p.meetingTitle, 180))
-      .setTimestamp(new Date());
+    var resultEmbed = baseEmbed({
+      color: COLOR.success,
+      author: BRAND.name + '  ' + MARK.arrow + '  tasks created',
+      title: MARK.shipped + '  ' + chosen.length + ' task' + (chosen.length === 1 ? '' : 's') + ' from ' + clamp(p.meetingTitle, 160),
+      footer: 'Full recap posted to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings'),
+    });
 
     var boardLines = chosen.map(function(t) {
-      var dept = DEPT_LABEL[t.department] || t.department || 'Content';
-      return '- ' + clamp(t.title, 90) + '  (' + dept + ')';
+      return priorityDot(t.priority) + ' ' + clamp(t.title, 84) + '  ' + MARK.arrow + '  ' + (DEPT_LABEL[t.department] || t.department || 'Content');
     });
-    resultEmbed.addFields({ name: cards.length + ' board card(s)', value: clamp(boardLines.join('\n'), 1024) });
+    resultEmbed.addFields({ name: eyebrow('Board cards', cards.length), value: pack(boardLines) });
 
     if (jiraOn) {
       var jLines = jiraResults.map(function(r) {
-        if (r.key) return '- [' + r.key + '](' + r.url + ') ' + clamp(r.title, 70);
-        return '- (failed) ' + clamp(r.title, 70) + ': ' + clamp(r.error, 80);
+        if (r.key) return '[' + r.key + '](' + r.url + ')  ' + clamp(r.title, 70);
+        return MARK.blocked + ' failed  ' + clamp(r.title, 70) + ': ' + clamp(r.error, 80);
       });
-      resultEmbed.addFields({ name: 'Jira issues', value: clamp(jLines.join('\n'), 1024) });
+      resultEmbed.addFields({ name: eyebrow('Jira', jLines.length), value: pack(jLines) });
     } else {
-      resultEmbed.addFields({ name: 'Jira', value: 'Skipped (not configured: ' + jiraMissingHint() + ')' });
+      resultEmbed.addFields({ name: eyebrow('Jira'), value: 'Skipped, not configured: ' + jiraMissingHint() });
     }
-    resultEmbed.addFields({ name: 'Recap', value: 'Posted the full recap to #' + (process.env.BT_MEETINGS_CHANNEL || 'bt-meetings') + '.' });
 
     await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] }).catch(function() {});
 

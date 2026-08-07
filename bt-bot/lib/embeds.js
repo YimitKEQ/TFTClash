@@ -1,127 +1,153 @@
 /**
- * embeds.js - Discord embed + ping builders for the accountability bot.
+ * embeds.js - the daily standup card and the evening nudge.
+ *
+ * The standup leads with a verdict ("3 cards need action today"), not with a
+ * row of numbers, because the whole point of a standup is telling the crew what
+ * to do before they scroll past it. Colors, glyphs, meters, and line packing
+ * all come from lib/ui.js so nothing here is retyped per embed.
  *
  * Copy rule: zero em or en dashes anywhere in user-facing strings.
  */
 
-import { EmbedBuilder } from 'discord.js';
 import { mention } from '../config/crew.js';
-import { staleDays } from './board.js';
-
-var BRAND_BLUE = 0x5BA3DB;
-var WARN_AMBER = 0xE8A020;
-
-function hexToInt(hex) {
-  if (!hex) return BRAND_BLUE;
-  return parseInt(String(hex).replace('#', ''), 16);
-}
+import { staleDays, isOverdue, isDueSoon } from './board.js';
+import {
+  BRAND,
+  COLOR,
+  DOT,
+  MARK,
+  baseEmbed,
+  bar,
+  cardDot,
+  clamp,
+  eyebrow,
+  health,
+  healthMeter,
+  kpiFields,
+  pack,
+  rel,
+} from './ui.js';
 
 function titleOf(card) {
   return (card && (card.title || card.name)) || 'Untitled card';
 }
 
-// One short line describing a card and who owns it.
-function cardLine(card, now) {
-  var owners = [];
+function ownersOf(card) {
   var assignees = Array.isArray(card.assignees) && card.assignees.length
     ? card.assignees
     : (card.assignee ? [card.assignee] : []);
-  assignees.forEach(function(a) { owners.push(mention(a)); });
-  var ownerText = owners.length ? owners.join(', ') : '*unassigned*';
-  return '- **' + titleOf(card) + '** (' + ownerText + ')';
+  if (!assignees.length) return '*unassigned*';
+  return assignees.map(function(a) { return mention(a); }).join(', ');
 }
 
-// Build the daily standup embed from a buildAccountability() result.
+// Why this card is on the attention list, in the reader's own timezone where a
+// real date exists. Blocked beats overdue beats stuck.
+function reasonOf(card, ref) {
+  if (card && card.blocked) return MARK.blocked + ' blocked';
+  if (isOverdue(card, ref) && card.due_date) return 'due ' + rel(card.due_date);
+  if (isOverdue(card, ref)) return 'overdue';
+  var sd = staleDays(card, ref);
+  if (sd > 0) return 'untouched ' + sd + 'd';
+  if (isDueSoon(card, ref) && card.due_date) return 'due ' + rel(card.due_date);
+  return '';
+}
+
+// One scannable row: status dot, title, owner, reason.
+function attentionLine(card, ref) {
+  var dot = cardDot({
+    blocked: !!(card && card.blocked),
+    overdue: isOverdue(card, ref),
+    stuck: staleDays(card, ref) > 0,
+    dueSoon: isDueSoon(card, ref),
+  });
+  var bits = [dot + ' **' + clamp(titleOf(card), 70) + '**', ownersOf(card)];
+  var reason = reasonOf(card, ref);
+  if (reason) bits.push(reason);
+  return bits.join('  ' + MARK.arrow + '  ');
+}
+
+// A load meter per department, scaled against the busiest one so the bars are
+// comparable at a glance rather than all pinned to full.
+function departmentLines(departments) {
+  var list = (departments || []).filter(function(d) { return d && (d.active > 0 || d.overdue > 0); });
+  if (!list.length) return [];
+  var peak = list.reduce(function(m, d) { return Math.max(m, d.active); }, 0);
+  return list.map(function(d) {
+    var flags = [];
+    if (d.overdue) flags.push(DOT.danger + ' ' + d.overdue);
+    if (d.stuck) flags.push(DOT.warn + ' ' + d.stuck);
+    var suffix = flags.length ? '  ' + flags.join('  ') : '';
+    return '`' + bar(d.active, peak, 8) + '` **' + d.label + '** ' + d.active + suffix;
+  });
+}
+
+// Collect the unique cards that need a human today, worst first.
+function attentionCards(members, ref) {
+  var seen = {};
+  var out = [];
+  Object.keys(members || {}).forEach(function(name) {
+    var b = members[name] || {};
+    (b.blocked || []).concat(b.overdue || [], b.stuck || []).forEach(function(card) {
+      var key = String(card.id || titleOf(card));
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push(card);
+    });
+  });
+  out.sort(function(a, b) {
+    var aBlocked = a.blocked ? 1 : 0;
+    var bBlocked = b.blocked ? 1 : 0;
+    if (aBlocked !== bBlocked) return bBlocked - aBlocked;
+    var aOver = isOverdue(a, ref) ? 1 : 0;
+    var bOver = isOverdue(b, ref) ? 1 : 0;
+    if (aOver !== bOver) return bOver - aOver;
+    return staleDays(b, ref) - staleDays(a, ref);
+  });
+  return out;
+}
+
+/**
+ * The daily standup card.
+ * accountability is a buildAccountability() result.
+ */
 export function standupEmbed(accountability, now) {
   var ref = now || new Date();
   var totals = (accountability && accountability.totals) || { cards: 0, active: 0, overdue: 0, stuck: 0, dueSoon: 0 };
   var departments = (accountability && accountability.departments) || [];
+  var attention = attentionCards((accountability && accountability.members) || {}, ref);
 
-  var deptLine = departments.map(function(d) {
-    return d.label + ' ' + d.active;
-  }).join('  |  ') || 'No departments tracked';
+  var h = health(totals);
 
-  var embed = new EmbedBuilder()
-    .setColor(BRAND_BLUE)
-    .setTitle('BrosephTech Standup')
-    .setTimestamp(ref);
-
-  embed.addFields({
-    name: 'Active by department',
-    value: deptLine,
+  var embed = baseEmbed({
+    color: h.color,
+    author: BRAND.name + '  ' + MARK.arrow + '  Daily standup',
+    title: h.verdict,
+    description: h.guidance + '\n' + healthMeter(h),
+    footer: totals.cards + ' cards tracked  ' + MARK.arrow + '  /mytasks for your own list',
+    timestamp: ref,
   });
 
-  // Collect unique overdue + stuck cards for the "Needs attention" section.
-  var members = (accountability && accountability.members) || {};
-  var seen = {};
-  var attention = [];
-  Object.keys(members).forEach(function(name) {
-    var b = members[name];
-    b.overdue.concat(b.stuck).forEach(function(card) {
-      var key = String(card.id || titleOf(card));
-      if (seen[key]) return;
-      seen[key] = true;
-      attention.push(card);
-    });
-  });
+  embed.addFields(kpiFields(totals).slice(0, 3));
 
-  if (attention.length === 0) {
-    embed.setDescription('Board is clean. Nothing overdue and nothing stuck. Keep it rolling.');
+  if (attention.length) {
     embed.addFields({
-      name: 'Snapshot',
-      value: totals.active + ' active card(s), ' + totals.dueSoon + ' due soon.',
+      name: eyebrow('Needs attention', attention.length),
+      value: pack(attention.map(function(c) { return attentionLine(c, ref); })),
     });
-    return embed;
   }
 
-  embed.setDescription('Here is where things stand this morning. Owners are listed below.');
-
-  var allLines = attention.map(function(card) {
-    var reasonBits = [];
-    if (card.due_date) {
-      var due = new Date(card.due_date);
-      if (!isNaN(due.getTime()) && due.getTime() < ref.getTime()) reasonBits.push('overdue');
-    }
-    var sd = staleDays(card, ref);
-    if (sd > 0) reasonBits.push('stuck ' + sd + 'd');
-    var suffix = reasonBits.length ? '  [' + reasonBits.join(', ') + ']' : '';
-    return cardLine(card, ref) + suffix;
-  });
-
-  // Discord caps a field value at 1024 chars. Accumulate WHOLE lines so a
-  // ping is never cut mid-mention, and surface any overflow as a count.
-  var kept = [];
-  var used = 0;
-  var overflowNote = '';
-  for (var li = 0; li < allLines.length; li++) {
-    var candidate = allLines[li];
-    var addLen = candidate.length + (kept.length ? 1 : 0);
-    var remaining = allLines.length - li;
-    var reserve = remaining > 1 ? 24 : 0; // room for the overflow note
-    if (used + addLen > 1024 - reserve) {
-      overflowNote = '...and ' + remaining + ' more';
-      break;
-    }
-    kept.push(candidate);
-    used += addLen;
+  var deptLines = departmentLines(departments);
+  if (deptLines.length) {
+    embed.addFields({ name: eyebrow('Load by department'), value: pack(deptLines) });
   }
-  if (overflowNote) kept.push(overflowNote);
-
-  embed.addFields({
-    name: 'Needs attention (' + attention.length + ')',
-    value: kept.join('\n') || 'Nothing to show.',
-  });
-
-  embed.addFields({
-    name: 'Snapshot',
-    value: totals.overdue + ' overdue, ' + totals.stuck + ' stuck, ' + totals.dueSoon + ' due soon, ' + totals.active + ' active.',
-  });
 
   return embed;
 }
 
-// A short ping string for one member, listing their overdue + stuck titles.
-// Returns null when the member has nothing to be nudged about.
+/**
+ * The evening nudge for one crew member. Returns null when they are clean, so
+ * the scheduler only ever pings people who actually owe something.
+ */
 export function nudgeContent(member, buckets, now) {
   if (!member || !buckets) return null;
   var ref = now || new Date();
@@ -129,22 +155,26 @@ export function nudgeContent(member, buckets, now) {
   var stuck = buckets.stuck || [];
   if (overdue.length === 0 && stuck.length === 0) return null;
 
-  var parts = [mention(member) + ' quick accountability check.'];
+  var lines = [mention(member) + '  ' + MARK.arrow + '  end of day check'];
 
-  if (overdue.length) {
-    var overdueTitles = overdue.map(function(c) { return titleOf(c); });
-    parts.push('Overdue: ' + overdueTitles.join(', ') + '.');
-  }
-  if (stuck.length) {
-    var stuckTitles = stuck.map(function(c) {
-      var sd = staleDays(c, ref);
-      return titleOf(c) + (sd > 0 ? ' (' + sd + 'd)' : '');
-    });
-    parts.push('Stuck: ' + stuckTitles.join(', ') + '.');
-  }
-  parts.push('Move it forward today or drop a note on the card.');
+  overdue.forEach(function(c) {
+    lines.push(DOT.danger + ' **' + clamp(titleOf(c), 80) + '**' + (c.due_date ? '  due ' + rel(c.due_date) : ''));
+  });
+  stuck.forEach(function(c) {
+    var sd = staleDays(c, ref);
+    lines.push(DOT.warn + ' **' + clamp(titleOf(c), 80) + '**' + (sd > 0 ? '  untouched ' + sd + 'd' : ''));
+  });
 
-  return parts.join(' ');
+  lines.push('Move one forward or drop a note on the card.');
+  // A ping is plain content, not an embed, so the cap is 2000 not 1024.
+  return pack(lines, { cap: 1900 });
 }
 
-export var EMBED_COLORS = { brand: BRAND_BLUE, warn: WARN_AMBER, fromHex: hexToInt };
+export var EMBED_COLORS = {
+  brand: COLOR.brand,
+  warn: COLOR.warn,
+  fromHex: function(hex) {
+    if (!hex) return COLOR.brand;
+    return parseInt(String(hex).replace('#', ''), 16);
+  },
+};

@@ -16,15 +16,26 @@
  * Copy rule: zero em or en dashes anywhere in user-facing strings.
  */
 
-import { EmbedBuilder } from 'discord.js';
 import { supabase } from './supabase.js';
 import { fetchCards, assigneesOf, isOverdue, staleDays } from './board.js';
 import { resolveChannel } from './channels.js';
-import { departmentChannel, DEPT_COLOR, resolveDeptId, deptLabel, stageLabel, priorityLabel } from './hq.js';
+import { departmentChannel, resolveDeptId, deptLabel, stageLabel, priorityLabel } from './hq.js';
 import { mention } from '../config/crew.js';
+import {
+  BRAND,
+  COLOR,
+  DOT,
+  MARK,
+  bar,
+  baseEmbed,
+  clamp,
+  deptColor,
+  eyebrow,
+  rel,
+} from './ui.js';
 
-// Pipeline columns in board order, used to render a card's column position in
-// the footer (e.g. "BrosephTech board - column 3 of 5").
+// Pipeline columns in board order, used to render a card's progress through the
+// board as a meter rather than as the words "column 3 of 5".
 var PIPELINE_COLUMNS = ['ideas', 'writing', 'production', 'review', 'published'];
 
 // Fixed shared channels (everything else is per-department).
@@ -35,24 +46,11 @@ var BLOCKED_CHANNEL = 'bt-blocked';
 // The column that means a card has shipped.
 var PUBLISHED_COLUMN = 'published';
 
-// Fallback embed color when a card has no recognised department.
-var DEFAULT_COLOR = 0x5BA3DB;
-
-// Blocked is a state, not a department, so it gets the board's red (0xEF4444),
-// never a department hue (amber would collide with the Marketing department).
-var BLOCKED_COLOR = 0xEF4444;
-
 // Debounce window: realtime can fire several events for one logical change
 // (and bulk edits fire many). Collapse a burst into a single refetch + diff.
 var DEBOUNCE_MS = 400;
 
 // ---- small helpers -----------------------------------------------------------
-
-function colorForDepartment(deptId) {
-  var hex = DEPT_COLOR[String(deptId || '').toLowerCase()];
-  if (!hex) return DEFAULT_COLOR;
-  return parseInt(String(hex).replace('#', ''), 16);
-}
 
 function columnOf(card) {
   return String((card && card.column_id) || '').toLowerCase();
@@ -74,77 +72,89 @@ function ownerMention(card) {
   return owners.map(function(name) { return mention(name); }).join(', ');
 }
 
-// Footer text placing the card in the pipeline, e.g. "column 3 of 5". Cards in
-// archive or an unknown column fall back to just the board name.
-function boardFooter(card) {
+// The card's position in the pipeline as a meter, e.g. "███░░ Review 4/5".
+// A card in archive or an unknown column just names its stage.
+function stageMeter(card) {
   var col = columnOf(card);
+  var label = stageLabel(card && card.department, col);
   var idx = PIPELINE_COLUMNS.indexOf(col);
-  if (idx === -1) return 'BrosephTech board';
-  return 'BrosephTech board - column ' + (idx + 1) + ' of ' + PIPELINE_COLUMNS.length;
+  if (idx === -1) return label;
+  var step = idx + 1;
+  return '`' + bar(step, PIPELINE_COLUMNS.length, 5) + '` ' + label + '  ' + step + '/' + PIPELINE_COLUMNS.length;
 }
 
-// A short status marker for a card: blocked beats overdue. Returns '' when the
-// card is healthy so callers can omit the field.
-function statusMarker(card) {
-  if (card && card.blocked) return 'Blocked';
-  if (isOverdue(card, new Date())) return 'Overdue';
-  var sd = staleDays(card, new Date());
-  if (sd > 0) return 'Stuck ' + sd + 'd';
+// A short status marker. Blocked beats overdue beats stuck. Returns '' when the
+// card is healthy so callers can omit the field entirely.
+function statusMarker(card, ref) {
+  if (card && card.blocked) return MARK.blocked + ' Blocked';
+  if (isOverdue(card, ref)) return DOT.danger + ' Overdue';
+  var sd = staleDays(card, ref);
+  if (sd > 0) return DOT.warn + ' Untouched ' + sd + 'd';
   return '';
 }
 
-// The standard four-up card fields, in board-card order. Department / Stage /
-// Priority / Owner are inline; a status marker is appended when relevant.
-function cardFields(card) {
-  var fields = [
-    { name: 'Department', value: deptLabel(card && card.department), inline: true },
-    { name: 'Stage', value: stageLabel(card && card.department, columnOf(card)), inline: true },
-    { name: 'Priority', value: priorityLabel(card && card.priority), inline: true },
-  ];
+/**
+ * The three-up card fields every feed embed shares. Owner and stage always
+ * appear; due date and status only when they carry information. Keeping this to
+ * one tidy row of three (plus at most one more) is the whole readability fix:
+ * the old version emitted up to six fields for a card nobody had read yet.
+ */
+function cardFields(card, ref) {
   var owner = ownerMention(card);
-  fields.push({ name: 'Owner', value: (owner || 'Unassigned').slice(0, 1024), inline: true });
-  var marker = statusMarker(card);
-  if (marker) fields.push({ name: 'Status', value: marker, inline: true });
-  if (card && card.due_date) {
-    fields.push({ name: 'Due', value: String(card.due_date), inline: true });
-  }
+  var fields = [
+    { name: eyebrow('Owner'), value: clamp(owner || '*unassigned*', 1024), inline: true },
+    { name: eyebrow('Priority'), value: priorityLabel(card && card.priority), inline: true },
+    { name: eyebrow('Due'), value: card && card.due_date ? rel(card.due_date) : 'no date', inline: true },
+  ];
+  var marker = statusMarker(card, ref);
+  if (marker) fields.push({ name: eyebrow('Status'), value: marker, inline: false });
   return fields;
 }
 
 // ---- embed builders (local to this module) -----------------------------------
 
-function newCardEmbed(card) {
-  var embed = new EmbedBuilder()
-    .setColor(colorForDepartment(card && card.department))
-    .setTitle(('New card: ' + titleOf(card)).slice(0, 250))
-    .addFields(cardFields(card))
-    .setFooter({ text: boardFooter(card) })
-    .setTimestamp(new Date());
-
-  if (card && card.description) {
-    embed.setDescription(String(card.description).slice(0, 300));
-  }
+export function newCardEmbed(card) {
+  var ref = new Date();
+  var embed = baseEmbed({
+    color: deptColor(deptIdOf(card)),
+    author: deptLabel(card && card.department) + '  ' + MARK.arrow + '  new card',
+    title: titleOf(card),
+    description: card && card.description
+      ? clamp(String(card.description), 280) + '\n' + stageMeter(card)
+      : stageMeter(card),
+    footer: BRAND.name + ' board',
+    timestamp: ref,
+  });
+  embed.addFields(cardFields(card, ref));
   return embed;
 }
 
-function shippedEmbed(card) {
-  return new EmbedBuilder()
-    .setColor(colorForDepartment(card && card.department))
-    .setTitle(('Shipped: ' + titleOf(card)).slice(0, 250))
-    .setDescription('Moved to published. Nice work.')
-    .addFields(cardFields(card))
-    .setFooter({ text: boardFooter(card) })
-    .setTimestamp(new Date());
+export function shippedEmbed(card) {
+  var ref = new Date();
+  var embed = baseEmbed({
+    color: COLOR.success,
+    author: deptLabel(card && card.department) + '  ' + MARK.arrow + '  shipped',
+    title: MARK.shipped + '  ' + titleOf(card),
+    description: 'Moved to published. Nice work.\n' + stageMeter(card),
+    footer: BRAND.name + ' board',
+    timestamp: ref,
+  });
+  embed.addFields(cardFields(card, ref));
+  return embed;
 }
 
-function blockedEmbed(card) {
-  return new EmbedBuilder()
-    .setColor(BLOCKED_COLOR)
-    .setTitle(('Blocked: ' + titleOf(card)).slice(0, 250))
-    .setDescription('This card is blocked. Owner, please unblock it or drop a note on the card.')
-    .addFields(cardFields(card))
-    .setFooter({ text: boardFooter(card) })
-    .setTimestamp(new Date());
+export function blockedEmbed(card) {
+  var ref = new Date();
+  var embed = baseEmbed({
+    color: COLOR.danger,
+    author: deptLabel(card && card.department) + '  ' + MARK.arrow + '  blocked',
+    title: MARK.blocked + '  ' + titleOf(card),
+    description: 'This card cannot move. Unblock it or drop a note explaining what it is waiting on.\n' + stageMeter(card),
+    footer: BRAND.name + ' board',
+    timestamp: ref,
+  });
+  embed.addFields(cardFields(card, ref));
+  return embed;
 }
 
 // ---- posting -----------------------------------------------------------------
@@ -165,11 +175,18 @@ async function postTo(guild, channelName, embed, content) {
   }
 }
 
+// Only a real <@id> belongs in message content: a mention() fallback is the
+// plain bold name, which as a content line reads like a stray shout.
+function pingContent(card, suffix) {
+  var owner = ownerMention(card);
+  if (!owner || owner.indexOf('<@') === -1) return undefined;
+  return owner + (suffix ? ' ' + suffix : '');
+}
+
 async function announceNew(guild, card) {
   var embed = newCardEmbed(card);
-  var owner = ownerMention(card);
   await postTo(guild, BOARD_CHANNEL, embed);
-  await postTo(guild, departmentChannel(deptIdOf(card)), embed, owner || undefined);
+  await postTo(guild, departmentChannel(deptIdOf(card)), embed, pingContent(card, 'this one is yours.'));
 }
 
 async function announceShipped(guild, card) {
@@ -180,8 +197,7 @@ async function announceShipped(guild, card) {
 
 async function announceBlocked(guild, card) {
   var embed = blockedEmbed(card);
-  var owner = ownerMention(card);
-  await postTo(guild, BLOCKED_CHANNEL, embed, owner || undefined);
+  await postTo(guild, BLOCKED_CHANNEL, embed, pingContent(card, 'your card is blocked.'));
   await postTo(guild, BOARD_CHANNEL, embed);
 }
 

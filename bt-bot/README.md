@@ -91,12 +91,16 @@ It is a single Node 18+ process. Run it anywhere Node is available:
 
 ## Commands
 
+- `/guide` - the in-Discord user guide: a one page cheat sheet image plus a
+  dropdown with a walkthrough of each topic. `/guide topic:record` jumps
+  straight to one. `/guide share:true` posts it publicly (for onboarding);
+  by default it is private to the caller.
 - `/standup` - post the standup snapshot to the standup channel immediately
   (Manage Server permission only).
-- `/board` - an ephemeral board health summary (totals plus per-department
-  overdue / stuck / due-soon counts).
-- `/mytasks` - an ephemeral view of your own active, overdue, stuck, and
-  due-soon cards.
+- `/board` - the pipeline as a kanban, one column per inline field, with a
+  status glyph per card. Optional department filter.
+- `/mytasks` - a private view of your own work, opening with the single card to
+  pick up next, then blocked / overdue / gone quiet / due soon.
 - `/meeting` - capture a meeting into board cards from pasted notes (a summary
   plus action items). Uses the Claude API when `ANTHROPIC_API_KEY` is set,
   otherwise a built-in rule-based parser. Recaps land in the meetings channel.
@@ -109,15 +113,62 @@ It is a single Node 18+ process. Run it anywhere Node is available:
   `/record jiracheck` verifies the Jira connection. See "Voice recording" below.
 - `/setup` - build the BrosephTech HQ category and its `bt-` channels.
   Idempotent. Needs Manage Channels.
-- `/card add` - create a new board card in the Ideas column. Options: title,
-  department, assignee, priority, due date. The new card also fires through the
-  live feed.
-- `/dashboard` - post a live command-center snapshot (KPIs, department health,
-  who is behind, blocked, recent meetings/recordings) with a Refresh button. See
-  "Dashboard" below for the companion browser view.
+- `/card` - the full write path for a card, all with title autocomplete:
+  - `add` create a card in Ideas (title, department, assignee, priority, due).
+  - `done` move it to Published.
+  - `move` move it to any column.
+  - `block` flag it, with an optional reason recorded as a card comment.
+  - `unblock` clear the flag.
+  - `assign` hand it to a crew member, or unassign it.
+
+  Autocomplete is filtered per verb (`done` offers open cards, `unblock` offers
+  blocked ones) and every column change stamps `column_changed_at`, so a card
+  you just moved does not immediately read as stuck.
+- `/dashboard` - a four part live report: a hero card with the verdict and the
+  counters, **Do next**, **Where the work sits**, and **Context**. Has a Refresh
+  button. See "Dashboard" below for the companion browser view.
 - `/blocked` - show every blocked card that still needs unblocking, with owners.
-- `/scorecard` - show a crew member's accountability scorecard (defaults to you).
+- `/scorecard` - a crew member's accountability standing (a 0..100 score with a
+  plain-language band), defaulting to you.
+- `/metrics log` / `/metrics show` - record and read channel growth, with a
+  unicode sparkline trend per platform.
 - `/digest` - post the weekly digest to the standup channel right now.
+
+## How the cards look
+
+All presentation lives in `lib/ui.js`: the color tokens, the status glyph
+vocabulary, the progress meters and sparklines, native Discord timestamps, the
+line packer, and the base embed shell. Nothing outside that file should contain
+a raw hex color or reimplement the 1024 character field packing.
+
+Two rules worth knowing before editing an embed:
+
+- **Native timestamps (`<t:...:R>`) only work in a description or a field
+  value.** Titles, author names, field names and footers render literally, so a
+  timestamp in one of those ships as visible markup. `test/render.test.js`
+  enforces this.
+- **A field value can never be empty and never exceed 1024 characters.** Use
+  `pack()`, which keeps whole lines (so a mention is never severed) and reports
+  what it dropped.
+
+To see every card without posting to Discord:
+
+```
+npm run preview     # writes docs/images/embed-preview.png
+```
+
+## Tests
+
+```
+npm test
+```
+
+Node's built-in runner, no dependencies. Covers the card classification engine
+(`lib/board.js`), the scorecard weights (`lib/scoring.js`), the autocomplete
+ranking (`lib/cards.js`), every helper in `lib/ui.js`, and a render pass that
+builds every embed (including a 200 card disaster board) and every slash command
+definition. That last one is the check that `npm run deploy` cannot fail on a
+malformed command.
 
 ## Voice recording (/record)
 
@@ -298,28 +349,48 @@ bt-bot/
   package.json
   .env.example
   .gitignore
-  index.js
-  deploy-commands.js
-  scheduler.js
+  index.js               -- client, command loader, interaction router
+  deploy-commands.js     -- register the slash commands with the guild
+  scheduler.js           -- standup / nudge / digest / blocked-sweep crons
   config/
-    crew.js
+    crew.js              -- roster, departments, Discord id mapping
   lib/
+    ui.js                -- THE design system: colors, glyphs, meters, packing
     supabase.js
-    board.js
-    embeds.js
+    board.js             -- card classification (overdue / stuck / due soon)
+    cards.js             -- single-card reads and writes behind /card
+    embeds.js            -- standup card and evening nudge
     channels.js
-    hq.js
-    feed.js
-    scoring.js
+    hq.js                -- the HQ channel layout and stage vocabulary
+    feed.js              -- realtime board feed
+    scoring.js           -- scorecards, standings, digest, blocked sweep
+    dashboardData.js     -- the shared overview snapshot
+    jira.js  extract.js  recorder.js  transcribe.js  voiceLog.js
   commands/
-    standup.js
-    board.js
-    mytasks.js
-    meeting.js
-    setup.js
-    card.js
-    blocked.js
-    scorecard.js
-    digest.js
+    guide.js  dashboard.js  board.js  mytasks.js  blocked.js  scorecard.js
+    card.js  metrics.js  meeting.js  record.js  standup.js  digest.js  setup.js
+  scripts/
+    render-guide.js      -- docs/guide-card.html  ->  docs/images/guide-card.png
+    preview-embeds.js    -- draw every embed as a PNG, no Discord needed
+  test/                  -- node --test, no dependencies
+  web/                   -- the browser dashboard
+  docs/                  -- USAGE.md, the served /docs site, and the artwork
   README.md
 ```
+
+## Deploying
+
+The bot runs on the fleet VM under pm2 as `baron-bot`, deployed from
+`D:\dev\tft-clash` (a second clone of this repo) by
+`D:\dev\mission-control\deploy.ps1`:
+
+```
+powershell -File D:\dev\mission-control\deploy.ps1 baron
+```
+
+That script packs `git archive HEAD -- bt-bot`, so **only committed state ever
+reaches the VM**. Commit and push here, pull in `D:\dev\tft-clash`, then deploy.
+
+It does **not** register slash commands. After adding or changing a command,
+also run `npm run deploy` once (from anywhere with the `.env`, it only talks to
+the Discord REST API).

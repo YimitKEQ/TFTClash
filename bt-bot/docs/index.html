@@ -66,6 +66,7 @@
   <p class="lead">This bot sits in our Discord. It records a voice meeting, writes up a clean recap, turns the action items into tasks (on the board and in Jira), and shows the whole operation on a live dashboard. You mostly use two things: <b>/record</b> in a voice channel, and the <b>dashboard</b> in your browser.</p>
 
   <div class="nav">
+    <a href="#cheat">Cheat sheet</a>
     <a href="#record">Record a meeting</a>
     <a href="#recap">What you get back</a>
     <a href="#dashboard">The dashboard</a>
@@ -73,6 +74,22 @@
     <a href="#lands">Where things land</a>
     <a href="#faq">FAQ</a>
   </div>
+
+  <div class="note">In Discord you never need this page: run <code>/guide</code> and the bot posts the same cheat sheet right there, with a dropdown for each topic. <code>/guide share:true</code> posts it for the whole channel, which is the quickest way to onboard someone.</div>
+
+  <h2 id="cheat">The whole bot on one page</h2>
+  <img class="shot" src="images/guide-card.png" alt="One page guide to every command">
+
+  <h2 id="glance">Reading a card</h2>
+  <p>Every command uses the same five status glyphs, so you learn them once.</p>
+  <table>
+    <tr><td>&#128308;</td><td>Overdue. The due date passed and the card is not finished.</td></tr>
+    <tr><td>&#128992;</td><td>Gone quiet. Untouched in the same column for 5 days or more.</td></tr>
+    <tr><td>&#128993;</td><td>Due soon. Landing within 2 days.</td></tr>
+    <tr><td>&#128994;</td><td>Healthy. Moving, on time.</td></tr>
+    <tr><td>&#9940;</td><td>Blocked. Cannot move until somebody clears it. Always sorts first.</td></tr>
+  </table>
+  <p>The colour strip down the left of a card means the same thing: red needs you today, amber is a warning, green is fine. Dates render in <b>your</b> timezone, so "in 2 days" means two days for you.</p>
 
   <img class="shot" src="images/dashboard-full.png" alt="The BrosephTech dashboard">
 
@@ -123,13 +140,15 @@
   <h2 id="commands">4. Commands</h2>
   <p>Type these in any channel in our Discord.</p>
   <div class="grid g2">
+    <div class="card"><div class="cmd">/guide</div><div class="d">This guide, inside Discord. Add <code>topic:</code> to jump to one part, or <code>share:true</code> to post it for everyone.</div></div>
     <div class="card"><div class="cmd">/record start · stop · status</div><div class="d">Record the voice channel you are in and turn it into a recap plus tasks. <code>jiracheck</code> tests the Jira link.</div></div>
-    <div class="card"><div class="cmd">/dashboard</div><div class="d">Post a live snapshot to the channel (KPIs, latest meeting, Jira, what needs attention) with a Refresh button.</div></div>
+    <div class="card"><div class="cmd">/dashboard</div><div class="d">A four part live report: the verdict and counters, Do next, where the work sits, and context (latest meeting, Jira). Has a Refresh button.</div></div>
     <div class="card"><div class="cmd">/meeting</div><div class="d">Same as a recording but from pasted notes instead of audio. Good for async or a meeting the bot missed.</div></div>
-    <div class="card"><div class="cmd">/card add</div><div class="d">Create a board card directly - title, department, owner, priority, due date.</div></div>
-    <div class="card"><div class="cmd">/mytasks · /scorecard</div><div class="d">Your own active / overdue / stuck cards, or a crew member's accountability snapshot.</div></div>
-    <div class="card"><div class="cmd">/board · /blocked</div><div class="d">Board health summary, and everything blocked that still needs unblocking.</div></div>
-    <div class="card"><div class="cmd">/metrics log · show</div><div class="d">Log YouTube / TikTok / Patreon numbers over time.</div></div>
+    <div class="card"><div class="cmd">/card add · done · move</div><div class="d">Create a card, ship it, or push it to another column. Start typing the title and autocomplete finds it.</div></div>
+    <div class="card"><div class="cmd">/card block · unblock · assign</div><div class="d">Flag what a card is waiting on, clear it, or hand it to someone. The reason is kept as a comment on the card.</div></div>
+    <div class="card"><div class="cmd">/mytasks · /scorecard</div><div class="d">Your own work, opening with the one card to start on. Or a crew member's accountability standing.</div></div>
+    <div class="card"><div class="cmd">/board · /blocked</div><div class="d">The pipeline as a kanban, and everything blocked that still needs unblocking.</div></div>
+    <div class="card"><div class="cmd">/metrics log · show</div><div class="d">Log YouTube / TikTok / Patreon numbers over time, with a trend sparkline.</div></div>
     <div class="card"><div class="cmd">/standup · /digest</div><div class="d">Post the daily standup or the weekly digest right now.</div></div>
   </div>
 
@@ -147,13 +166,14 @@
   <div class="qa"><div class="q">I did a meeting but got no tasks.</div><div class="a">If the conversation had no clear action items, it still posts the recap to #bt-meetings with no tasks. If summaries look basic, the AI key may be missing - tell Lodie.</div></div>
   <div class="qa"><div class="q">The recap looks cut off in Discord.</div><div class="a">The embed shows the highlights. The complete transcript is attached to the #bt-meetings post as a file.</div></div>
   <div class="qa"><div class="q">The dashboard asks for a token.</div><div class="a">Open the full link Lodie shared (it ends in <code>?k=...</code>). After the first visit it remembers you.</div></div>
-  <div class="qa"><div class="q">Can I change a task or mark it done from the dashboard?</div><div class="a">Not yet - the dashboard is read-only. Do task changes through Discord commands or directly in Jira for now.</div></div>
+  <div class="qa"><div class="q">Can I change a task or mark it done from the dashboard?</div><div class="a">The web dashboard is read-only, but you no longer need it: <code>/card done</code>, <code>/card move</code>, <code>/card block</code>, <code>/card unblock</code> and <code>/card assign</code> all work straight from Discord, with autocomplete on the card title.</div></div>
+  <div class="qa"><div class="q">A list says "and 4 more". Where is the rest?</div><div class="a">Discord caps how much fits in one card. The bot always shows whole rows and tells you how many it dropped, rather than cutting a name in half. Open the web dashboard for the full list.</div></div>
   <div class="qa"><div class="q">Does the bot listen to us all the time?</div><div class="a">No. It only records between <code>/record start</code> and <code>/record stop</code>, and the audio is processed on our machine and deleted right after.</div></div>
 
   <h2>For Lodie (setup)</h2>
   <p>Config lives in <code>bt-bot/.env</code>; restart the bot to apply changes. The keys: <code>ANTHROPIC_API_KEY</code> (AI recaps), <code>WHISPER_CMD</code>/<code>WHISPER_MODEL</code> (local transcription), <code>JIRA_*</code> (push to KAN), <code>DASHBOARD_TOKEN</code> (the web dashboard). To share the dashboard: <code>npm run tunnel</code> prints a public link. Full details in <code>README.md</code> and <code>docs/USAGE.md</code>.</p>
 
-  <div class="foot">BrosephTech HQ - this guide is also at <code>docs/USAGE.md</code> and as a one-page printable PDF in <code>docs/</code>.</div>
+  <div class="foot">BrosephTech HQ - run <code>/guide</code> in Discord for the same thing without leaving the app. Also at <code>docs/USAGE.md</code>, and as a printable PDF in <code>docs/</code>.</div>
 </div>
 </body>
 </html>

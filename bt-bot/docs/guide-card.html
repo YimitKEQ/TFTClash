@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bot guide card</title>
+<style>
+  /*
+    The source artwork for docs/images/guide-card.png, the poster that /guide
+    posts into Discord.
+
+    Fixed at 1100px wide, height driven by content (the renderer captures the
+    full page). Discord scales an embed image down to about 550px wide, so every
+    size here is roughly double what it renders at: body copy sits at 19px so it
+    lands near 10px in the embed, and nothing is allowed below 17px. The palette
+    is Discord's own dark surface so the card sits in the channel instead of
+    glowing on top of it.
+
+    Regenerate with: npm run guide:render
+  */
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1100px;
+    background:#0a0b0d;
+    color:#e8eaee;
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:46px 48px;
+    display:flex;flex-direction:column;gap:26px;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,monospace}
+
+  /* ---- header ---- */
+  header{display:flex;align-items:center;gap:20px;padding-bottom:24px;border-bottom:1px solid #23262d}
+  .logo{
+    width:66px;height:66px;border-radius:17px;flex:none;
+    background:linear-gradient(150deg,#5BA3DB,#3d7cb0);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;font-weight:800;letter-spacing:.5px;color:#06121d;
+  }
+  h1{font-size:38px;font-weight:800;letter-spacing:-.8px;line-height:1.1}
+  .sub{color:#9aa2ae;font-size:21px;margin-top:5px}
+  .ver{margin-left:auto;text-align:right;color:#6d747f;font-size:17px;line-height:1.6}
+
+  /* ---- section frame ---- */
+  section{background:#101216;border:1px solid #1e2128;border-radius:16px;padding:26px 28px}
+  h2{
+    font-size:16px;text-transform:uppercase;letter-spacing:2.2px;color:#7d8592;
+    font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:12px;
+  }
+  h2::after{content:'';flex:1;height:1px;background:#1e2128}
+  .num{
+    width:26px;height:26px;border-radius:8px;background:#1a1d23;color:#5BA3DB;
+    display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex:none;
+  }
+
+  /* ---- the record pipeline ---- */
+  .flow{display:flex;align-items:stretch;gap:9px}
+  .step{
+    flex:1;background:#15181e;border:1px solid #23262d;border-radius:11px;
+    padding:15px 12px;text-align:center;
+  }
+  .step .k{font-size:19px;font-weight:700;color:#e8eaee;line-height:1.25}
+  .step .k.cmd{color:#7cc0f0}
+  .step .v{font-size:16px;color:#868e9b;margin-top:6px;line-height:1.3}
+  .chev{display:flex;align-items:center;color:#3a3f49;font-size:24px;font-weight:700}
+  .flownote{
+    margin-top:16px;font-size:19px;color:#9fd6bb;
+    background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.22);
+    border-radius:10px;padding:12px 16px;line-height:1.45;
+  }
+
+  /* ---- command tables ---- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grp+.grp{margin-top:20px}
+  .grplabel{font-size:15px;text-transform:uppercase;letter-spacing:1.6px;color:#5f6773;font-weight:700;margin-bottom:9px}
+  .row{display:flex;gap:14px;padding:8px 0;border-bottom:1px solid #191c22;align-items:baseline}
+  .row:last-child{border-bottom:0}
+  .cmd{color:#7cc0f0;font-size:19px;font-weight:600;white-space:nowrap;flex:none;min-width:152px}
+  .desc{color:#a8b0bc;font-size:19px;line-height:1.35}
+
+  /* ---- status legend ---- */
+  .legend{display:flex;gap:11px}
+  .chip{
+    display:flex;align-items:center;gap:9px;background:#15181e;border:1px solid #23262d;
+    border-radius:999px;padding:9px 17px;font-size:19px;color:#c3cad4;
+  }
+  .swatch{width:15px;height:15px;border-radius:50%;flex:none}
+
+  /* ---- where things land ---- */
+  .lands{display:grid;grid-template-columns:1fr 1fr;gap:11px 24px}
+  .land{display:flex;gap:13px;align-items:baseline}
+  .ch{color:#7cc0f0;font-size:19px;font-weight:600;white-space:nowrap;min-width:132px;flex:none}
+  .lt{color:#a8b0bc;font-size:19px;line-height:1.35}
+
+  footer{
+    margin-top:auto;padding-top:22px;border-top:1px solid #23262d;
+    display:flex;justify-content:space-between;align-items:center;color:#6d747f;font-size:18px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">BT</div>
+  <div>
+    <h1 id="brand">BrosephTech Bot</h1>
+    <div class="sub">Record the meeting. Get the tasks. Nothing quietly rots on the board.</div>
+  </div>
+  <div class="ver">
+    Type <span class="mono" style="color:#7cc0f0">/guide</span> any time<br>
+    Full guide at <span class="mono">/docs</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">1</span> Record a meeting into tasks</h2>
+  <div class="flow">
+    <div class="step"><div class="k cmd">/record start</div><div class="v">in a voice channel</div></div>
+    <div class="chev">&rsaquo;</div>
+    <div class="step"><div class="k">Just talk</div><div class="v">each speaker on their own track</div></div>
+    <div class="chev">&rsaquo;</div>
+    <div class="step"><div class="k cmd">/record stop</div><div class="v">transcribes on this machine</div></div>
+    <div class="chev">&rsaquo;</div>
+    <div class="step"><div class="k">Tick the real tasks</div><div class="v">AI suggests, you decide</div></div>
+    <div class="chev">&rsaquo;</div>
+    <div class="step"><div class="k">Board + Jira</div><div class="v">cards created, recap posted</div></div>
+  </div>
+  <div class="flownote">
+    Audio never leaves the machine. It is transcribed locally with whisper.cpp and deleted straight after, and only the text recap is kept.
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span> Every command</h2>
+  <div class="cols">
+    <div>
+      <div class="grp">
+        <div class="grplabel">Your day</div>
+        <div class="row"><span class="cmd">/mytasks</span><span class="desc">your own cards, worst first, private</span></div>
+        <div class="row"><span class="cmd">/dashboard</span><span class="desc">the live command centre</span></div>
+        <div class="row"><span class="cmd">/board</span><span class="desc">the whole pipeline as a kanban</span></div>
+        <div class="row"><span class="cmd">/blocked</span><span class="desc">everything that cannot move</span></div>
+        <div class="row"><span class="cmd">/scorecard</span><span class="desc">how one person is tracking</span></div>
+        <div class="row"><span class="cmd">/guide</span><span class="desc">this card, and per-command walkthroughs</span></div>
+      </div>
+      <div class="grp">
+        <div class="grplabel">Meetings</div>
+        <div class="row"><span class="cmd">/record</span><span class="desc">start, stop, status, jiracheck</span></div>
+        <div class="row"><span class="cmd">/meeting</span><span class="desc">same thing from pasted notes</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="grp">
+        <div class="grplabel">Driving the board</div>
+        <div class="row"><span class="cmd">/card add</span><span class="desc">create a card from Discord</span></div>
+        <div class="row"><span class="cmd">/card done</span><span class="desc">ship it, straight to published</span></div>
+        <div class="row"><span class="cmd">/card move</span><span class="desc">push it to another column</span></div>
+        <div class="row"><span class="cmd">/card block</span><span class="desc">flag it, with what it is waiting on</span></div>
+        <div class="row"><span class="cmd">/card unblock</span><span class="desc">clear the flag</span></div>
+        <div class="row"><span class="cmd">/card assign</span><span class="desc">hand it to someone</span></div>
+      </div>
+      <div class="grp">
+        <div class="grplabel">Running the crew</div>
+        <div class="row"><span class="cmd">/metrics</span><span class="desc">log or show channel growth</span></div>
+        <div class="row"><span class="cmd">/standup /digest</span><span class="desc">post either one right now</span></div>
+        <div class="row"><span class="cmd">/setup</span><span class="desc">build the HQ channels, re-runnable</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">3</span> Reading a card at a glance</h2>
+  <div class="legend">
+    <div class="chip"><span class="swatch" style="background:#EF4444"></span> overdue</div>
+    <div class="chip"><span class="swatch" style="background:#E8A020"></span> gone quiet, 5d untouched</div>
+    <div class="chip"><span class="swatch" style="background:#EAC54F"></span> due soon</div>
+    <div class="chip"><span class="swatch" style="background:#34D399"></span> healthy</div>
+    <div class="chip"><span style="font-size:17px">&#9940;</span> blocked</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span> Where things land</h2>
+  <div class="lands">
+    <div class="land"><span class="ch">#bt-board</span><span class="lt">every new card, ship and block, live</span></div>
+    <div class="land"><span class="ch">#bt-standup</span><span class="lt">09:30 standup, Monday digest</span></div>
+    <div class="land"><span class="ch">#bt-meetings</span><span class="lt">recaps plus the full transcript file</span></div>
+    <div class="land"><span class="ch">#bt-blocked</span><span class="lt">blocked alerts, owners pinged, swept at noon</span></div>
+    <div class="land"><span class="ch">#bt-wins</span><span class="lt">anything that reaches published</span></div>
+    <div class="land"><span class="ch">#bt-&lt;team&gt;</span><span class="lt">your department's own cards</span></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">5</span> On a schedule, without being asked</h2>
+  <div class="lands">
+    <div class="land"><span class="ch mono">09:30 daily</span><span class="lt">standup: what needs a human today</span></div>
+    <div class="land"><span class="ch mono">12:00 daily</span><span class="lt">blocked sweep, owners pinged</span></div>
+    <div class="land"><span class="ch mono">18:00 daily</span><span class="lt">a private nudge if you owe something</span></div>
+    <div class="land"><span class="ch mono">Mon 09:00</span><span class="lt">weekly digest: who shipped what</span></div>
+  </div>
+</section>
+
+<footer>
+  <span>Stuck? Run <span class="mono" style="color:#7cc0f0">/guide topic:</span> for a walkthrough of any one command.</span>
+  <span id="brandfoot">BrosephTech HQ</span>
+</footer>
+
+</body>
+</html>

@@ -91,7 +91,13 @@ export function assigneesOf(card) {
 }
 
 function emptyBuckets() {
-  return { overdue: [], stuck: [], dueSoon: [], active: [] };
+  return { overdue: [], stuck: [], dueSoon: [], active: [], blocked: [] };
+}
+
+// True when the card is flagged blocked and the work is not already finished.
+export function isBlocked(card) {
+  if (!card || isDoneColumn(card)) return false;
+  return card.blocked === true;
 }
 
 function departmentOf(card) {
@@ -111,11 +117,11 @@ export function buildAccountability(cards, now) {
   var members = {};
   BT_CREW.forEach(function(m) { members[m.name] = emptyBuckets(); });
 
-  var totals = { cards: list.length, active: 0, overdue: 0, stuck: 0, dueSoon: 0 };
+  var totals = { cards: list.length, active: 0, overdue: 0, stuck: 0, dueSoon: 0, blocked: 0 };
 
   var deptCounts = {};
   BT_DEPARTMENTS.forEach(function(d) {
-    deptCounts[d.id] = { id: d.id, label: d.label, active: 0, overdue: 0, stuck: 0, dueSoon: 0, total: 0 };
+    deptCounts[d.id] = { id: d.id, label: d.label, active: 0, overdue: 0, stuck: 0, dueSoon: 0, blocked: 0, total: 0 };
   });
 
   list.forEach(function(card) {
@@ -123,12 +129,14 @@ export function buildAccountability(cards, now) {
     var overdue = isOverdue(card, ref);
     var stuck = staleDays(card, ref) > 0;
     var dueSoon = isDueSoon(card, ref);
+    var blocked = isBlocked(card);
     var active = !done;
 
     if (active) totals.active++;
     if (overdue) totals.overdue++;
     if (stuck) totals.stuck++;
     if (dueSoon) totals.dueSoon++;
+    if (blocked) totals.blocked++;
 
     var deptId = departmentOf(card);
     if (deptCounts[deptId]) {
@@ -137,6 +145,7 @@ export function buildAccountability(cards, now) {
       if (overdue) deptCounts[deptId].overdue++;
       if (stuck) deptCounts[deptId].stuck++;
       if (dueSoon) deptCounts[deptId].dueSoon++;
+      if (blocked) deptCounts[deptId].blocked++;
     }
 
     var owners = assigneesOf(card);
@@ -145,6 +154,7 @@ export function buildAccountability(cards, now) {
       if (overdue) members[name].overdue.push(card);
       if (stuck) members[name].stuck.push(card);
       if (dueSoon) members[name].dueSoon.push(card);
+      if (blocked) members[name].blocked.push(card);
       if (active) members[name].active.push(card);
     });
   });
