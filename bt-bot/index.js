@@ -18,6 +18,7 @@ import { generateDependencyReport } from '@discordjs/voice';
 import { startScheduler } from './scheduler.js';
 import { startFeed } from './lib/feed.js';
 import { startDashboard } from './web/server.js';
+import { transcriberStatus } from './lib/transcribe.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,6 +35,17 @@ try {
   console.warn('[voice] libsodium init skipped: ' + ((e && e.message) || e));
 }
 console.log('[voice] dependency report:\n' + generateDependencyReport());
+
+// Say at boot whether this host can transcribe. A .env copied between machines
+// leaves WHISPER_CMD pointing somewhere that does not exist here, and without
+// this line the first symptom is a lost meeting.
+var _stt = transcriberStatus();
+if (_stt.ok) {
+  console.log('[voice] transcriber ready: ' + _stt.detail);
+} else {
+  console.warn('[voice] TRANSCRIPTION UNAVAILABLE (' + _stt.reason + '): ' + _stt.detail);
+  console.warn('[voice] /record start will refuse until this is fixed. ' + _stt.hint);
+}
 
 // Guilds for slash commands/embeds, GuildVoiceStates so the bot can join a
 // voice channel and receive audio for /record. Neither is a privileged intent

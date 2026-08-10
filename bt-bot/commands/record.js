@@ -24,7 +24,7 @@ import {
 
 import fs from 'fs';
 import { startRecording, stopRecording, isRecording, getSession } from '../lib/recorder.js';
-import { transcribeManifest } from '../lib/transcribe.js';
+import { transcribeManifest, transcriberStatus } from '../lib/transcribe.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
@@ -188,6 +188,27 @@ async function startCmd(interaction) {
     return;
   }
 
+  // Refuse BEFORE the meeting rather than failing after it. Recording an hour
+  // long call and only then discovering this host cannot transcribe loses the
+  // conversation outright, which is exactly what used to happen in production.
+  var stt = transcriberStatus();
+  if (!stt.ok) {
+    var blockedEmbed = baseEmbed({
+      color: COLOR.danger,
+      author: BRAND.name + '  ' + MARK.arrow + '  recording unavailable',
+      title: MARK.blocked + '  Cannot transcribe on this host',
+      description: 'Not starting a recording that could not be turned into a transcript. Your meeting would have been lost after everyone hung up.',
+      footer: 'Nothing was recorded',
+    });
+    blockedEmbed.addFields(
+      { name: eyebrow('Problem'), value: stt.detail },
+      { name: eyebrow('Fix'), value: stt.hint },
+      { name: eyebrow('Meanwhile'), value: 'Run the meeting, then capture it with `/meeting` and paste the notes. You still get a recap and tasks, just without the audio.' }
+    );
+    await interaction.reply({ embeds: [blockedEmbed], ephemeral: true });
+    return;
+  }
+
   await interaction.deferReply();
   try {
     await startRecording({
@@ -215,7 +236,13 @@ async function startCmd(interaction) {
 async function statusCmd(interaction) {
   var session = interaction.guild ? getSession(interaction.guild.id) : null;
   if (!session) {
-    await interaction.reply({ content: 'Not recording right now. Use /record start.', ephemeral: true });
+    // Report the transcriber here too, so "why is /record not working" is one
+    // command away instead of a log dive on the host.
+    var stt = transcriberStatus();
+    var line = stt.ok
+      ? 'Not recording right now. Use `/record start`.'
+      : 'Not recording, and `/record start` is currently blocked: ' + stt.detail + '\n' + stt.hint;
+    await interaction.reply({ content: line, ephemeral: true });
     return;
   }
   var mins = Math.floor((Date.now() - session.startMs) / 60000);

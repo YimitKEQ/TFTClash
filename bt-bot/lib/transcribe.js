@@ -23,6 +23,69 @@ import { spawn } from 'child_process';
 import ffmpegPath from 'ffmpeg-static';
 import { crewNameForDiscordId } from '../config/crew.js';
 
+/**
+ * Can this machine actually transcribe?
+ *
+ * This exists because of a real production failure: the VM's .env was copied
+ * from a Windows desktop, so WHISPER_CMD pointed at "C:\tools\...\whisper-cli.exe"
+ * on a Linux host. Nothing noticed. The bot would join the call, record the
+ * whole meeting, and only discover it could not transcribe AFTER /record stop,
+ * by which point everyone had hung up and the conversation was gone.
+ *
+ * Checking up front turns a lost meeting into a message before anyone starts
+ * talking. Called at boot (logged) and by /record start (refuses).
+ *
+ * Returns { ok, reason, detail, hint }.
+ */
+export function transcriberStatus() {
+  var cmd = process.env.WHISPER_CMD;
+  var model = process.env.WHISPER_MODEL;
+
+  if (!cmd || !model) {
+    return {
+      ok: false,
+      reason: 'not configured',
+      detail: 'WHISPER_CMD and WHISPER_MODEL are not both set.',
+      hint: 'Set them in bt-bot/.env, then restart the bot. See docs/OPERATIONS.md.',
+    };
+  }
+
+  // A bare command name is allowed (resolved off PATH by spawn). Anything that
+  // looks like a path has to actually exist on THIS machine, which is what
+  // catches a Windows path sitting in a Linux host's .env.
+  var looksLikePath = cmd.indexOf('/') !== -1 || cmd.indexOf('\\') !== -1 || /^[A-Za-z]:/.test(cmd);
+  if (looksLikePath && !fs.existsSync(cmd)) {
+    var windowsPathOnPosix = /^[A-Za-z]:\\/.test(cmd) && path.sep === '/';
+    return {
+      ok: false,
+      reason: 'transcriber missing',
+      detail: 'WHISPER_CMD points at ' + cmd + ', which does not exist on this machine.'
+        + (windowsPathOnPosix ? ' That is a Windows path, and this host is not Windows: the .env was almost certainly copied from a desktop.' : ''),
+      hint: 'Install whisper.cpp on this host and point WHISPER_CMD at it, or run the bot where the binary lives.',
+    };
+  }
+
+  if (!fs.existsSync(model)) {
+    return {
+      ok: false,
+      reason: 'model missing',
+      detail: 'WHISPER_MODEL points at ' + model + ', which does not exist on this machine.',
+      hint: 'Download a ggml model onto this host and point WHISPER_MODEL at it.',
+    };
+  }
+
+  if (!ffmpegPath) {
+    return {
+      ok: false,
+      reason: 'ffmpeg missing',
+      detail: 'ffmpeg-static did not resolve a binary.',
+      hint: 'Run npm install in bt-bot on this host.',
+    };
+  }
+
+  return { ok: true, reason: 'ready', detail: 'whisper.cpp reachable, model present, ffmpeg bundled.', hint: '' };
+}
+
 function run(cmd, args, timeoutMs) {
   return new Promise(function(resolve, reject) {
     var child;
