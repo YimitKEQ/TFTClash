@@ -467,6 +467,20 @@ export async function handleComponent(interaction) {
   }
 
   if (action === 'approve') {
+    // Claim the token BEFORE any await. Creating the cards takes seconds (a
+    // board insert plus one Jira round trip per task), and until this guard
+    // existed the pending entry stayed live for that whole window, so a second
+    // click ran the entire batch again. That is exactly how the board ended up
+    // with seven tasks duplicated eight seconds apart on 2026-07-16.
+    if (p.processing) {
+      await interaction.reply({
+        content: 'Already creating those tasks, give it a moment. Do not click again.',
+        ephemeral: true,
+      }).catch(function() {});
+      return;
+    }
+    p.processing = true;
+
     await interaction.deferUpdate().catch(function() {});
     var indices = p.selected ? Array.from(p.selected) : p.tasks.map(function(_, i) { return String(i); });
     var chosen = indices
@@ -474,6 +488,11 @@ export async function handleComponent(interaction) {
       .filter(Boolean);
 
     if (!chosen.length) {
+      // Nothing was created, so release the claim and let them pick and retry.
+      // A failure PART WAY through creation deliberately stays claimed: retrying
+      // would duplicate whatever already succeeded, and the 30 minute PENDING
+      // TTL clears it anyway.
+      p.processing = false;
       await interaction.followUp({ content: 'No tasks selected, nothing created.', ephemeral: true }).catch(function() {});
       return;
     }
