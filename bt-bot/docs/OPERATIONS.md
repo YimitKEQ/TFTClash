@@ -127,8 +127,36 @@ The bot now refuses up front. On boot it logs one of:
 and `/record start` declines with the reason rather than recording something it
 cannot process. `/record status` reports the same thing on demand.
 
-To make `/record` work on the VM, install whisper.cpp there and point the VM's
-own `.env` at the Linux paths:
+### Installing whisper.cpp on the VM
+
+Done 2026-08-10. `scripts/install-whisper.sh` in this repo is the exact script
+that was run. Copy it up with `gcloud compute scp` and run it in the foreground
+so you can watch it; rerunning is safe (it resets the checkout and rebuilds).
+
+What it does, and why each choice matters on this box:
+
+```bash
+# 1. build deps. espeak-ng is only for the round trip test in step 5.
+sudo apt-get install -y cmake espeak-ng
+
+# 2. source
+git clone --depth 1 https://github.com/ggml-org/whisper.cpp.git
+
+# 3. build. Three deliberate choices:
+#    --target whisper-cli   the default target also builds server, stream,
+#                           bench and talk-llama, none of which the bot ever
+#                           invokes, costing about half an hour extra here.
+#    -j 1 and nice -n 19    2 vCPU shared with three live bots. A parallel
+#                           build starves them. Roughly 30 minutes to
+#                           whisper-cli, and that is the correct trade.
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DWHISPER_BUILD_TESTS=OFF
+nice -n 19 cmake --build build --config Release --target whisper-cli -j 1
+
+# 4. model
+bash ./models/download-ggml-model.sh base.en
+```
+
+Then point the VM's **own** `.env` at the Linux paths and restart:
 
 ```
 WHISPER_CMD=/home/gubje/whisper.cpp/build/bin/whisper-cli
@@ -136,14 +164,58 @@ WHISPER_MODEL=/home/gubje/whisper.cpp/models/ggml-base.en.bin
 WHISPER_LANG=en
 ```
 
-Then restart: `pm2 restart baron-bot --update-env`.
+```
+pm2 restart baron-bot --update-env
+```
 
-> Sizing warning: transcription is CPU bound and this VM is small and shared.
-> `ggml-base.en` is the realistic ceiling here; `small`/`medium` will be slow and
-> will compete for memory with the other two bots. If meetings are long, the
-> honest options are a bigger VM or a hosted STT, which is a privacy decision
-> because it means audio leaves the machine. Until one of those is chosen,
-> `/meeting` with pasted notes gives the same recap and tasks without audio.
+Confirm from the boot log rather than assuming:
+
+```
+[voice] transcriber ready: whisper.cpp reachable, model present, ffmpeg bundled.
+```
+
+### Verifying it end to end
+
+"The binary exists" is not proof. Synthesize speech, transcribe it, read the
+result back. This is what the installer's step 5 does:
+
+```bash
+espeak-ng -w /tmp/t_raw.wav -s 130 "the quick brown fox jumps over the lazy dog"
+FF=/home/gubje/baron-bot/node_modules/ffmpeg-static/ffmpeg
+"$FF" -y -loglevel error -i /tmp/t_raw.wav -ar 16000 -ac 1 /tmp/t.wav
+/home/gubje/whisper.cpp/build/bin/whisper-cli \
+  -m /home/gubje/whisper.cpp/models/ggml-base.en.bin -f /tmp/t.wav -l en -oj -of /tmp/t
+node -e 'console.log(require("/tmp/t.json").transcription.map(function(r){return r.text}).join(" "))'
+```
+
+whisper.cpp needs **16 kHz mono**. The bot's pipeline already resamples with the
+bundled ffmpeg, so a manual test must do the same or the output is garbage and
+you will blame the model.
+
+### Measured throughput on this host
+
+Taken 2026-08-10 with `base.en`, while all three bots were live:
+
+| | |
+|---|---|
+| Audio | 7.51 s |
+| Wall time | 7.50 s |
+| Ratio | **1.0x realtime** |
+| Encode | 5431 ms (the dominant cost) |
+
+So **a 40 minute meeting takes roughly 40 minutes to transcribe.** The bot
+handles that correctly: the per-file timeout is `max(WHISPER_TIMEOUT_MS, 4s per
+second of audio)`, so a long call gets a proportionally longer budget and is
+never cut off mid-transcription. It does mean the recap is not instant, and
+`/record stop` will sit on "Transcribing..." for a while. That is expected, not
+a hang.
+
+> Sizing. `base.en` is the realistic ceiling on 2 vCPU with 969 MB shared across
+> three bots. `small` and `medium` would thrash swap and starve the others. If
+> the wait becomes unacceptable, the honest options are a bigger VM or a hosted
+> STT, and the latter is a privacy decision, because audio would then leave the
+> machine, which contradicts what the docs and the `/guide` poster promise.
+> `/meeting` with pasted notes remains the zero-audio fallback.
 
 ---
 
