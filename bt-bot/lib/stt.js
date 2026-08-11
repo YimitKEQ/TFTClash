@@ -104,7 +104,20 @@ async function toOpus(wavPath, outPath, offsetSec, durationSec) {
   if (offsetSec != null) args = args.concat(['-ss', String(offsetSec)]);
   args = args.concat(['-i', wavPath]);
   if (durationSec != null) args = args.concat(['-t', String(durationSec)]);
-  args = args.concat(['-c:a', 'libopus', '-b:a', '16k', '-ac', '1', '-application', 'voip', outPath]);
+  // compression_level 0 is the fastest libopus setting. The default is 10,
+  // which spends enormous CPU chasing bitrate savings that are meaningless at
+  // 16 kbps speech. Measured on the fleet VM the default encoded at 0.38x
+  // realtime, so a 40 minute track cost about 15 minutes just to compress:
+  // that would have traded a slow transcription for a slow upload and largely
+  // wasted the point of going hosted.
+  args = args.concat([
+    '-c:a', 'libopus',
+    '-b:a', '16k',
+    '-ac', '1',
+    '-application', 'voip',
+    '-compression_level', '0',
+    outPath,
+  ]);
   await run(ffmpegPath, args, 600000);
 }
 
