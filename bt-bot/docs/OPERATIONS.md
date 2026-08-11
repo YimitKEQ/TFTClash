@@ -194,21 +194,62 @@ you will blame the model.
 
 ### Measured throughput on this host
 
-Taken 2026-08-10 with `base.en`, while all three bots were live:
+**Benchmark honestly, or do not bother.** The first measurement taken here was
+a 7.5 second clip that came out at 1.0x realtime, and it was reported as if it
+predicted meeting throughput. It does not. A clip that short is dominated by
+fixed costs, runs entirely in cache, and never touches the memory pressure a
+real meeting creates. The number was wrong by a wide margin and sent everyone
+looking in the wrong place when `/record` failed.
 
-| | |
-|---|---|
-| Audio | 7.51 s |
-| Wall time | 7.50 s |
-| Ratio | **1.0x realtime** |
-| Encode | 5431 ms (the dominant cost) |
+Rules for benchmarking this pipeline:
 
-So **a 40 minute meeting takes roughly 40 minutes to transcribe.** The bot
-handles that correctly: the per-file timeout is `max(WHISPER_TIMEOUT_MS, 4s per
-second of audio)`, so a long call gets a proportionally longer budget and is
-never cut off mid-transcription. It does mean the recap is not instant, and
-`/record stop` will sit on "Transcribing..." for a while. That is expected, not
-a hang.
+- Use **several minutes** of audio, not seconds. Real meetings here run 19 to 88
+  minutes (see `bt_voice_sessions`).
+- Trust whisper's own `total time` line, **not** the segment timestamps in the
+  log. When stdout is redirected to a file whisper buffers it, so the last
+  visible `[00:01:45]` position lags badly behind reality and any ratio derived
+  from it is fiction.
+- Measure with the other bots running. This box is shared, and contention is
+  part of the real answer.
+- Watch `free -m` during the run. A transcription that pushes the host into swap
+  has already failed, even if it eventually returns a transcript.
+
+Whisper competes for both cores (observed at 182% CPU) and drives available
+memory down hard enough that **SSH to the box failed mid-benchmark**. Treat a
+long transcription as something that degrades the whole VM, not as a background
+task.
+
+**The measured result, 2026-08-11.** 220 seconds of real speech (whisper.cpp's
+own `samples/jfk.wav`, repeated), whisper's own `total time`, other bots live:
+
+| Model | Wall time | Ratio | A 40 min meeting | An 88 min meeting |
+|---|---|---|---|---|
+| `tiny.en` | 1146 s | **5.21x** | ~3.5 hours | ~7.6 hours |
+| `base.en` | 2123 s | **9.65x** | ~6.4 hours | ~14 hours |
+
+**Local transcription is not viable on this host.** That is not a tuning
+problem and no model size fixes it: `tiny.en` is already the floor on quality
+and is still 5x realtime. The box is 2 vCPU at 2.2GHz shared with three bots,
+and CPU-only whisper needs far more than that.
+
+For the record, `base.en` was noticeably more accurate on the same audio
+(`tiny.en` clipped the sample sentence), so trading quality down buys little.
+
+The realistic options, in the order they were put to the owner:
+
+1. **Hosted STT** (for example Groq `whisper-large-v3`). Turns hours into
+   seconds and is free at low volume. The cost is that **audio leaves the
+   machine**, which contradicts the promise in `USAGE.md`, in `/guide`, and on
+   the guide poster. Choosing this means changing that copy, not quietly
+   breaking it.
+2. **A bigger VM.** Costs money, and CPU-only inference is still slow: expect
+   roughly 1x to 2x realtime on a decent machine, so a 40 minute meeting still
+   takes 40 to 80 minutes.
+3. **Transcribe on the desktop.** The original `WHISPER_CMD` pointed at a
+   `cublas` build, meaning a CUDA GPU, which is one to two orders of magnitude
+   faster than this VM. The bot would have to run there, or offload to it.
+4. **Do not record.** `/meeting` with pasted notes produces the same recap and
+   the same tasks, costs nothing, and works today.
 
 > Sizing. `base.en` is the realistic ceiling on 2 vCPU with 969 MB shared across
 > three bots. `small` and `medium` would thrash swap and starve the others. If
