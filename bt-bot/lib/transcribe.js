@@ -115,6 +115,22 @@ function run(cmd, args, timeoutMs) {
   });
 }
 
+// Bytes per second of the 16kHz mono 16-bit WAV this pipeline feeds whisper.
+var WAV_BYTES_PER_SEC = 16000 * 1 * 2;
+
+// Length in seconds of a WAV produced by pcmToWav, from its size on disk.
+// Returns 0 when the file is missing or too small to hold any audio, so the
+// caller can fall back rather than trusting a bogus zero.
+export function wavSeconds(wavPath) {
+  try {
+    var bytes = fs.statSync(wavPath).size - 44; // 44 byte canonical WAV header
+    if (!(bytes > 0)) return 0;
+    return bytes / WAV_BYTES_PER_SEC;
+  } catch (e) {
+    return 0;
+  }
+}
+
 // 48kHz stereo s16le PCM -> 16kHz mono WAV (what whisper.cpp expects).
 async function pcmToWav(pcmPath, wavPath) {
   if (!ffmpegPath) throw new Error('ffmpeg-static is not installed');
@@ -218,8 +234,17 @@ export async function transcribeManifest(manifest) {
       console.warn('[transcribe] ffmpeg failed for ' + sp.userId + ': ' + ((e && e.message) || e));
       continue;
     }
-    var utts = sp.utterances || [];
-    var audioSec = utts.length ? utts[utts.length - 1].fileEndSec : 0;
+    // Derive the length from the WAV actually on disk rather than from the
+    // utterance bookkeeping. The 16kHz mono 16-bit file this pipeline produces
+    // is exactly 32000 bytes per second, so this is ground truth, and it cannot
+    // silently collapse to zero the way a missing utterance list can. A zero
+    // there would drop the timeout to the 15 minute floor and cut a long
+    // meeting off part way through.
+    var audioSec = wavSeconds(wavPath);
+    if (!audioSec) {
+      var utts = sp.utterances || [];
+      audioSec = utts.length ? utts[utts.length - 1].fileEndSec : 0;
+    }
     var segs = await whisperSegments(wavPath, outBase, audioSec);
     if (!segs.length) continue;
     var name = displayName(sp);

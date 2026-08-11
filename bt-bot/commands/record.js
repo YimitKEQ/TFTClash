@@ -129,6 +129,64 @@ function buildRecapEmbed(p, res) {
   return embed;
 }
 
+/**
+ * A Discord interaction token is only valid for 15 minutes. Transcribing a real
+ * meeting routinely runs longer than that, and when it does every editReply
+ * fails with 50027 "Invalid Webhook Token" and the person who ran the command
+ * gets nothing at all: not the result, not even the error.
+ *
+ * That is exactly what happened on 2026-08-11. A 35 minute recording timed out,
+ * and the message saying so could not be delivered either, so the meeting
+ * vanished in silence.
+ *
+ * respond() delivers the message either way: through the interaction while the
+ * token is alive, otherwise as a normal channel message addressed to whoever
+ * asked. Never throws, because losing the RESULT is bad but losing the
+ * explanation as well is worse.
+ */
+var INTERACTION_TOKEN_MS = 15 * 60 * 1000;
+var TOKEN_SAFETY_MS = 60 * 1000; // stop trusting the token a minute early
+
+function tokenAlive(interaction) {
+  return (Date.now() - interaction.createdTimestamp) < (INTERACTION_TOKEN_MS - TOKEN_SAFETY_MS);
+}
+
+function asPayload(payload) {
+  return typeof payload === 'string' ? { content: payload } : payload;
+}
+
+async function respond(interaction, payload) {
+  var body = asPayload(payload);
+
+  if (tokenAlive(interaction)) {
+    try {
+      return await interaction.editReply(body);
+    } catch (e) {
+      // 50027 is the expired token. Anything else is worth knowing about, but
+      // still must not stop us reaching the user.
+      if (!e || e.code !== 50027) {
+        console.warn('[record] editReply failed (' + ((e && e.code) || '?') + '), falling back to the channel: ' + ((e && e.message) || e));
+      }
+    }
+  }
+
+  try {
+    var channel = interaction.channel;
+    if (!channel || typeof channel.send !== 'function') {
+      console.error('[record] no channel available to deliver the result');
+      return null;
+    }
+    var who = interaction.user ? '<@' + interaction.user.id + '> ' : '';
+    var fallback = Object.assign({}, body);
+    fallback.content = who + (body.content || 'Your recording finished.');
+    fallback.allowedMentions = { users: interaction.user ? [interaction.user.id] : [] };
+    return await channel.send(fallback);
+  } catch (e2) {
+    console.error('[record] could not deliver the result at all: ' + ((e2 && e2.message) || e2));
+    return null;
+  }
+}
+
 // Post the recap to the meetings channel (best-effort, never throws).
 async function postRecap(interaction, embed, file) {
   try {
@@ -296,20 +354,24 @@ async function stopCmd(interaction) {
   try {
     tr = await transcribeManifest(manifest);
   } catch (e) {
-    cleanupDir(manifest.dir);
-    await interaction.editReply('Transcription failed: ' + ((e && e.message) || e));
+    // The audio is deliberately NOT deleted on a transcription failure: it is
+    // the only copy of the meeting, and a failure here is usually a timeout
+    // that a rerun or a smaller model could still get through. cleanupDir on
+    // the success path still removes it as soon as there is a transcript.
+    await respond(interaction, 'Transcription failed: ' + ((e && e.message) || e)
+      + '\nThe raw audio is still on the host at `' + manifest.dir + '`, so the meeting is recoverable. '
+      + 'See docs/OPERATIONS.md section 4.');
     return;
-  } finally {
-    // Audio + intermediate files are no longer needed once transcribed.
-    cleanupDir(manifest.dir);
   }
+  // Audio and intermediate files are no longer needed once transcribed.
+  cleanupDir(manifest.dir);
 
   if (!tr.transcript) {
-    await interaction.editReply('Transcribed, but no speech was recognized. Nothing to suggest.');
+    await respond(interaction, 'Transcribed, but no speech was recognized. Nothing to suggest.');
     return;
   }
 
-  await interaction.editReply('Transcribed ' + manifest.speakers.length + ' track(s). Summarizing with AI, almost there...');
+  await respond(interaction, 'Transcribed ' + manifest.speakers.length + ' track(s). Summarizing with AI, almost there...');
   var analysis = await analyzeMeeting(tr.transcript, null);
   var tasks = (analysis.tasks || []).slice(0, 25);
   var durationSeconds = Math.round(manifest.durationMs / 1000);
@@ -349,7 +411,7 @@ async function stopCmd(interaction) {
     var storedRecap0 = Object.assign({}, analysis.recap, { tasks: [] });
     var mtg0 = await recordMeeting({ title: meetingTitle, summary: analysis.summary, raw_notes: tr.transcript, created_by: interaction.user ? interaction.user.tag : '', tasks_created: 0, recap: storedRecap0 });
     await updateVoiceSession(voiceSessionId, { status: 'transcribed', tasksCreated: 0, meetingId: mtg0 && mtg0.id });
-    await interaction.editReply({ content: '', embeds: [noTaskEmbed], files: [file] });
+    await respond(interaction, { content: '', embeds: [noTaskEmbed], files: [file] });
     var recapEmbed0 = buildRecapEmbed({ recap: analysis.recap, byline: tr.byline, meetingTitle: meetingTitle, engine: analysis.engine, durationSeconds: durationSeconds }, { cards: [], jiraResults: [], jiraOn: false });
     await postRecap(interaction, recapEmbed0, file);
     return;
@@ -371,7 +433,10 @@ async function stopCmd(interaction) {
   });
 
   var payload = buildSuggestionMessage(token, PENDING.get(token));
-  await interaction.editReply(Object.assign({ content: '' }, payload, { files: [file] }));
+  // Delivered through respond(): on a long meeting the interaction token is
+  // already dead by the time we get here, and this is the message that carries
+  // the task pick list, so losing it loses the whole point of the recording.
+  await respond(interaction, Object.assign({ content: '' }, payload, { files: [file] }));
 }
 
 // Build the embed + select + buttons for a pending suggestion set.
