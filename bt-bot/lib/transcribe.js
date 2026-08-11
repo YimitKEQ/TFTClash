@@ -86,6 +86,39 @@ export function transcriberStatus() {
   return { ok: true, reason: 'ready', detail: 'whisper.cpp reachable, model present, ffmpeg bundled.', hint: '' };
 }
 
+/**
+ * How many seconds of compute this host needs per second of audio.
+ *
+ * Measured on the fleet VM 2026-08-11 with real speech: tiny.en 5.21x,
+ * base.en 9.65x. That means a 40 minute meeting is a multi hour job that takes
+ * both cores and pushes the box into swap, which matters because the TFT Clash
+ * bot lives on the same host.
+ *
+ * Set WHISPER_REALTIME_FACTOR per host. On a CUDA machine it is well under 1.
+ * There is no safe default to guess, so an unset value means "unknown" and the
+ * bot simply does not make a promise about timing.
+ */
+export function realtimeFactor() {
+  var raw = parseFloat(process.env.WHISPER_REALTIME_FACTOR);
+  return (isFinite(raw) && raw > 0) ? raw : null;
+}
+
+// Human estimate of how long transcribing `audioSec` will take on this host,
+// or null when the factor is unknown. Returns { seconds, text, slow }.
+export function estimateTranscription(audioSec) {
+  var factor = realtimeFactor();
+  if (!factor || !(audioSec > 0)) return null;
+  var seconds = audioSec * factor;
+  var mins = seconds / 60;
+  var text;
+  if (mins < 2) text = 'under 2 minutes';
+  else if (mins < 90) text = 'about ' + Math.round(mins) + ' minutes';
+  else text = 'about ' + (mins / 60).toFixed(1) + ' hours';
+  // Past roughly half an hour of compute this stops being a background job and
+  // starts being an outage risk for everything else on the host.
+  return { seconds: seconds, text: text, slow: seconds > 1800 };
+}
+
 function run(cmd, args, timeoutMs) {
   return new Promise(function(resolve, reject) {
     var child;

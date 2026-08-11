@@ -24,7 +24,7 @@ import {
 
 import fs from 'fs';
 import { startRecording, stopRecording, isRecording, getSession } from '../lib/recorder.js';
-import { transcribeManifest, transcriberStatus } from '../lib/transcribe.js';
+import { transcribeManifest, transcriberStatus, realtimeFactor, estimateTranscription } from '../lib/transcribe.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
@@ -288,6 +288,22 @@ async function startCmd(interaction) {
     description: 'Capturing the conversation. Everyone who speaks is recorded on their own track, so a pause never cuts the call short.\nRun `/record stop` when you are done.',
     footer: 'Transcribed locally  ' + MARK.arrow + '  audio never leaves this machine and is deleted after',
   });
+
+  // Say up front how long this host takes. Transcription here runs at several
+  // times realtime, so a long call is a multi hour job that competes with
+  // everything else on the box. Finding that out after the meeting is too late
+  // to do anything about it.
+  var factor = realtimeFactor();
+  if (factor && factor >= 2) {
+    var perHour = estimateTranscription(3600);
+    embed.addFields({
+      name: eyebrow('Before you start'),
+      value: 'Transcribing on this host runs at roughly **' + factor.toFixed(1) + 'x realtime**, so an hour of call is '
+        + (perHour ? perHour.text : 'a long job') + ' of processing, and it competes with the other bots on this machine.\n'
+        + 'For a long meeting, `/meeting` with pasted notes gives the same recap and the same tasks instantly.',
+    });
+  }
+
   await interaction.editReply({ embeds: [embed] });
 }
 

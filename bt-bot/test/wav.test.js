@@ -73,3 +73,47 @@ test('a zero length reading leaves the floor in charge', function() {
   var timeout = Math.max(900000, Math.ceil(0 * 4000));
   assert.equal(timeout, 900000);
 });
+
+// ---- throughput estimate ------------------------------------------------------
+
+test('the throughput estimate is silent when the host factor is unknown', async function() {
+  var m = await import('../lib/transcribe.js');
+  var saved = process.env.WHISPER_REALTIME_FACTOR;
+  delete process.env.WHISPER_REALTIME_FACTOR;
+  try {
+    assert.equal(m.realtimeFactor(), null, 'no guessing a default');
+    assert.equal(m.estimateTranscription(3600), null, 'and no promise about timing');
+  } finally {
+    if (saved === undefined) delete process.env.WHISPER_REALTIME_FACTOR;
+    else process.env.WHISPER_REALTIME_FACTOR = saved;
+  }
+});
+
+test('the throughput estimate reads in human units and flags a slow host', async function() {
+  var m = await import('../lib/transcribe.js');
+  var saved = process.env.WHISPER_REALTIME_FACTOR;
+  try {
+    // The measured VM figure for base.en.
+    process.env.WHISPER_REALTIME_FACTOR = '9.65';
+    var hour = m.estimateTranscription(3600);
+    assert.ok(hour.seconds > 34000, 'an hour of call is roughly ten hours of compute');
+    assert.ok(/hours/.test(hour.text), 'reads as hours: ' + hour.text);
+    assert.equal(hour.slow, true);
+
+    // A CUDA host, where this is a non issue.
+    process.env.WHISPER_REALTIME_FACTOR = '0.05';
+    var fast = m.estimateTranscription(3600);
+    assert.equal(fast.slow, false);
+    assert.ok(/minutes/.test(fast.text), 'reads as minutes: ' + fast.text);
+  } finally {
+    if (saved === undefined) delete process.env.WHISPER_REALTIME_FACTOR;
+    else process.env.WHISPER_REALTIME_FACTOR = saved;
+  }
+});
+
+test('a zero length recording produces no estimate', async function() {
+  var m = await import('../lib/transcribe.js');
+  process.env.WHISPER_REALTIME_FACTOR = '5';
+  assert.equal(m.estimateTranscription(0), null);
+  delete process.env.WHISPER_REALTIME_FACTOR;
+});
