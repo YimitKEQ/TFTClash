@@ -25,6 +25,7 @@ import {
 import fs from 'fs';
 import { startRecording, stopRecording, isRecording, getSession } from '../lib/recorder.js';
 import { transcribeManifest, transcriberStatus, realtimeFactor, estimateTranscription } from '../lib/transcribe.js';
+import { hostedConfigured } from '../lib/stt.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
@@ -94,7 +95,7 @@ function buildRecapEmbed(p, res) {
     title: MARK.live + '  ' + clamp(p.meetingTitle, 200),
     description: clamp(r.tldr || 'No summary.', 1400),
     footer: (p.engine === 'ai' ? 'AI recap' : 'Auto recap, no AI key set')
-      + '  ' + MARK.arrow + '  transcribed locally with whisper.cpp'
+      + '  ' + MARK.arrow + '  ' + (hostedConfigured() ? 'transcribed by a hosted API' : 'transcribed locally with whisper.cpp')
       + '  ' + MARK.arrow + '  full transcript attached',
   });
 
@@ -286,14 +287,19 @@ async function startCmd(interaction) {
     author: BRAND.name + '  ' + MARK.arrow + '  recording',
     title: MARK.live + '  ' + voice.name,
     description: 'Capturing the conversation. Everyone who speaks is recorded on their own track, so a pause never cuts the call short.\nRun `/record stop` when you are done.',
-    footer: 'Transcribed locally  ' + MARK.arrow + '  audio never leaves this machine and is deleted after',
+    // The footer must state what actually happens to the audio on THIS host.
+    // Claiming it stays local while it is being uploaded would be the single
+    // most damaging thing this bot could say.
+    footer: hostedConfigured()
+      ? 'Transcribed by a hosted API  ' + MARK.arrow + '  audio is sent off this machine, then deleted'
+      : 'Transcribed locally  ' + MARK.arrow + '  audio never leaves this machine and is deleted after',
   });
 
   // Say up front how long this host takes. Transcription here runs at several
   // times realtime, so a long call is a multi hour job that competes with
   // everything else on the box. Finding that out after the meeting is too late
   // to do anything about it.
-  var factor = realtimeFactor();
+  var factor = hostedConfigured() ? null : realtimeFactor();
   if (factor && factor >= 2) {
     var perHour = estimateTranscription(3600);
     embed.addFields({

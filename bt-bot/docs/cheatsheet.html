@@ -45,7 +45,7 @@
     <div class="flow">
       <div class="step"><b>/record start</b><span>join VC</span></div><span class="arr">›</span>
       <div class="step"><b>Talk</b><span>per-speaker</span></div><span class="arr">›</span>
-      <div class="step"><b>Transcribe</b><span>local whisper</span></div><span class="arr">›</span>
+      <div class="step"><b>Transcribe</b><span>hosted STT</span></div><span class="arr">›</span>
       <div class="step"><b>Recap + tasks</b><span>Claude AI</span></div><span class="arr">›</span>
       <div class="step"><b>Approve</b><span>pick tasks</span></div><span class="arr">›</span>
       <div class="step"><b>Recap + Board + Jira</b><span>created</span></div>
@@ -56,7 +56,7 @@
       <li>Run <span class="cmd">/record stop</span> (optionally <span class="cmd">title:Weekly sync</span>). You get a structured recap (TL;DR, decisions, blockers), a task checklist, and the transcript file.</li>
       <li>Tick the real tasks and hit <b>Create selected</b>. Each becomes a board card + Jira issue, and the full recap posts to <b>#bt-meetings</b> and the dashboard.</li>
     </ol>
-    <div class="note">Transcription runs locally - audio never leaves the machine. Recaps use the Claude API.</div>
+    <div class="note">Audio is uploaded to a hosted speech to text service, then deleted; only the text is kept. Use /meeting with pasted notes to send no audio at all. Recaps use the Claude API.</div>
   </div>
 
   <div class="cols">

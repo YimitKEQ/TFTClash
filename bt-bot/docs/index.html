@@ -99,10 +99,10 @@
   <ol class="steps">
     <li><b>Join a voice channel</b> and type <code>/record start</code>. The bot joins and starts listening. Everyone who talks is recorded on their own track, so it never cuts off after a pause, no matter how long the call runs.</li>
     <li><b>Have your meeting.</b> Talk normally. Type <code>/record status</code> any time to see who it has heard.</li>
-    <li><b>Type <code>/record stop</code></b> when you are done (you can add a title: <code>/record stop title:Weekly sync</code>). It transcribes the call on our own machine (your audio never leaves it), then writes the recap with AI. A long meeting takes a couple of minutes.</li>
+    <li><b>Type <code>/record stop</code></b> when you are done (you can add a title: <code>/record stop title:Weekly sync</code>). It transcribes the call, then writes the recap with AI. A long meeting takes a couple of minutes.</li>
     <li><b>Pick the real tasks.</b> The bot shows a checklist of suggested tasks. Tick the ones that matter and hit <b>Create selected</b>. They become board cards and Jira issues, and the full recap posts to <code>#bt-meetings</code>.</li>
   </ol>
-  <div class="note">Transcription runs locally on the GPU, so the audio stays on the machine. Only the text recap and transcript are saved. The AI summary uses Claude.</div>
+  <div class="warn"><b>Where your audio goes.</b> Transcription runs on a hosted speech to text API, so the recorded audio is uploaded off our machine to be turned into text. It is deleted straight after, and only the text recap and transcript are kept. Our server is too small to do this locally: a forty minute call would take about six hours. If you would rather a conversation was not uploaded, use <code>/meeting</code> with pasted notes instead, which sends no audio at all.</div>
 
   <h2 id="recap">2. What you get back</h2>
   <p>Instead of a wall of text, you get a structured recap you can actually skim. It lands in two places: a card in <code>#bt-meetings</code> (the permanent record) and the top of the dashboard.</p>

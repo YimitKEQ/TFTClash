@@ -173,7 +173,8 @@ malformed command.
 ## Voice recording (/record)
 
 `/record` joins your voice channel, records every speaker on a separate audio
-track, transcribes locally with whisper.cpp (audio never leaves the machine),
+track, transcribes it (locally with whisper.cpp, or via a hosted API when
+  `GROQ_API_KEY` is set, in which case the audio leaves the machine),
 extracts action items with Claude, and lets you approve which become tasks. Each
 approved task is created as a board card and pushed to Jira Cloud.
 

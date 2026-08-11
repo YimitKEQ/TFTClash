@@ -1,9 +1,20 @@
 /**
  * transcribe.js - turn a recorder manifest into one chronological, speaker
- * labelled transcript using a LOCAL whisper.cpp build (no cloud, no API key).
+ * labelled transcript.
+ *
+ * TWO ENGINES, and which one runs changes the privacy properties of /record:
+ *
+ *   local   whisper.cpp on this machine. Audio never leaves the host. Requires
+ *           a binary and a model here, and enough CPU to be worth using.
+ *   hosted  lib/stt.js, used whenever GROQ_API_KEY is set. AUDIO LEAVES THE
+ *           MACHINE. Chosen because on the fleet VM local whisper measured
+ *           9.65x realtime, making a 40 minute meeting a six hour job.
+ *
+ * engineLabel() records which one actually ran, so a stored meeting never
+ * claims local transcription when the audio was in fact uploaded.
  *
  * Pipeline per speaker:
- *   per-user 48kHz stereo PCM  --ffmpeg-->  16kHz mono WAV  --whisper.cpp-->  JSON segments
+ *   per-user 48kHz stereo PCM  --ffmpeg-->  16kHz mono WAV  -->  JSON segments
  * Then every speaker's segments are mapped back to wall-clock time (using the
  * utterance timing the recorder captured) and merged into a single ordered
  * transcript like:
@@ -22,6 +33,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import ffmpegPath from 'ffmpeg-static';
 import { crewNameForDiscordId } from '../config/crew.js';
+import { hostedConfigured, hostedStatus, hostedModel, transcribeHostedFile } from './stt.js';
 
 /**
  * Can this machine actually transcribe?
@@ -38,6 +50,11 @@ import { crewNameForDiscordId } from '../config/crew.js';
  * Returns { ok, reason, detail, hint }.
  */
 export function transcriberStatus() {
+  // Hosted wins when configured. It is the only option that finishes a real
+  // meeting in a usable time on a small host, and it is opt in precisely
+  // because it means the audio leaves the machine.
+  if (hostedConfigured()) return hostedStatus();
+
   var cmd = process.env.WHISPER_CMD;
   var model = process.env.WHISPER_MODEL;
 
@@ -148,6 +165,13 @@ function run(cmd, args, timeoutMs) {
   });
 }
 
+// Which engine actually produced a transcript, recorded on the meeting so the
+// dashboard and bt_voice_sessions do not claim local whisper ran when the audio
+// was in fact sent to a hosted API.
+export function engineLabel() {
+  return hostedConfigured() ? ('hosted:' + hostedModel()) : 'whisper.cpp';
+}
+
 // Bytes per second of the 16kHz mono 16-bit WAV this pipeline feeds whisper.
 var WAV_BYTES_PER_SEC = 16000 * 1 * 2;
 
@@ -251,7 +275,7 @@ function displayName(speaker) {
 export async function transcribeManifest(manifest) {
   var speakers = (manifest && manifest.speakers) || [];
   if (!speakers.length) {
-    return { transcript: '', byline: '', segments: [], speakers: [], engine: 'whisper' };
+    return { transcript: '', byline: '', segments: [], speakers: [], engine: engineLabel() };
   }
 
   var allSegments = [];
@@ -278,7 +302,9 @@ export async function transcribeManifest(manifest) {
       var utts = sp.utterances || [];
       audioSec = utts.length ? utts[utts.length - 1].fileEndSec : 0;
     }
-    var segs = await whisperSegments(wavPath, outBase, audioSec);
+    var segs = hostedConfigured()
+      ? await transcribeHostedFile(wavPath, audioSec, manifest.dir)
+      : await whisperSegments(wavPath, outBase, audioSec);
     if (!segs.length) continue;
     var name = displayName(sp);
     names.push(name);
@@ -298,6 +324,6 @@ export async function transcribeManifest(manifest) {
     byline: names.join(', '),
     segments: allSegments,
     speakers: names,
-    engine: 'whisper',
+    engine: engineLabel(),
   };
 }

@@ -22,14 +22,20 @@ The headline feature. Hop in a voice channel, run two commands, done.
    recorded on their own track, so a long call is never cut off after a pause.
 2. **Have your meeting.** Talk normally. `/record status` shows who it has heard.
 3. **Type `/record stop`** (optionally `/record stop title:Weekly sync`). It
-   transcribes locally (audio never leaves the machine), then writes the recap
-   with AI. A long meeting takes a couple of minutes.
+   transcribes the call, then writes the recap with AI. A long meeting takes a
+   couple of minutes.
 4. **Pick the real tasks** from the checklist and hit **Create selected**. They
    become board cards and Jira issues, and the full recap posts to `#bt-meetings`
    with the complete transcript attached as a file.
 
-> Transcription is local. Audio and intermediate files are deleted right after,
-> and only the text recap and transcript are kept.
+> **Where your audio goes.** Transcription runs on a hosted speech to text API,
+> so the recorded audio is uploaded off our machine to be turned into text. It is
+> deleted straight after and only the text recap and transcript are kept. We do
+> this because our server is too small to transcribe a real meeting locally: it
+> would take about six hours for a forty minute call. If you would rather a
+> conversation was not uploaded, do not use `/record` for it. `/meeting` with
+> pasted notes gives the same recap and the same tasks and sends no audio at
+> all.
 
 ---
 
@@ -169,15 +175,21 @@ name in half. Use the web dashboard for the full list.
 **Can I change a task from the dashboard?** The web dashboard is read-only. Use
 the `/card` commands in Discord, or Jira.
 
-**Does it always listen?** No. Only between `/record start` and `/record stop`,
-and the audio is processed locally and deleted right after.
+**Does it always listen?** No. Only between `/record start` and `/record stop`.
+Outside that window nothing is captured at all.
+
+**Is my audio sent anywhere?** Yes, while transcribing. The recorded tracks go to
+a hosted speech to text service, then get deleted; only the text is kept. Our
+server cannot do it locally in a usable time. Use `/meeting` with pasted notes
+for anything you would rather not send.
 
 ---
 
 ## For Lodie (setup)
 
 Config is in `bt-bot/.env`; restart to apply. Keys: `ANTHROPIC_API_KEY` (recaps),
-`WHISPER_CMD`/`WHISPER_MODEL` (local transcription), `JIRA_*` (push to Jira),
+`GROQ_API_KEY` (hosted transcription; unset it to fall back to local whisper via
+`WHISPER_CMD`/`WHISPER_MODEL`), `JIRA_*` (push to Jira),
 `DASHBOARD_TOKEN` (web dashboard), `BT_BRAND_NAME` (the crew-facing name used in
 every card). Share the dashboard with `npm run tunnel`.
 
