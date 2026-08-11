@@ -235,7 +235,24 @@ and CPU-only whisper needs far more than that.
 For the record, `base.en` was noticeably more accurate on the same audio
 (`tiny.en` clipped the sample sentence), so trading quality down buys little.
 
-The realistic options, in the order they were put to the owner:
+**Resolved 2026-08-11: hosted transcription.** `GROQ_API_KEY` is set on the VM
+and `/record` now uses `whisper-large-v3-turbo`. Audio leaves the machine, and
+the user facing copy says so everywhere. Unset the key and the bot falls back to
+local whisper.cpp unchanged, which is why the local install above is still
+documented rather than deleted.
+
+Two things measured while wiring it up, both worth keeping:
+
+- **Compress before uploading.** The raw WAV is 32 KB per second, so a 40 minute
+  track is 76 MB and gets rejected. Ogg/Opus at 16 kbps drops it to a couple of
+  megabytes.
+- **Use `-compression_level 0`.** libopus defaults to 10 and on this box that
+  encoded at 0.38x realtime, roughly 15 minutes of CPU for a 40 minute meeting.
+  At 16 kbps speech the quality difference is inaudible to a speech model, and
+  level 0 removed the entire cost. A full two track, 37 minute recovery run
+  (encode, upload, transcribe, summarise) takes about 3m40s end to end.
+
+The options that were weighed, for the record:
 
 1. **Hosted STT** (for example Groq `whisper-large-v3`). Turns hours into
    seconds and is free at low volume. The cost is that **audio leaves the
@@ -306,6 +323,31 @@ group by title having count(*) > 1;
 
 Deleting rows is destructive and is a human decision. Move a duplicate to
 `archive` rather than deleting it if you want it out of the way reversibly.
+
+---
+
+### Recovering a meeting whose transcription failed
+
+`/record` keeps the raw audio when transcription fails, because that audio is
+the only copy of the conversation. Rebuild it:
+
+```
+cd /home/gubje/baron-bot
+node scripts/recover-meeting.js /tmp/bt-rec/<session-dir> --title "Weekly sync" --dry
+node scripts/recover-meeting.js /tmp/bt-rec/<session-dir> --title "Weekly sync"
+```
+
+`--dry` prints the transcript and the summary without saving or posting
+anything. Always look first.
+
+It cannot recover exact wall clock alignment: the utterance map that places each
+speaker's silence-stripped audio on the real timeline lives in memory and dies
+with the failed run. Order within a speaker is exact, interleaving between
+speakers is approximate, and the posted recap says so.
+
+**Delete the audio once it is recovered.** The documented promise is that audio
+is deleted after transcription, and leaving a few hundred megabytes of raw
+meeting audio in `/tmp` quietly breaks it.
 
 ---
 
