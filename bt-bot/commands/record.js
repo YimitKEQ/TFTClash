@@ -28,7 +28,7 @@ import { transcribeManifest, transcriberStatus, realtimeFactor, estimateTranscri
 import { hostedConfigured } from '../lib/stt.js';
 import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
-import { logVoiceSession, updateVoiceSession } from '../lib/voiceLog.js';
+import { logVoiceSession, updateVoiceSession, savePending, loadPending, clearPending } from '../lib/voiceLog.js';
 import { createIssue, jiraConfigured, jiraMissingHint, checkJira } from '../lib/jira.js';
 import { resolveChannel } from '../lib/channels.js';
 import { BT_DEPARTMENTS } from '../config/crew.js';
@@ -60,9 +60,21 @@ function clamp(s, n) {
   return v.length > n ? v.slice(0, n - 3) + '...' : v;
 }
 
+/**
+ * Hold a suggestion set in memory AND on the session row.
+ *
+ * The in-memory map is only a cache now. It used to be the sole store, which
+ * meant any restart silently destroyed a meeting's tasks: the recap sat in
+ * Discord, the bot redeployed, and "Create selected" reported the set as
+ * expired with no way to get the tasks back. The durable copy is what makes
+ * approving hours or days later work.
+ */
 function rememberPending(token, payload) {
   PENDING.set(token, payload);
   setTimeout(function() { PENDING.delete(token); }, PENDING_TTL_MS);
+  savePending(payload.voiceSessionId, token, payload).catch(function(e) {
+    console.warn('[record] could not persist the pending set: ' + ((e && e.message) || e));
+  });
 }
 
 // Build a downloadable full-transcript file so the Discord preview never loses
@@ -535,21 +547,63 @@ export async function handleComponent(interaction) {
   var token = parts[2];
   var p = PENDING.get(token);
 
+  // Whether THIS interaction has been acknowledged. Deliberately a local, not a
+  // field on the cached payload: the payload outlives the interaction, so
+  // storing it there would make the next click think it had already been
+  // acknowledged when it had not.
+  var acked = false;
+  async function ack() {
+    if (acked) return;
+    try {
+      await interaction.deferUpdate();
+      acked = true;
+    } catch (e) {
+      console.warn('[record] deferUpdate failed: ' + ((e && e.message) || e));
+    }
+  }
+  async function tell(content) {
+    var body = { content: content, ephemeral: true };
+    if (acked) return interaction.followUp(body).catch(function() {});
+    return interaction.reply(body).catch(function() {});
+  }
+
   if (!p) {
-    await interaction.reply({ content: 'This suggestion set expired. Run /record again.', ephemeral: true }).catch(function() {});
-    return;
+    // Not in memory. That almost always means the bot restarted since the recap
+    // was posted, which used to be fatal: the tasks were simply gone and the
+    // only "fix" was to record the meeting again, which is impossible after it
+    // happened. Load the durable copy instead.
+    //
+    // Discord wants an acknowledgement within three seconds and this is a
+    // database round trip, so acknowledge FIRST and then look it up.
+    await ack();
+
+    p = await loadPending(token);
+    if (!p) {
+      await tell('I cannot find that suggestion set any more, so those tasks were not created.\n'
+        + 'It was most likely already created, or discarded. Re-run `/record` for a new meeting, '
+        + 'or add them by hand with `/card add`.');
+      return;
+    }
+
+    console.log('[record] restored a pending set from the database after a restart ("'
+      + p.meetingTitle + '", ' + p.tasks.length + ' task(s))');
+    PENDING.set(token, p);
   }
 
   if (action === 'select') {
     p.selected = new Set(interaction.values || []);
-    await interaction.deferUpdate().catch(function() {});
+    await ack();
     return;
   }
 
   if (action === 'discard') {
     PENDING.delete(token);
-    await updateVoiceSession(p.voiceSessionId, { status: 'discarded' });
-    await interaction.update({ content: 'Discarded. No tasks created.', embeds: [], components: [] }).catch(function() {});
+    await updateVoiceSession(p.voiceSessionId, { status: 'discarded', pending: null });
+    if (acked) {
+      await interaction.editReply({ content: 'Discarded. No tasks created.', embeds: [], components: [] }).catch(function() {});
+    } else {
+      await interaction.update({ content: 'Discarded. No tasks created.', embeds: [], components: [] }).catch(function() {});
+    }
     return;
   }
 
@@ -560,15 +614,12 @@ export async function handleComponent(interaction) {
     // click ran the entire batch again. That is exactly how the board ended up
     // with seven tasks duplicated eight seconds apart on 2026-07-16.
     if (p.processing) {
-      await interaction.reply({
-        content: 'Already creating those tasks, give it a moment. Do not click again.',
-        ephemeral: true,
-      }).catch(function() {});
+      await tell('Already creating those tasks, give it a moment. Do not click again.');
       return;
     }
     p.processing = true;
 
-    await interaction.deferUpdate().catch(function() {});
+    await ack();
     var indices = p.selected ? Array.from(p.selected) : p.tasks.map(function(_, i) { return String(i); });
     var chosen = indices
       .map(function(i) { return p.tasks[parseInt(i, 10)]; })
@@ -627,6 +678,9 @@ export async function handleComponent(interaction) {
     });
 
     PENDING.delete(token);
+    await clearPending(p.voiceSessionId);
+    console.log('[record] created ' + chosen.length + ' task(s) from "' + p.meetingTitle + '"'
+      + (jiraOn ? ' (' + jiraResults.filter(function(r) { return r.key; }).length + ' in Jira)' : ''));
 
     var resultEmbed = baseEmbed({
       color: COLOR.success,

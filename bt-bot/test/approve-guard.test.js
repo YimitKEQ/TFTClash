@@ -91,3 +91,63 @@ test('a partially completed batch stays claimed', function() {
   var retry = attemptApprove(pending, 7);
   assert.equal(retry.accepted, false, 'no automatic retry over a half-created batch');
 });
+
+// ---- durability across a restart ----------------------------------------------
+
+/**
+ * The pending set used to live only in an in-memory Map, so any restart threw a
+ * meeting's tasks away. On 2026-08-12 a real recap with seven tasks was posted,
+ * the bot redeployed, and "Create selected" reported the set as expired. The
+ * tasks had to be entered by hand.
+ *
+ * The lookup order below is the contract that fixes it.
+ */
+function resolvePending(memory, database, token) {
+  if (memory.has(token)) return { payload: memory.get(token), source: 'memory' };
+  var stored = database.get(token);
+  if (!stored) return { payload: null, source: 'gone' };
+  memory.set(token, stored);
+  return { payload: stored, source: 'database' };
+}
+
+test('a set still in memory is served from memory', function() {
+  var mem = new Map([['t1', { tasks: [1, 2] }]]);
+  var db = new Map();
+  var r = resolvePending(mem, db, 't1');
+  assert.equal(r.source, 'memory');
+  assert.equal(r.payload.tasks.length, 2);
+});
+
+test('a restart falls back to the database instead of losing the tasks', function() {
+  var db = new Map([['t1', { tasks: [1, 2, 3, 4, 5, 6, 7] }]]);
+  var mem = new Map(); // the restart
+
+  var r = resolvePending(mem, db, 't1');
+  assert.equal(r.source, 'database', 'must not report the set as expired');
+  assert.equal(r.payload.tasks.length, 7, 'all seven tasks survive');
+});
+
+test('a restored set is cached, so the next click does not hit the database', function() {
+  var db = new Map([['t1', { tasks: [1] }]]);
+  var mem = new Map();
+  resolvePending(mem, db, 't1');
+  assert.equal(resolvePending(mem, db, 't1').source, 'memory');
+});
+
+test('a set cleared after approval cannot be approved again', function() {
+  var db = new Map([['t1', { tasks: [1] }]]);
+  var mem = new Map();
+  resolvePending(mem, db, 't1');
+
+  // Approval clears both stores.
+  mem.delete('t1');
+  db.delete('t1');
+
+  var r = resolvePending(mem, db, 't1');
+  assert.equal(r.source, 'gone');
+  assert.equal(r.payload, null, 'no second batch of cards');
+});
+
+test('an unknown token is reported gone rather than throwing', function() {
+  assert.equal(resolvePending(new Map(), new Map(), 'nope').source, 'gone');
+});
