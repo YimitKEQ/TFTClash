@@ -110,7 +110,9 @@ It is a single Node 18+ process. Run it anywhere Node is available:
   transcribed locally with whisper.cpp, summarized + extracted into tasks by
   Claude, and posted with a pick-list. You select the real tasks and they are
   created as board cards AND Jira issues. `/record status` shows the live state;
-  `/record jiracheck` verifies the Jira connection. See "Voice recording" below.
+  `/record jiracheck` verifies the Jira connection; `/record jirasync` pulls Jira
+  status changes onto the board on demand (it also runs every 10 minutes). See
+  "Voice recording" and "Jira to board sync" below.
 - `/setup` - build the BrosephTech HQ category and its `bt-` channels.
   Idempotent. Needs Manage Channels.
 - `/card` - the full write path for a card, all with title autocomplete:
@@ -215,6 +217,10 @@ approved task is created as a board card and pushed to Jira Cloud.
 
    Then run `/record jiracheck` to confirm the bot can reach the project.
 
+   If the board already has cards from before the Jira link existed, connect
+   them once with `node scripts/backfill-jira-links.js` (dry run) then
+   `--apply`. See "Jira to board sync" below.
+
 4. The bot needs the **Connect** permission on the voice channel. Re-run
    `npm run deploy` so the new `/record` command is registered, then restart the
    bot. On startup it logs a voice dependency report - if "Encryption Libraries"
@@ -239,6 +245,57 @@ approved task is created as a board card and pushed to Jira Cloud.
 - Audio and intermediate WAV/JSON files are written to the OS temp dir and
   deleted right after transcription. Only the text transcript is kept (in
   `bt_meetings`).
+
+## Jira to board sync
+
+Move a ticket in Jira and its board card follows. A card created by `/record`
+stores the key of the issue made from the same task (`jira_key`), and a cron
+pass every 10 minutes reconciles the two.
+
+| Jira status category | Board column        |
+|----------------------|---------------------|
+| To Do (`new`)        | `ideas` (Backlog)   |
+| In Progress          | `production`        |
+| Done                 | `published`         |
+
+Rules worth knowing:
+
+- **Edge triggered.** Each card remembers the Jira category it last synced with
+  (`jira_status`). A pass only acts when Jira has actually changed since. Move a
+  card by hand on the board and the sync leaves it there. Whichever side moved
+  last wins, and neither side fights the other.
+- **One direction.** Jira drives the board, never the reverse. Pushing board
+  moves back into Jira needs conflict rules and is deliberately out of scope.
+- **Archive is respected.** A card parked in Archive is never dragged back into
+  the pipeline; the pass just records the new Jira category and moves on.
+- **Announced, not silent.** When a pass moves anything it posts to the standup
+  channel. A quiet pass says nothing. `/record jirasync` runs it on demand and
+  always answers, including "nothing to move".
+
+### Commands and scripts
+
+```
+/record jiracheck                            verify the credentials + project
+/record jirasync                             run a sync pass right now
+node scripts/backfill-jira-links.js          dry run: what would be linked
+node scripts/backfill-jira-links.js --apply  write the links
+npm run verify:jirasync                      live end-to-end proof
+```
+
+`backfill-jira-links.js` links pre-existing cards to their issues by title, and
+only when a title maps to exactly one card and exactly one issue. Anything
+ambiguous (the same title created twice) is reported and left unlinked, because
+a card wired to the wrong ticket moves the wrong work and nobody notices.
+
+It links **without** moving anything by default. When this first ran on the live
+board, Jira was behind: 24 of 40 issues still sat in "Idea" while their cards had
+already reached Review and Done. Forcing the board to match would have thrown
+that progress away. Pass `--reconcile` only if you really do want Jira's current
+state stamped over the board.
+
+`npm run verify:jirasync` creates a throwaway issue and card, drives them through
+Done and back, checks the board followed, and deletes both. It touches no real
+work and is the fastest way to confirm the whole path after a config change.
 
 ## Dashboard
 
@@ -366,6 +423,7 @@ bt-bot/
     feed.js              -- realtime board feed
     scoring.js           -- scorecards, standings, digest, blocked sweep
     dashboardData.js     -- the shared overview snapshot
+    jiraSync.js          -- Jira status changes back onto the board
     jira.js  extract.js  recorder.js  transcribe.js  voiceLog.js
   commands/
     guide.js  dashboard.js  board.js  mytasks.js  blocked.js  scorecard.js

@@ -83,6 +83,7 @@ var TOPICS = [
       '**Your audio leaves the machine.** The recorded tracks are uploaded to a hosted speech to text service, then deleted. Only the text is kept. Our server is far too slow to do this locally: a 40 minute call would take about six hours.',
       'If you would rather a conversation was not uploaded, use `/meeting` with pasted notes instead. Same recap, same tasks, no audio sent.',
       '`/record jiracheck` verifies the Jira connection if issues stop being created.',
+      '**Jira drives the board.** Move a ticket to Done in Jira and its card follows within ten minutes. `/record jirasync` does it immediately. Moving a card here does not push back to Jira.',
       'No AI key set means basic extraction: you still get tasks, just blunter ones.',
     ],
   },

@@ -1,15 +1,16 @@
 /**
- * scheduler.js - standup, nudge, weekly digest, and blocked sweep crons.
+ * scheduler.js - standup, nudge, weekly digest, blocked sweep, and Jira sync crons.
  *
  * 09:30 daily (TIMEZONE): post the standup embed to BT_STANDUP_CHANNEL.
  * 18:00 daily (TIMEZONE): ping each member who has overdue or stuck cards.
  * 09:00 Monday (TIMEZONE): post the weekly digest scorecard.
  * 12:00 daily (TIMEZONE): sweep blocked cards and ping their owners.
+ * every 10 minutes: pull Jira status changes onto the board.
  *
- * postStandup / postNudges are exported for manual triggers (slash commands).
- * postDigest / postBlockedSweep live in lib/scoring.js. A missing channel is
- * logged and skipped, never crashed on, and every cron is wrapped so a failure
- * never takes down the process.
+ * postStandup / postNudges / postJiraSync are exported for manual triggers
+ * (slash commands). postDigest / postBlockedSweep live in lib/scoring.js. A
+ * missing channel is logged and skipped, never crashed on, and every cron is
+ * wrapped so a failure never takes down the process.
  */
 
 import cron from 'node-cron';
@@ -17,6 +18,8 @@ import { fetchCards, buildAccountability } from './lib/board.js';
 import { standupEmbed, nudgeContent } from './lib/embeds.js';
 import { resolveChannel } from './lib/channels.js';
 import { postDigest, postBlockedSweep } from './lib/scoring.js';
+import { syncJiraToBoard, columnLabel } from './lib/jiraSync.js';
+import { BRAND, COLOR, MARK, baseEmbed, clamp, eyebrow, pack } from './lib/ui.js';
 
 function getGuild(client) {
   return client.guilds.cache.get(process.env.BT_GUILD_ID);
@@ -90,6 +93,74 @@ export async function postNudges(client) {
   }
 }
 
+/**
+ * The embed announcing what a sync pass moved. Pure, so the preview renderer
+ * and the tests can build the real thing without Discord or a database.
+ * Returns null when nothing moved: a heartbeat every ten minutes saying "no
+ * change" would train everyone to ignore the channel.
+ */
+export function jiraSyncEmbed(result, now) {
+  var moves = (result && result.moves) || [];
+  if (!moves.length) return null;
+
+  var lines = moves.map(function(m) {
+    var label = m.url ? '[' + m.key + '](' + m.url + ')' : m.key;
+    return label + '  ' + clamp(m.title, 60) + '\n`' + columnLabel(m.from) + ' ' + MARK.arrow + ' ' + columnLabel(m.to) + '`'
+      + (m.status ? '  ' + m.status : '');
+  });
+
+  var doneCount = moves.filter(function(m) { return m.category === 'done'; }).length;
+
+  return baseEmbed({
+    color: doneCount === moves.length ? COLOR.success : COLOR.info,
+    author: BRAND.name + '  ' + MARK.arrow + '  jira sync',
+    title: MARK.board + '  ' + moves.length + ' card' + (moves.length === 1 ? '' : 's') + ' moved to match Jira',
+    description: 'Jira is the source of truth for status. Move a ticket there and the board follows within ten minutes.',
+    footer: 'Checked ' + ((result && result.checked) || 0) + ' linked card(s)',
+    timestamp: now || new Date(),
+  }).addFields({ name: eyebrow('Moved', moves.length), value: pack(lines) });
+}
+
+/**
+ * Run one Jira to board sync pass and announce any moves. Returns the raw sync
+ * result so a slash command can report the quiet outcome too.
+ */
+export async function postJiraSync(client, options) {
+  var result = await syncJiraToBoard(options);
+
+  if (!result.ok && !result.skipped) {
+    console.warn('[jira-sync] pass failed: ' + result.reason);
+    return result;
+  }
+  if (result.skipped) {
+    console.log('[jira-sync] skipped: ' + result.reason);
+    return result;
+  }
+
+  if (result.errors && result.errors.length) {
+    console.warn('[jira-sync] ' + result.errors.length + ' card write(s) failed: '
+      + result.errors.map(function(e) { return e.key + ' (' + e.error + ')'; }).join(', '));
+  }
+  if (result.missing && result.missing.length) {
+    console.warn('[jira-sync] ' + result.missing.length + ' linked card(s) point at an issue that no longer exists: ' + result.missing.join(', '));
+  }
+
+  console.log('[jira-sync] checked ' + result.checked + ', moved ' + result.moved + ', baseline stamped ' + result.stamped);
+  if (!result.moved) return result;
+
+  var embed = jiraSyncEmbed(result, new Date());
+  if (!embed) return result;
+
+  var channel = resolveStandupChannel(client);
+  if (!channel) return result;
+  try {
+    await channel.send({ embeds: [embed] });
+  } catch (e) {
+    console.warn('[jira-sync] could not announce moves: ' + ((e && e.message) || e));
+  }
+  return result;
+}
+
 // Schedule a cron job, surviving a bad TIMEZONE. An invalid timezone makes
 // node-cron throw synchronously, which would abort the whole startScheduler
 // call, so we retry once with the default tz, then with the system tz.
@@ -139,5 +210,13 @@ export function startScheduler(client) {
     });
   }, tz);
 
-  console.log('[scheduler] crons armed (standup 09:30, nudge 18:00, digest Mon 09:00, blocked sweep 12:00, tz=' + tz + ')');
+  // Ten minutes is the compromise between "the board feels live" and not
+  // hammering the Jira API all day for a board that changes a few times a week.
+  safeSchedule('jira sync', '*/10 * * * *', function() {
+    postJiraSync(client).catch(function(e) {
+      console.error('[scheduler] jira sync cron error: ' + ((e && e.message) || e));
+    });
+  }, tz);
+
+  console.log('[scheduler] crons armed (standup 09:30, nudge 18:00, digest Mon 09:00, blocked sweep 12:00, jira sync every 10m, tz=' + tz + ')');
 }

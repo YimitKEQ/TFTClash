@@ -30,6 +30,8 @@ import { analyzeMeeting } from '../lib/extract.js';
 import { createCardsFromTasks, recordMeeting } from '../lib/board.js';
 import { logVoiceSession, updateVoiceSession, savePending, loadPending, clearPending } from '../lib/voiceLog.js';
 import { createIssue, jiraConfigured, jiraMissingHint, checkJira } from '../lib/jira.js';
+import { pairByTitle, linkPairs } from '../lib/jiraSync.js';
+import { postJiraSync } from '../scheduler.js';
 import { resolveChannel } from '../lib/channels.js';
 import { BT_DEPARTMENTS } from '../config/crew.js';
 import {
@@ -233,6 +235,9 @@ export var data = new SlashCommandBuilder()
   })
   .addSubcommand(function(s) {
     return s.setName('jiracheck').setDescription('Verify the Jira Cloud connection');
+  })
+  .addSubcommand(function(s) {
+    return s.setName('jirasync').setDescription('Pull Jira status changes onto the board right now');
   });
 
 export async function execute(interaction) {
@@ -241,6 +246,7 @@ export async function execute(interaction) {
   if (sub === 'stop') return stopCmd(interaction);
   if (sub === 'status') return statusCmd(interaction);
   if (sub === 'jiracheck') return jiraCheckCmd(interaction);
+  if (sub === 'jirasync') return jiraSyncCmd(interaction);
 }
 
 async function startCmd(interaction) {
@@ -354,6 +360,32 @@ async function jiraCheckCmd(interaction) {
   await interaction.deferReply({ ephemeral: true });
   var r = await checkJira();
   await interaction.editReply((r.ok ? 'Jira OK: ' : 'Jira not ready: ') + r.detail);
+}
+
+// Run the sync on demand instead of waiting for the ten minute cron. The cron
+// only announces moves; this always answers, including "nothing changed", so
+// the person who just dragged a ticket gets a straight yes or no.
+async function jiraSyncCmd(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  var r = await postJiraSync(interaction.client);
+
+  if (r.skipped) {
+    await interaction.editReply('Sync skipped: ' + r.reason);
+    return;
+  }
+  if (!r.ok) {
+    await interaction.editReply('Sync failed: ' + r.reason);
+    return;
+  }
+
+  var parts = ['Checked ' + r.checked + ' linked card(s).'];
+  if (r.moved) parts.push('Moved ' + r.moved + ' to match Jira (posted in the standup channel).');
+  else parts.push('Nothing to move, the board already matches Jira.');
+  if (r.stamped) parts.push(r.stamped + ' card(s) took their first Jira baseline.');
+  if (r.missing && r.missing.length) parts.push(r.missing.length + ' card(s) point at an issue that no longer exists: ' + r.missing.join(', ') + '.');
+  if (r.errors && r.errors.length) parts.push(r.errors.length + ' write(s) failed, check the logs.');
+
+  await interaction.editReply(parts.join(' '));
 }
 
 async function stopCmd(interaction) {
@@ -655,6 +687,31 @@ export async function handleComponent(interaction) {
         } catch (e2) {
           jiraResults.push({ title: t.title, error: (e2 && e2.message) || String(e2) });
         }
+      }
+    }
+
+    // 2b) Link each card to the issue made from the same task, so a status
+    // change in Jira can flow back onto the board later. Matching is by title
+    // and only accepts unambiguous pairs (see pairByTitle), so two tasks with
+    // the same title in one meeting stay unlinked rather than cross wired.
+    // A freshly created issue always sits in the project's first status, which
+    // is the 'new' category, so that is the baseline linkPairs records.
+    if (jiraOn && cards.length) {
+      try {
+        var madeIssues = jiraResults.filter(function(r) { return r.key; }).map(function(r) {
+          return { key: r.key, summary: r.title, url: r.url, category: 'new' };
+        });
+        var paired = pairByTitle(cards, madeIssues);
+        var linkRes = await linkPairs(paired.pairs);
+        console.log('[record] linked ' + linkRes.linked + '/' + madeIssues.length + ' card(s) to Jira'
+          + (paired.ambiguous.length ? ' (' + paired.ambiguous.length + ' ambiguous title(s) skipped)' : ''));
+        if (linkRes.failed.length) {
+          console.warn('[record] link failures: ' + linkRes.failed.map(function(f) { return f.key + ' (' + f.error + ')'; }).join(', '));
+        }
+      } catch (linkErr) {
+        // A missing link only costs the automatic status sync. The card and the
+        // issue both exist, so never fail the capture over it.
+        console.warn('[record] Jira linking skipped: ' + ((linkErr && linkErr.message) || linkErr));
       }
     }
 

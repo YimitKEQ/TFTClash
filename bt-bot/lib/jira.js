@@ -46,6 +46,24 @@ function authHeader(c) {
   return 'Basic ' + Buffer.from(c.email + ':' + c.token).toString('base64');
 }
 
+/**
+ * Raw authenticated call against the Jira REST API, for the paths that do not
+ * deserve their own wrapper (transitions, cleanup in the verify script).
+ * Keeping it here means the credentials are still assembled in exactly one
+ * place. `path` is relative, e.g. '/rest/api/3/issue/KAN-1/transitions'.
+ */
+export function jiraFetch(path, init) {
+  var c = cfg();
+  if (!jiraConfigured()) throw new Error('Jira is not configured (' + jiraMissingHint() + ')');
+  var opts = init || {};
+  var headers = Object.assign({
+    'Authorization': authHeader(c),
+    'Accept': 'application/json',
+  }, opts.headers || {});
+  if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  return fetch(c.baseUrl + path, Object.assign({}, opts, { headers: headers }));
+}
+
 // Jira labels may not contain spaces; normalize to safe tokens.
 function safeLabel(s) {
   return String(s || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
@@ -200,19 +218,22 @@ function slimIssue(c, issue) {
     assignee: (f.assignee && f.assignee.displayName) || null,
     labels: f.labels || [],
     created: f.created || null,
+    updated: f.updated || null,
     url: c.baseUrl + '/browse/' + issue.key,
   };
 }
 
-// Run a JQL search via the current /search/jql endpoint. Returns slim issues.
-export async function searchIssues(jql, max) {
-  var c = cfg();
-  if (!jiraConfigured()) return [];
+var SEARCH_FIELDS = ['summary', 'status', 'issuetype', 'priority', 'assignee', 'labels', 'created', 'updated'];
+
+// One page of a JQL search via the current /search/jql endpoint.
+// Returns { issues, nextPageToken }.
+async function searchPage(c, jql, max, pageToken) {
   var body = {
     jql: jql,
     maxResults: Math.min(max || 50, 100),
-    fields: ['summary', 'status', 'issuetype', 'priority', 'assignee', 'labels', 'created'],
+    fields: SEARCH_FIELDS,
   };
+  if (pageToken) body.nextPageToken = pageToken;
   var res = await fetch(c.baseUrl + '/rest/api/3/search/jql', {
     method: 'POST',
     headers: {
@@ -222,9 +243,49 @@ export async function searchIssues(jql, max) {
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error('Jira search ' + res.status);
+  if (!res.ok) {
+    var txt = await res.text().catch(function() { return ''; });
+    throw new Error('Jira search ' + res.status + ': ' + txt.slice(0, 200));
+  }
   var data = await res.json();
-  return (data.issues || []).map(function(i) { return slimIssue(c, i); });
+  return {
+    issues: (data.issues || []).map(function(i) { return slimIssue(c, i); }),
+    nextPageToken: data.isLast ? null : (data.nextPageToken || null),
+  };
+}
+
+// Run a JQL search via the current /search/jql endpoint. Returns slim issues.
+export async function searchIssues(jql, max) {
+  var c = cfg();
+  if (!jiraConfigured()) return [];
+  var page = await searchPage(c, jql, max, null);
+  return page.issues;
+}
+
+/**
+ * Every issue matching a JQL query, following pagination.
+ *
+ * searchIssues caps out at one 100 issue page, which is fine for a dashboard
+ * snapshot and wrong for the board sync: a project with 120 issues would leave
+ * 20 cards silently never syncing, and the symptom (some tickets update, some
+ * do not) is horrible to diagnose. `cap` is a hard stop so a runaway project
+ * cannot spin here forever.
+ */
+export async function searchAllIssues(jql, cap) {
+  var c = cfg();
+  if (!jiraConfigured()) return [];
+  var limit = cap || 1000;
+  var all = [];
+  var token = null;
+  // 100 per page against the cap, plus one, so the loop can never outrun `cap`.
+  var maxPages = Math.ceil(limit / 100) + 1;
+  for (var page = 0; page < maxPages; page++) {
+    var res = await searchPage(c, jql, 100, token);
+    all = all.concat(res.issues);
+    token = res.nextPageToken;
+    if (!token || all.length >= limit) break;
+  }
+  return all.slice(0, limit);
 }
 
 /**
