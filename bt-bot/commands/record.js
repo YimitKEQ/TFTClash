@@ -426,7 +426,7 @@ async function stopCmd(interaction) {
     // the success path still removes it as soon as there is a transcript.
     await respond(interaction, 'Transcription failed: ' + ((e && e.message) || e)
       + '\nThe raw audio is still on the host at `' + manifest.dir + '`, so the meeting is recoverable. '
-      + 'See docs/OPERATIONS.md section 4.');
+      + 'See ops/OPERATIONS.md section 4.');
     return;
   }
   // Audio and intermediate files are no longer needed once transcribed.

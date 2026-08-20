@@ -63,7 +63,7 @@ export function transcriberStatus() {
       ok: false,
       reason: 'not configured',
       detail: 'WHISPER_CMD and WHISPER_MODEL are not both set.',
-      hint: 'Set them in bt-bot/.env, then restart the bot. See docs/OPERATIONS.md.',
+      hint: 'Set them in bt-bot/.env, then restart the bot. See ops/OPERATIONS.md.',
     };
   }
 
