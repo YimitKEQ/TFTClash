@@ -185,3 +185,16 @@ gstack is installed (prefixed mode) at `~/.claude/skills/gstack`. Use these for 
 `/gstack-learn` `/gstack-context-save` `/gstack-context-restore` `/gstack-health` `/gstack-upgrade`
 
 Use `/gstack-browse` for all web browsing. Do not use `mcp__claude-in-chrome__*` tools.
+
+---
+
+## Related repositories
+
+The BrosephTech / BaronTactics accountability bot used to live here as `bt-bot/`.
+It was extracted on 2026-08-21 into its own repo, `Baron-Tactics/barontactics-bot`
+(private), with its full history, and removed from this repo so there is one source
+of truth. Local clone: `D:\dev\barontactics\bt-bot`. It commits under a different
+git identity (see `~/.gitconfig` includeIf) and pushes via the `github.com-bt` SSH
+alias. `deploy.ps1 baron` now packs from that repo.
+
+The TFT Clash Discord bot (`discord-bot/`) is unaffected and still lives here.

@@ -1,9 +1,0 @@
-node_modules
-.env
-
-# Intermediate HTML written by scripts/preview-embeds.js. The PNG it produces
-# is committed; the scaffolding that made it is not.
-docs/images/.embed-preview.html
-
-# Intermediate crop written when inspecting the rendered poster.
-docs/images/.poster-crop.png
