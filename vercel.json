@@ -26,6 +26,7 @@
     { "source": "/api/cron-retention-notify", "destination": "/api/cron?job=retention-notify" },
     { "source": "/api/ping-search-engines", "destination": "/api/cron?job=ping-search" },
     { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/riftline/(.*)", "destination": "/riftline/index.html" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
